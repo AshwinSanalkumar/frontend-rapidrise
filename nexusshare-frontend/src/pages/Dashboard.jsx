@@ -1,26 +1,20 @@
 import React, { useState, useRef } from 'react';
+import UploadConfirmModal from '../components/ui/UploadConfirmModel';
 
 const Dashboard = () => {
   const [stagedFiles, setStagedFiles] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const hiddenInputRef = useRef(null);
 
-  // Helper to format file sizes
-  const formatBytes = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  // Handle file selection from browse or drop
+  // Logic to handle file selection (Browse or Drop)
   const handleFiles = (e) => {
+    e.preventDefault();
     const files = Array.from(e.target.files || e.dataTransfer.files);
     if (files.length > 0) {
       setStagedFiles((prev) => [...prev, ...files]);
       setIsModalOpen(true);
     }
+    if (e.target.value) e.target.value = null;
   };
 
   const removeFile = (index) => {
@@ -29,7 +23,12 @@ const Dashboard = () => {
     if (updated.length === 0) setIsModalOpen(false);
   };
 
-  const totalSize = stagedFiles.reduce((acc, file) => acc + file.size, 0);
+  const handleFinalUpload = (files, descriptions) => {
+    // This is where you'd connect to your backend API
+    console.log("Files:", files, "Descriptions:", descriptions);
+    setIsModalOpen(false);
+    setStagedFiles([]);
+  };
 
   return (
     <main className="flex-1 p-8 lg:p-12 overflow-y-auto custom-scrollbar relative">
@@ -52,7 +51,6 @@ const Dashboard = () => {
           <h3 className="text-2xl font-black text-gray-800 dark:text-white mt-1">1,284</h3>
         </div>
 
-        {/* Content Mix Card */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
           <div className="flex justify-between items-center mb-4">
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold">Content Mix</p>
@@ -72,7 +70,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Shared Assets Card */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
           <div className="flex justify-between items-center mb-4">
             <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600">
@@ -85,6 +82,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Main Grid: Staging Area & Storage Stats */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
         <div className="xl:col-span-2 space-y-10">
           
@@ -104,13 +102,7 @@ const Dashboard = () => {
             <button className="mt-6 text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/50 px-6 py-2 rounded-full">
               Browse Device
             </button>
-            <input 
-              type="file" 
-              multiple 
-              className="hidden" 
-              ref={hiddenInputRef} 
-              onChange={handleFiles} 
-            />
+            <input type="file" multiple className="hidden" ref={hiddenInputRef} onChange={handleFiles} />
           </div>
 
           {/* Recent Activity Table */}
@@ -145,8 +137,9 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Right Sidebar: Storage & Security */}
         <div className="space-y-8">
-          {/* Storage Circle */}
+          {/* Storage Consumption Circle */}
           <div className="bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm">
             <h3 className="font-bold text-gray-800 dark:text-white mb-8">Storage Consumption</h3>
             <div className="relative w-40 h-40 mx-auto">
@@ -185,7 +178,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Security Banner */}
+          {/* Security Status Banner */}
           <div className="gradient-bg p-8 rounded-[2rem] shadow-xl text-white relative overflow-hidden">
             <div className="relative z-10">
               <h3 className="font-bold text-lg mb-4 flex items-center"><i className="fas fa-shield-alt mr-2"></i> Security Status</h3>
@@ -200,67 +193,17 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* --- THE UPLOAD MODAL POPUP --- */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4">
-          <div className="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="px-10 py-8 flex justify-between items-center border-b border-gray-50 dark:border-gray-700">
-              <div>
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white">Confirm Upload</h3>
-                <p className="text-xs text-gray-400">Review the files you're about to encrypt.</p>
-              </div>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-300 hover:text-red-500 transition">
-                <i className="fas fa-times-circle text-2xl"></i>
-              </button>
-            </div>
-            
-            <div className="p-10">
-              {/* Scrollable File List */}
-              <div className="space-y-3 max-h-72 overflow-y-auto pr-2 mb-8 custom-scrollbar">
-                {stagedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-2xl border border-gray-100 dark:border-gray-700">
-                    <div className="flex items-center space-x-4">
-                      <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-indigo-500"><i className="fas fa-file"></i></div>
-                      <div className="max-w-[250px]">
-                        <p className="text-sm font-bold text-gray-800 dark:text-gray-200 truncate">{file.name}</p>
-                        <p className="text-[10px] text-gray-400 font-extrabold uppercase">{formatBytes(file.size)}</p>
-                      </div>
-                    </div>
-                    <button onClick={() => removeFile(index)} className="text-gray-300 hover:text-red-500 transition px-2">
-                      <i className="fas fa-trash-alt"></i>
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {/* Summary Stats */}
-              <div className="flex items-center justify-between mb-8 px-2 bg-indigo-50/50 dark:bg-indigo-900/20 p-4 rounded-2xl">
-                <div>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Total Items</p>
-                  <p className="text-sm font-bold text-gray-700 dark:text-gray-200">{stagedFiles.length} file(s)</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-indigo-400">Total Size</p>
-                  <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{formatBytes(totalSize)}</p>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex space-x-4">
-                <button 
-                  onClick={() => { setStagedFiles([]); setIsModalOpen(false); }} 
-                  className="flex-1 py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition"
-                >
-                  Cancel
-                </button>
-                <button className="flex-[2] gradient-bg text-white font-bold py-4 rounded-2xl shadow-xl hover:opacity-90 transition active:scale-95">
-                  Confirm & Secure Upload
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Upload Confirmation Modal */}
+      <UploadConfirmModal 
+        isOpen={isModalOpen}
+        files={stagedFiles}
+        onClose={() => {
+          setIsModalOpen(false);
+          setStagedFiles([]);
+        }}
+        onRemove={removeFile}
+        onConfirm={handleFinalUpload}
+      />
     </main>
   );
 };

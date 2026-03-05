@@ -91,7 +91,7 @@ const Navbar = () => {
               <div className="border-t border-gray-100 dark:border-gray-800 my-1"></div>
               
               <Link 
-                to="/login"
+                to="/"
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors text-left font-medium"
               >
                 <i className="fas fa-sign-out-alt"></i>

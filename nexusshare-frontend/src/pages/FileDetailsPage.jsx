@@ -1,99 +1,152 @@
 import React, { useState } from 'react';
+import { useToast } from '../components/ui/ToastContent'; // Use your existing hook
 import ActionButton from '../components/ui/ActionButton';
-import FileSpecCard from '../components/ui/FileSpecCard'; // Changed from FileSpecItem
+import FileSpecCard from '../components/ui/FileSpecCard';
 import ShareModal from '../components/ui/ShareModal';
 import DeleteModal from '../components/ui/DeleteModal';
 
 const FileDetailsPage = () => {
+  // 1. Initialize your custom toast hook
+  const { showToast } = useToast();
+
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const fileInfo = {
+  const [fileData, setFileData] = useState({
     name: "Project_Final_Logo.png",
+    description: "Final vector asset for rebranding. Includes dark and light variations.",
     date: "Feb 25, 2026",
     time: "10:54 AM",
     size: "1.8 MB",
     extension: ".PNG",
     status: "SECURED",
     preview: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"
+  });
+
+  const lastDotIndex = fileData.name.lastIndexOf('.');
+  const namePart = fileData.name.substring(0, lastDotIndex);
+  const extPart = fileData.name.substring(lastDotIndex);
+
+  // 2. Handle Edit with your Toast
+  const handleSaveEdit = () => {
+    if (!namePart.trim()) {
+      showToast("File name cannot be empty", "error");
+      return;
+    }
+    
+    setIsSaving(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsSaving(false);
+      setIsEditing(false);
+      showToast("File details updated successfully!");
+    }, 800);
+  };
+
+  // 3. Handle Download with your Toast
+  const handleDownload = () => {
+    showToast(`Downloading ${fileData.name}...`);
+    // Logic for actual download would go here
   };
 
   const handleDeleteAction = () => {
-    console.log("File Deleted");
     setIsDeleteModalOpen(false);
-    // window.location.href = '/myfiles'; 
+    showToast("File moved to trash", "success");
+    // navigate('/dashboard');
   };
 
   return (
-    <main className="flex-1 p-8 overflow-y-auto">
-      {/* Navigation */}
-      <button 
-        onClick={() => window.history.back()} 
+    <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <button
+        onClick={() => window.history.back()}
         className="flex items-center text-sm font-bold text-gray-400 hover:text-indigo-600 transition mb-6 group"
       >
-        <i className="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i> 
+        <i className="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i>
         Back to My Files
       </button>
 
       <div className="flex flex-col xl:flex-row gap-8">
-        {/* Left Column */}
         <div className="flex-1 space-y-6">
           <section className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-gray-700">
             <div className="relative w-full aspect-video bg-gray-50 dark:bg-gray-900 rounded-[2rem] overflow-hidden flex items-center justify-center border border-gray-100 dark:border-gray-800">
-              <img src={fileInfo.preview} className="w-full h-full object-cover" alt="Preview" />
-              <button className="absolute bottom-6 right-6 bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-white/40 transition">
+              <img src={fileData.preview} className="w-full h-full object-cover" alt="Preview" />
+              <button className="absolute bottom-6 right-6 bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-white/40 transition border border-white/20">
                 <i className="fas fa-expand-arrows-alt mr-2"></i> Fullscreen
               </button>
             </div>
-            
-            <div className="mt-8 flex justify-between items-start">
-              <div>
-                <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">{fileInfo.name}</h1>
-                <p className="text-gray-400 font-medium">Added on {fileInfo.date} • {fileInfo.time}</p>
+
+            <div className="mt-8 flex flex-col md:flex-row justify-between items-start gap-4">
+              <div className="flex-1 w-full">
+                {isEditing ? (
+                  <div className="flex flex-col space-y-1">
+                    <label className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest ml-1">File Name</label>
+                    <div className="flex items-center w-full bg-gray-50 dark:bg-gray-900 border-2 border-indigo-500 rounded-xl px-4 py-2 transition-all">
+                      <input
+                        type="text"
+                        defaultValue={namePart}
+                        onChange={(e) => setFileData({ ...fileData, name: e.target.value + extPart })}
+                        className="bg-transparent border-none outline-none flex-1 text-2xl font-bold text-gray-900 dark:text-white py-1"
+                        autoFocus
+                      />
+                      <span className="text-2xl font-bold text-gray-400 dark:text-gray-500 select-none ml-2">{extPart}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">{fileData.name}</h1>
+                )}
+                <p className="text-gray-400 font-medium mt-1">Added on {fileData.date} • {fileData.time}</p>
               </div>
-              <div className="flex space-x-3">
-                <ActionButton icon="fa-edit" title="Update" onClick={() => {}} />
-                <ActionButton icon="fa-download" title="Download" onClick={() => {}} />
-                <ActionButton 
-                  icon="fa-trash-alt" 
-                  title="Delete" 
-                  variant="danger" 
-                  onClick={() => setIsDeleteModalOpen(true)} 
-                />
+
+              <div className="flex space-x-3 shrink-0">
+                {isEditing ? (
+                  <>
+                    <button onClick={() => setIsEditing(false)} className="px-4 py-2 text-sm font-bold text-gray-400 hover:text-gray-600 transition">Cancel</button>
+                    <button
+                      onClick={handleSaveEdit}
+                      disabled={isSaving}
+                      className="gradient-bg text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:opacity-90 transition active:scale-95 flex items-center min-w-[100px] justify-center"
+                    >
+                      {isSaving ? <i className="fas fa-circle-notch fa-spin"></i> : 'Save'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <ActionButton icon="fa-edit" title="Update" onClick={() => setIsEditing(true)} />
+                    <ActionButton icon="fa-download" title="Download" onClick={handleDownload} />
+                    <ActionButton icon="fa-trash-alt" title="Delete" variant="danger" onClick={() => setIsDeleteModalOpen(true)} />
+                  </>
+                )}
               </div>
             </div>
           </section>
 
           <section className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-gray-700">
-            <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Description</h2>
-            <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-              Final vector asset for rebranding. Includes dark and light variations.
-            </p>
+            <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center">
+              <i className="fas fa-align-left mr-2 text-indigo-500"></i> Description
+            </h2>
+            {isEditing ? (
+              <textarea
+                value={fileData.description}
+                onChange={(e) => setFileData({ ...fileData, description: e.target.value })}
+                className="w-full p-5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl text-gray-600 dark:text-gray-400 outline-none focus:ring-2 focus:ring-indigo-500 transition-all h-32 resize-none"
+              />
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+                {fileData.description || "No description provided."}
+              </p>
+            )}
           </section>
         </div>
 
-        {/* Right Column */}
         <div className="w-full xl:w-96">
-          <FileSpecCard 
-            file={fileInfo} 
-            onShare={() => setIsShareModalOpen(true)} 
-          />
+          <FileSpecCard file={fileData} onShare={() => setIsShareModalOpen(true)} />
         </div>
       </div>
 
-      {/* Modals - Ensure props match the component definitions */}
-      <ShareModal 
-        isOpen={isShareModalOpen} 
-        fileName={fileInfo.name} 
-        onClose={() => setIsShareModalOpen(false)} 
-      />
-
-      <DeleteModal 
-        isOpen={isDeleteModalOpen} 
-        fileName={fileInfo.name} 
-        onClose={() => setIsDeleteModalOpen(false)} 
-        onDelete={handleDeleteAction}
-      />
+      <ShareModal isOpen={isShareModalOpen} fileName={fileData.name} onClose={() => setIsShareModalOpen(false)} />
+      <DeleteModal isOpen={isDeleteModalOpen} fileName={fileData.name} onClose={() => setIsDeleteModalOpen(false)} onDelete={handleDeleteAction} />
     </main>
   );
 };
