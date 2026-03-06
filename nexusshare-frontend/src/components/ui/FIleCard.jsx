@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../ui/ToastContent'; // Using your custom toast hook
 
 const FileCard = ({ file, onShare, view }) => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const isList = view === 'list';
+  
+  // Local state for immediate UI feedback
+  const [isFavorite, setIsFavorite] = useState(file.isFavorite || false);
 
-  // Strategy for File Icons and Colors
   const getFileConfig = (type) => {
     const configs = {
       image: { icon: 'fa-file-image', color: 'text-blue-500', bg: 'bg-blue-50' },
@@ -20,20 +24,43 @@ const FileCard = ({ file, onShare, view }) => {
 
   const config = getFileConfig(file.type);
 
-  // Navigation to your viewing page
+  const handleToggleFavorite = (e) => {
+    e.stopPropagation(); // Prevents navigating to file details
+    const newState = !isFavorite;
+    setIsFavorite(newState);
+    
+    // Professional feedback via your Toast system
+    showToast(
+      newState ? `Added ${file.name} to favorites` : `Removed ${file.name} from favorites`,
+      newState ? 'success' : 'info'
+    );
+  };
+
   const handleView = () => {
-    // Assuming your route is something like /view/:id
     navigate(`/file-details`);
   };
 
   return (
     <div 
       onClick={handleView}
-      className={`file-card bg-white dark:bg-gray-800 p-4 border border-gray-100 dark:border-gray-700 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer
+      className={`file-card bg-white dark:bg-gray-800 p-4 border border-gray-100 dark:border-gray-700 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer relative
         ${isList 
           ? 'flex flex-row items-center !py-4 !px-6 !rounded-[1.25rem]' 
           : 'flex flex-col rounded-[2.5rem]'}`}
     >
+      {/* Favorite Button - Top Right Overlay for Grid View */}
+      {!isList && (
+        <button 
+          onClick={handleToggleFavorite}
+          className={`absolute top-6 right-6 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md 
+            ${isFavorite 
+              ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30' 
+              : 'bg-white/50 text-gray-400 hover:text-rose-500 hover:bg-white'}`}
+        >
+          <i className={`${isFavorite ? 'fas' : 'far'} fa-heart text-xs`}></i>
+        </button>
+      )}
+
       {/* File Preview Container */}
       <div className={`relative overflow-hidden flex-shrink-0 transition-colors duration-300
         ${isList 
@@ -52,22 +79,22 @@ const FileCard = ({ file, onShare, view }) => {
              <i className={`fas ${config.icon} ${config.color} ${isList ? 'text-xl' : 'text-3xl'} group-hover:rotate-12 transition-transform duration-300`}></i>
           </div>
         )}
-        <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors"></div>
       </div>
 
       {/* File Details */}
       <div className={`${isList ? 'flex flex-1 items-center' : ''}`}>
-        <h3 className={`font-bold text-gray-800 dark:text-gray-100 truncate px-1 ${isList ? 'mr-auto text-base' : 'text-sm'}`}>
-          {file.name}
-        </h3>
-        
-        <p className={`text-xs text-gray-400 px-1 font-medium ${isList ? 'mt-0 mr-8 min-w-[150px]' : 'mt-1'}`}>
-          {file.date} • {file.size}
-        </p>
+        <div className={`${isList ? 'mr-auto flex flex-col' : ''}`}>
+          <h3 className={`font-bold text-gray-800 dark:text-gray-100 truncate px-1 ${isList ? 'text-base' : 'text-sm'}`}>
+            {file.name}
+          </h3>
+          <p className={`text-xs text-gray-400 px-1 font-medium ${isList ? 'mt-0.5' : 'mt-1'}`}>
+            {file.date} • {file.size}
+          </p>
+        </div>
 
         {/* Status and Action Button */}
-        <div className={`flex items-center justify-between px-1 
-          ${isList ? 'mt-0 pt-0 border-t-0 space-x-6' : 'mt-6 pt-4 border-t border-gray-50 dark:border-gray-700'}`}>
+        <div className={`flex items-center 
+          ${isList ? 'space-x-8' : 'justify-between mt-6 pt-4 border-t border-gray-50 dark:border-gray-700'}`}>
           
           <span className={`text-[10px] font-extrabold px-2 py-1 rounded-md whitespace-nowrap tracking-wider
             ${file.status === 'PRIVATE' 
@@ -76,15 +103,27 @@ const FileCard = ({ file, onShare, view }) => {
             {file.status}
           </span>
 
-          <button 
-            onClick={(e) => { 
-              e.stopPropagation(); // Prevents the 'view' redirect when clicking share
-              onShare(file.name); 
-            }}
-            className="text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition whitespace-nowrap flex items-center"
-          >
-            <i className="fas fa-share-alt mr-2"></i> Share
-          </button>
+          <div className="flex items-center space-x-4">
+            {/* Favorite Button for List View */}
+            {isList && (
+              <button 
+                onClick={handleToggleFavorite}
+                className={`transition-colors duration-200 ${isFavorite ? 'text-rose-500' : 'text-gray-300 hover:text-rose-500'}`}
+              >
+                <i className={`${isFavorite ? 'fas' : 'far'} fa-heart`}></i>
+              </button>
+            )}
+
+            <button 
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                onShare(file.name); 
+              }}
+              className="text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition whitespace-nowrap flex items-center"
+            >
+              <i className="fas fa-share-alt mr-2"></i> Share
+            </button>
+          </div>
         </div>
       </div>
     </div>

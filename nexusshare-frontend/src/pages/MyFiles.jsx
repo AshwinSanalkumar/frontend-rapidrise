@@ -37,20 +37,21 @@ const MyFiles = () => {
         <ViewToggle view={view} setView={setView} />
       </div>
 
-      {/* Files Container */}
-      <div className={view === 'grid' 
-        ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6" 
-        : "flex flex-col gap-4"
-      }>
-        {currentFiles.map(file => (
-          <FileCard 
-            key={file.id} 
-            file={file} 
-            onShare={openModal} 
-            view={view} 
-          />
-        ))}
-      </div>
+    {/* Files Container - FIXED */}
+<div className={view === 'grid' 
+  ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6" 
+  : "flex flex-col gap-4"
+}>
+  {/* Change filesData.map to currentFiles.map below */}
+  {currentFiles.map(file => (
+    <FileCard 
+      key={file.id} 
+      file={file} 
+      onShare={openModal} 
+      view={view} 
+    />
+  ))}
+</div>
 
       {/* Pagination Component */}
       <Pagination 

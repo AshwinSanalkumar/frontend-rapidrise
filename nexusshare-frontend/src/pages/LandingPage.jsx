@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import LandingNav from '../components/layout/LandingNav';
 import { AnalyticsCard, DeviceCard } from '../components/ui/LandingFeatureCard';
 
@@ -24,12 +25,20 @@ const Landing = () => {
             The most secure way to share sensitive documents. Upload your files, set an expiry timer, and share a link that disappears forever.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="w-full sm:w-auto px-10 py-5 gradient-bg text-white font-bold rounded-2xl shadow-2xl hover:scale-105 transition transform active:scale-95">
+
+            <Link 
+              to="/login" 
+              className="w-full sm:w-auto px-10 py-5 gradient-bg text-white font-bold rounded-2xl shadow-2xl hover:scale-105 hover:shadow-indigo-500/25 transition transform active:scale-95 flex items-center justify-center"
+            >
               Start Sharing
-            </button>
-            <button className="w-full sm:w-auto px-10 py-5 bg-white dark:bg-gray-800 text-gray-800 dark:text-white font-bold rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 hover:bg-gray-50 transition active:scale-95">
+            </Link>
+     
+            <Link 
+              to="/login" 
+              className="w-full sm:w-auto px-10 py-5 bg-white dark:bg-gray-800 text-gray-800 dark:text-white font-bold rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition active:scale-95 flex items-center justify-center"
+            >
               Login
-            </button>
+            </Link>
           </div>
         </div>
       </section>

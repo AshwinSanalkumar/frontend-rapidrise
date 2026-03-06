@@ -102,6 +102,7 @@ const Sidebar = () => {
             <SidebarLink to="/dashboard" icon="fa-th-large" label="Dashboard" />
             <SidebarLink to="/files" icon="fa-folder-open" label="My Files" />
             <SidebarLink to="/shared" icon="fa-share-alt" label="Shared Links" />
+            <SidebarLink to="/Favorites" icon="fa-heart" label="Favorites" />
             <div className="pt-6">
               <p className="px-4 text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-2">Storage</p>
               <SidebarLink to="/file-explore" icon="fa-compass" label="Explorer" />

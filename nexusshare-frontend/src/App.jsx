@@ -16,18 +16,29 @@ import Landing from "./pages/LandingPage";
 import Login from "./pages/login";
 import Register from "./pages/Register";
 import NotFound from "./pages/not-found";
+import FavoritesPage from "./pages/FavoritesPage";
+import ManageStorage from "./pages/ManageStorage";
+import SharedFileView from "./pages/SharedFileView";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPasswordLink from "./pages/ResetPasswordLink";
+import DuplicateManager from "./pages/DuplicateManager";
 
 function App() {
   return (
     /* Wrapping the entire App in the Provider */
     <ToastProvider>
       <Routes>
+        {/* PUBLIC */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/404-not-found" element={<NotFound/>} />
-        <Route element={<MainLayout />}>
+        <Route path="/public/:shareId" element={<SharedFileView />} />
+        <Route path="/forgot-password" element={<ForgotPassword/>}/>
+        <Route path="/reset-passwordlink" element={<ResetPasswordLink/>}/>
 
+        <Route element={<MainLayout />}>
+          {/* PRIVATE */}
           
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/files" element={<MyFiles />} />
@@ -39,6 +50,9 @@ function App() {
           <Route path="/profile-edit" element={<EditProfile />} /> 
           <Route path="/password-change" element={<ChangePassword />}/>
           <Route path="/folder-detail" element={<FolderDetail />}/>
+          <Route path="/favorites" element={<FavoritesPage />}/>
+          <Route path="/managestorage" element={<ManageStorage/>}/>
+          <Route path="/storage/duplicates" element={<DuplicateManager/>}/>
         </Route>
         {/* Catch-all route */}
         <Route path="*" element={<Navigate to="/404-not-found" replace />} />

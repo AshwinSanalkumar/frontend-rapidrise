@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const FileRow = ({ id, name, subtitle, modified, size, iconClass, colorClass, bgClass, imageUrl, onShare, onDelete }) => {
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const navigate = useNavigate();
+
+  const handleRowClick = () => {
+    // Navigates to the details page for this specific file
+    navigate(`/file-details`);
+  };
 
   return (
-    <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+    <tr 
+      onClick={handleRowClick}
+      className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition group cursor-pointer"
+    >
       <td className="px-8 py-6">
         <div className="flex items-center space-x-4">
           {imageUrl ? (
-            <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-700 overflow-hidden border border-gray-100 dark:border-gray-600">
+            <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-700 overflow-hidden border border-gray-100 dark:border-gray-600 group-hover:scale-105 transition-transform">
               <img src={imageUrl} alt="preview" className="w-full h-full object-cover opacity-80" />
             </div>
           ) : (
-            <div className={`p-3 ${bgClass} rounded-xl ${colorClass}`}>
+            <div className={`p-3 ${bgClass} rounded-xl ${colorClass} group-hover:scale-110 transition-transform`}>
               <i className={iconClass}></i>
             </div>
           )}
@@ -27,28 +36,27 @@ const FileRow = ({ id, name, subtitle, modified, size, iconClass, colorClass, bg
       <td className="px-8 py-6 text-sm text-gray-500 dark:text-gray-400">{modified}</td>
       <td className="px-8 py-6 text-sm text-gray-500 dark:text-gray-400">{size}</td>
       
-      {/* Reverted to exact original alignment and spacing */}
       <td className="px-8 py-6 text-right space-x-3 text-gray-300">
         <button 
-          onClick={(e) => { e.stopPropagation(); onShare(id, name); }}
-          className="hover:text-indigo-600 transition-colors"
+          onClick={(e) => { 
+            e.stopPropagation(); // Prevents navigation to FileDetails
+            onShare(id, name); 
+          }}
+          className="hover:text-indigo-600 transition-colors p-2 relative z-10"
+          title="Share Link"
         >
           <i className="fas fa-link"></i>
         </button>
         
         <button 
           onClick={(e) => {
-            e.stopPropagation();
-            if (confirmDelete) {
-              onDelete(id, name);
-            } else {
-              setConfirmDelete(true);
-              setTimeout(() => setConfirmDelete(false), 3000);
-            }
+            e.stopPropagation(); // Prevents navigation to FileDetails
+            onDelete(id, name); 
           }}
-          className={`transition-colors ${confirmDelete ? 'text-red-600 font-bold text-[10px] uppercase tracking-tighter' : 'hover:text-red-500'}`}
+          className="hover:text-red-500 transition-colors p-2 relative z-10"
+          title="Delete File"
         >
-          {confirmDelete ? "Confirm?" : <i className="fas fa-trash"></i>}
+          <i className="fas fa-trash"></i>
         </button>
       </td>
     </tr>

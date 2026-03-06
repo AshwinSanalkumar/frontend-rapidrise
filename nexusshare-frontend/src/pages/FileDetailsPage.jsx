@@ -64,7 +64,7 @@ const FileDetailsPage = () => {
         className="flex items-center text-sm font-bold text-gray-400 hover:text-indigo-600 transition mb-6 group"
       >
         <i className="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i>
-        Back to My Files
+        Go Back
       </button>
 
       <div className="flex flex-col xl:flex-row gap-8">
