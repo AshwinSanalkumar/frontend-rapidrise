@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { filesData } from '../dummydata/filesData';
-import FileCard from '../components/ui/FIleCard';
-import ShareModal from '../components/ui/ShareModal';
-import Pagination from '../components/ui/Pagination';
-import ViewToggle from '../components/ui/ViewToggle'; // 1. Import the reusable toggle
+import { filesData } from '../../dummydata/filesData';
+import FileCard from '../../components/elements/FIleCard';
+import ShareModal from '../../components/modals/ShareModal';
+import Pagination from '../../components/common/Pagination';
+import ViewToggle from '../../components/common/ViewToggle'; // 1. Import the reusable toggle
 
 const MyFiles = () => {
   const [view, setView] = useState('grid');

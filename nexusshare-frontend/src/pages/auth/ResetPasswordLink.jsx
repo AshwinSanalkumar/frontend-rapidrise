@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useToast } from '../components/ui/ToastContent';
+import { useToast } from '../../components/common/ToastContent';
 
 const ResetPasswordLink = () => {
   const { showToast } = useToast();

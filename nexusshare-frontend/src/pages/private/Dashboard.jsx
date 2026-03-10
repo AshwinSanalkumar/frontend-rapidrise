@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import UploadConfirmModal from '../components/ui/UploadConfirmModel';
+import UploadConfirmModal from '../../components/modals/UploadConfirmModel';
 
 const Dashboard = () => {
   const [stagedFiles, setStagedFiles] = useState([]);
@@ -173,7 +173,7 @@ const Dashboard = () => {
                 <p className="text-[10px] text-gray-400 font-extrabold uppercase">Total Capacity</p>
                 <p className="text-sm font-black text-gray-800 dark:text-white">0.65 GB / 1.0 GB</p>
               </div>
-              <Link to="/managestorage" className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-indigo-600 transition">
+              <Link to="/storage" className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-indigo-600 transition">
                 <i className="fas fa-expand-alt"></i>
               </Link>
             </div>

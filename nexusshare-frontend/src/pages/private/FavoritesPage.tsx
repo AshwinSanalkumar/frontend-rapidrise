@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import FileCard from '../components/ui/FIleCard';
-import ShareModal from '../components/ui/ShareModal'; // Import your modal
-import { useToast } from '../components/ui/ToastContent';
+import FileCard from '../../components/elements/FIleCard';
+import ShareModal from '../../components/modals/ShareModal'; // Import your modal
+import { useToast } from '../../components/common/ToastContent';
 
 const FavoritesPage = () => {
   const { showToast } = useToast();

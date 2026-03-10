@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import TrashTable from '../components/ui/TrashTable';
-import { useToast } from '../components/ui/ToastContent';
+import TrashTable from '../../components/elements/TrashTable';
+import { useToast } from '../../components/common/ToastContent';
 
 const Bin = () => {
   const { showToast } = useToast();

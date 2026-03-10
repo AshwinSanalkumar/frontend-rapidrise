@@ -22,7 +22,7 @@ const Profile = () => {
             <p className="text-gray-500 dark:text-gray-400 font-medium">Your personal information and account settings.</p>
           </div>
           <Link 
-            to="/profile-edit" 
+            to="/profile/update" 
             className="bg-indigo-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:bg-indigo-700 transition flex items-center active:scale-95"
           >
             <i className="fas fa-user-edit mr-2"></i> Edit Profile
@@ -73,7 +73,7 @@ const Profile = () => {
                 </div>
               </div>
               <Link 
-                to="/password-change" 
+                to="/profile/update/credentials" 
                 className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold px-6 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition active:scale-95"
               >
                 Reset Password

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DeleteFolderModal from './DeleteFolderModal';
+import DeleteFolderModal from '../modals/DeleteFolderModal';
 
 const FolderCard = ({ id, name, fileCount, size, colorClass, onRename, onDelete, view }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -9,7 +9,7 @@ const FolderCard = ({ id, name, fileCount, size, colorClass, onRename, onDelete,
   const isList = view === 'list';
 
   const handleFolderClick = () => {
-    navigate('/folder-detail');
+    navigate('/assets/details');
   };
 
   const handleConfirmDelete = () => {

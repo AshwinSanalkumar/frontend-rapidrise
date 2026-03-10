@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useToast } from '../components/ui/ToastContent'; // Use your existing hook
-import ActionButton from '../components/ui/ActionButton';
-import FileSpecCard from '../components/ui/FileSpecCard';
-import ShareModal from '../components/ui/ShareModal';
-import DeleteModal from '../components/ui/DeleteModal';
+import { useToast } from '../../components/common/ToastContent'; // Use your existing hook
+import ActionButton from '../../components/common/ActionButton';
+import FileSpecCard from '../../components/elements/FileSpecCard';
+import ShareModal from '../../components/modals/ShareModal';
+import DeleteModal from '../../components/modals/DeleteModal';
 
 const FileDetailsPage = () => {
   // 1. Initialize your custom toast hook

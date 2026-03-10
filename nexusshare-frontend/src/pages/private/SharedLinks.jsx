@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import SharedLinkRow from '../components/ui/SharedLinkRow';
-import DeleteModal from '../components/ui/DeleteModal'; // Reusing the same styled modal
-import { useToast } from '../components/ui/ToastContent';
+import SharedLinkRow from '../../components/elements/SharedLinkRow';
+import DeleteModal from '../../components/modals/DeleteModal'; // Reusing the same styled modal
+import { useToast } from '../../components/common/ToastContent';
 
 const SharedLinks = () => {
   const { showToast } = useToast();

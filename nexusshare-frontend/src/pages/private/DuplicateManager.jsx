@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import DeleteModal from '../components/ui/DeleteModal';
-import { useToast } from '../components/ui/ToastContent';
+import DeleteModal from '../../components/modals/DeleteModal';
+import { useToast } from '../../components/common/ToastContent';
 
 const DuplicateManager = () => {
   const { showToast } = useToast();

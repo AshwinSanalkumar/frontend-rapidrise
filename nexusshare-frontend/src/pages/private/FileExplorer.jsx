@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import FolderCard from '../components/ui/FolderCard';
-import ViewToggle from '../components/ui/ViewToggle'; 
-import { useToast } from '../components/ui/ToastContent';
+import FolderCard from '../../components/elements/FolderCard';
+import ViewToggle from '../../components/common/ViewToggle'; 
+import { useToast } from '../../components/common/ToastContent';
 
 const FileExplorer = () => {
   const { showToast } = useToast();

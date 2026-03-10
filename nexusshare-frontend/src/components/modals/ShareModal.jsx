@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useToast } from '../ui/ToastContent';
+import { useToast } from '../common/ToastContent';
 
 const ShareModal = ({ isOpen, onClose, fileName }) => {
   const { showToast } = useToast();
