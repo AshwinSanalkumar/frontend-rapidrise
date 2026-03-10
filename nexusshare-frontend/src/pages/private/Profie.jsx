@@ -6,7 +6,7 @@ const Profile = () => {
   const user = {
     name: "Ashwin Sanalkumar",
     email: "ashwin@example.com",
-    role: "Standard User",
+    date_of_birth :"25 February 2004",
     joined: "February 2026",
     initial: "A"
   };
@@ -47,11 +47,10 @@ const Profile = () => {
                   <p className="text-lg font-bold text-gray-800 dark:text-white">{user.email}</p>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Account Role</label>
-                  <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full inline-block">
-                    {user.role}
-                  </p>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">D.O.B</label>
+                  <p className="text-sm font-bold text-gray-600 dark:text-gray-300">{user.date_of_birth}</p>
                 </div>
+
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Member Since</label>
                   <p className="text-sm font-bold text-gray-600 dark:text-gray-300">{user.joined}</p>

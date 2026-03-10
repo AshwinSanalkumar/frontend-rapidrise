@@ -1,16 +1,16 @@
 import React, { useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useToast } from '../common/ToastContent';
 import UploadConfirmModal from '../modals/UploadConfirmModel';
 
 const SidebarLink = ({ to, icon, label }) => (
-  <NavLink 
-    to={to} 
-    className={({ isActive }) => 
-      `sidebar-link flex items-center px-4 py-2.5 transition rounded-xl ${
-        isActive 
-          ? 'active-link font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 border-r-4 border-indigo-600' 
-          : 'text-gray-500 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-gray-800'
+  <NavLink
+    to={to}
+    className={({ isActive }) =>
+      `sidebar-link flex items-center px-4 py-2.5 transition rounded-xl ${isActive
+        ? 'active-link font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 border-r-4 border-indigo-600'
+        : 'text-gray-500 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-gray-800'
       }`
     }
   >
@@ -22,7 +22,7 @@ const SidebarLink = ({ to, icon, label }) => (
 const Sidebar = () => {
   const { showToast } = useToast();
   const fileInputRef = useRef(null);
-  
+
   // States to handle the modal and staging
   const [stagedFiles, setStagedFiles] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -79,21 +79,21 @@ const Sidebar = () => {
   return (
     <>
       <aside className="w-64 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 hidden lg:flex flex-col sticky top-[73px] h-[calc(100vh-73px)]">
-        
+
         <div className="px-6 py-6">
-          <button 
+          <button
             onClick={() => fileInputRef.current.click()}
             className="w-full gradient-bg text-white font-bold py-3 rounded-2xl shadow-lg hover:shadow-indigo-200 transition flex items-center justify-center group active:scale-95"
           >
-            <i className="fas fa-plus mr-2 group-hover:rotate-90 transition-transform"></i> 
+            <i className="fas fa-plus mr-2 group-hover:rotate-90 transition-transform"></i>
             New Upload
           </button>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            className="hidden" 
-            multiple 
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            multiple
           />
         </div>
 
@@ -117,39 +117,41 @@ const Sidebar = () => {
           {/* ACTIVE UPLOADS LIST (Visible after Modal Confirmation) */}
           {uploadingFiles.length > 0 && (
             <div className="mt-8 px-2 space-y-2">
-               <p className="px-4 text-[10px] uppercase tracking-widest text-indigo-500 font-extrabold mb-3">Uploading...</p>
-               {uploadingFiles.map(file => (
-                 <div key={file.id} className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700 mx-2">
-                   <div className="flex justify-between items-center mb-2">
-                      <span className="text-[11px] font-bold text-gray-700 dark:text-gray-200 truncate pr-2">{file.name}</span>
-                      <span className="text-[9px] text-gray-400">{file.progress}%</span>
-                   </div>
-                   <div className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 transition-all duration-300" style={{ width: `${file.progress}%` }}></div>
-                   </div>
-                 </div>
-               ))}
+              <p className="px-4 text-[10px] uppercase tracking-widest text-indigo-500 font-extrabold mb-3">Uploading...</p>
+              {uploadingFiles.map(file => (
+                <div key={file.id} className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700 mx-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-200 truncate pr-2">{file.name}</span>
+                    <span className="text-[9px] text-gray-400">{file.progress}%</span>
+                  </div>
+                  <div className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-indigo-500 transition-all duration-300" style={{ width: `${file.progress}%` }}></div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
 
         {/* Storage Stats Indicator */}
         <div className="p-6 border-t border-gray-50 dark:border-gray-800/50">
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700">
-            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-3">Cloud Storage</p>
-            <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div className="h-full gradient-bg w-[65%]"></div>
+          <Link to="/storage">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700">
+              <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-3">Cloud Storage</p>
+              <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className="h-full gradient-bg w-[65%]"></div>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-3 font-medium">0.65 GB of 1 GB</p>
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-3 font-medium">0.65 GB of 1 GB</p>
-          </div>
+          </Link>
         </div>
       </aside>
 
       {/* --- THE MODAL (Triggered by Button selection) --- */}
-      <UploadConfirmModal 
-        isOpen={isModalOpen} 
-        files={stagedFiles} 
-        onClose={() => setIsModalOpen(false)} 
+      <UploadConfirmModal
+        isOpen={isModalOpen}
+        files={stagedFiles}
+        onClose={() => setIsModalOpen(false)}
         onRemove={removeStagedFile}
         onConfirm={handleConfirmUpload}
       />

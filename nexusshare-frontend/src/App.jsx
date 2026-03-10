@@ -4,7 +4,6 @@ import { ToastProvider } from "./components/common/ToastContent"; // Your new gl
 import MainLayout from "./components/layout/MainLayout"; 
 import Dashboard from "./pages/private/Dashboard";
 import MyFiles from "./pages/private/MyFiles";
-import SharedLinks from "./pages/private/SharedLinks";  
 import FileExplorer from "./pages/private/FileExplorer";  
 import FileDetailsPage from "./pages/private/FileDetailsPage";
 import Bin from "./pages/private/Bin";
@@ -23,6 +22,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPasswordLink from "./pages/auth/ResetPasswordLink";
 import DuplicateManager from "./pages/private/DuplicateManager";
 import Recents from "./pages/private/Recents";
+import SharedLinksManagement from "./pages/private/SharedLinkManagement";
 
 function App() {
   return (
@@ -41,7 +41,7 @@ function App() {
           {/* PRIVATE */}
           
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/shared" element={<SharedLinks />} />
+          <Route path="/shared" element={<SharedLinksManagement />} />
           <Route path="/favorites" element={<FavoritesPage />}/>
           <Route path="/bin" element={<Bin />} /> 
           <Route path="/recents" element={<Recents/>}/>

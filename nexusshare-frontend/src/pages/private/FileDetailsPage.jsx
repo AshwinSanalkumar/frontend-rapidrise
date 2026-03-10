@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { useToast } from '../../components/common/ToastContent'; // Use your existing hook
+import { useToast } from '../../components/common/ToastContent'; 
 import ActionButton from '../../components/common/ActionButton';
 import FileSpecCard from '../../components/elements/FileSpecCard';
 import ShareModal from '../../components/modals/ShareModal';
 import DeleteModal from '../../components/modals/DeleteModal';
 
 const FileDetailsPage = () => {
-  // 1. Initialize your custom toast hook
   const { showToast } = useToast();
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEnlarged, setIsEnlarged] = useState(false); // State for enlarged view
 
   const [fileData, setFileData] = useState({
     name: "Project_Final_Logo.png",
@@ -21,6 +21,7 @@ const FileDetailsPage = () => {
     time: "10:54 AM",
     size: "1.8 MB",
     extension: ".PNG",
+    type: "application/pdf", // Added type for logic detection
     status: "SECURED",
     preview: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"
   });
@@ -29,15 +30,43 @@ const FileDetailsPage = () => {
   const namePart = fileData.name.substring(0, lastDotIndex);
   const extPart = fileData.name.substring(lastDotIndex);
 
-  // 2. Handle Edit with your Toast
+  // --- PREVIEW LOGIC (SOLID Helper) ---
+  const renderPreviewContent = (isModal = false) => {
+    const isImage = fileData.type.startsWith('image/');
+    const isPDF = fileData.type.includes('pdf');
+    const isExcel = fileData.type.includes('excel') || fileData.type.includes('spreadsheet');
+
+    if (isImage) {
+      return (
+        <img 
+          src={fileData.preview} 
+          className={`${isModal ? 'max-h-[85vh] max-w-[90vw] rounded-3xl' : 'w-full h-full object-cover'} transition-all duration-500 select-none`} 
+          alt="Preview" 
+          onContextMenu={(e) => e.preventDefault()}
+        />
+      );
+    }
+
+    return (
+      <div className={`flex flex-col items-center justify-center p-12 text-center ${isModal ? 'scale-125' : ''}`}>
+        <div className={`rounded-[2rem] flex items-center justify-center mb-4 shadow-2xl animate-in zoom-in
+          ${isModal ? 'w-40 h-40' : 'w-24 h-24'}
+          ${isPDF ? 'bg-rose-500/10 text-rose-500' : isExcel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
+          <i className={`fas ${isPDF ? 'fa-file-pdf' : isExcel ? 'fa-file-excel' : 'fa-file-lines'} ${isModal ? 'text-7xl' : 'text-4xl'}`}></i>
+        </div>
+        <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
+          {isPDF ? 'PDF Document' : isExcel ? 'Spreadsheet' : 'Secure File'}
+        </p>
+      </div>
+    );
+  };
+
   const handleSaveEdit = () => {
     if (!namePart.trim()) {
       showToast("File name cannot be empty", "error");
       return;
     }
-    
     setIsSaving(true);
-    // Simulate API call
     setTimeout(() => {
       setIsSaving(false);
       setIsEditing(false);
@@ -45,35 +74,53 @@ const FileDetailsPage = () => {
     }, 800);
   };
 
-  // 3. Handle Download with your Toast
   const handleDownload = () => {
     showToast(`Downloading ${fileData.name}...`);
-    // Logic for actual download would go here
   };
 
   const handleDeleteAction = () => {
     setIsDeleteModalOpen(false);
     showToast("File moved to trash", "success");
-    // navigate('/dashboard');
   };
 
   return (
-    <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 transition-colors duration-300 relative">
+      
+      {/* --- ENLARGED VIEW MODAL --- */}
+      {isEnlarged && (
+        <div className="fixed inset-0 z-[100] bg-gray-950/95 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <button 
+            onClick={() => setIsEnlarged(false)}
+            className="absolute top-8 right-8 w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border border-white/10 transition-all"
+          >
+            <i className="fas fa-times text-xl"></i>
+          </button>
+          <div className="animate-in zoom-in duration-500">
+            {renderPreviewContent(true)}
+          </div>
+        </div>
+      )}
+
       <button
         onClick={() => window.history.back()}
         className="flex items-center text-sm font-bold text-gray-400 hover:text-indigo-600 transition mb-6 group"
       >
         <i className="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i>
-        Go Back
+        Go Ba ck
       </button>
 
       <div className="flex flex-col xl:flex-row gap-8">
         <div className="flex-1 space-y-6">
           <section className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-gray-700">
-            <div className="relative w-full aspect-video bg-gray-50 dark:bg-gray-900 rounded-[2rem] overflow-hidden flex items-center justify-center border border-gray-100 dark:border-gray-800">
-              <img src={fileData.preview} className="w-full h-full object-cover" alt="Preview" />
-              <button className="absolute bottom-6 right-6 bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-white/40 transition border border-white/20">
-                <i className="fas fa-expand-arrows-alt mr-2"></i> Fullscreen
+            {/* PREVIEW CONTAINER */}
+            <div className="relative w-full aspect-video bg-gray-50 dark:bg-gray-900 rounded-[2rem] overflow-hidden flex items-center justify-center border border-gray-100 dark:border-gray-800 group">
+              {renderPreviewContent()}
+              
+              <button 
+                onClick={() => setIsEnlarged(true)}
+                className="absolute bottom-6 right-6 bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-white/40 transition border border-white/20 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 duration-300 shadow-xl"
+              >
+                <i className="fas fa-expand-arrows-alt mr-2"></i> Fullscreen Preview
               </button>
             </div>
 
@@ -94,9 +141,9 @@ const FileDetailsPage = () => {
                     </div>
                   </div>
                 ) : (
-                  <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">{fileData.name}</h1>
+                  <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-none">{fileData.name}</h1>
                 )}
-                <p className="text-gray-400 font-medium mt-1">Added on {fileData.date} • {fileData.time}</p>
+                <p className="text-gray-400 font-medium mt-2 text-sm uppercase tracking-wider">Added on {fileData.date} • {fileData.time}</p>
               </div>
 
               <div className="flex space-x-3 shrink-0">
@@ -108,7 +155,7 @@ const FileDetailsPage = () => {
                       disabled={isSaving}
                       className="gradient-bg text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:opacity-90 transition active:scale-95 flex items-center min-w-[100px] justify-center"
                     >
-                      {isSaving ? <i className="fas fa-circle-notch fa-spin"></i> : 'Save'}
+                      {isSaving ? <i className="fas fa-circle-notch fa-spin"></i> : 'Save Changes'}
                     </button>
                   </>
                 ) : (
@@ -123,8 +170,8 @@ const FileDetailsPage = () => {
           </section>
 
           <section className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-gray-700">
-            <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center">
-              <i className="fas fa-align-left mr-2 text-indigo-500"></i> Description
+            <h2 className="text-sm font-black text-indigo-500 uppercase tracking-[0.2em] mb-4 flex items-center">
+              <i className="fas fa-align-left mr-2"></i> Description
             </h2>
             {isEditing ? (
               <textarea
@@ -134,7 +181,7 @@ const FileDetailsPage = () => {
               />
             ) : (
               <p className="text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
-                {fileData.description || "No description provided."}
+                {fileData.description || "No description provided for this asset."}
               </p>
             )}
           </section>
