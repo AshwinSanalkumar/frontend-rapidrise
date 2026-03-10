@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import FileCard from '../../components/elements/FIleCard';
 import ShareModal from '../../components/modals/ShareModal'; // Import your modal
 import { useToast } from '../../components/common/ToastContent';
+import ViewToggle from '../../components/common/ViewToggle';
 
 const FavoritesPage = () => {
   const { showToast } = useToast();
@@ -13,22 +14,22 @@ const FavoritesPage = () => {
     { id: 1, name: "Project_Final_Logo.png", date: "Feb 25, 2026", size: "1.8 MB", type: "image", status: "SECURED", isFavorite: true, preview: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80" },
     { id: 2, name: "Q1_Financial_Report.pdf", date: "Feb 20, 2026", size: "4.2 MB", type: "pdf", status: "PRIVATE", isFavorite: true },
     { id: 3, name: "Brand_Guidelines.pdf", date: "Feb 15, 2026", size: "12.5 MB", type: "pdf", status: "SECURED", isFavorite: true },
-        { id: 3, name: "Brand_Guidelines.pdf", date: "Feb 15, 2026", size: "12.5 MB", type: "pdf", status: "SECURED", isFavorite: true },
-            { id: 3, name: "Brand_Guidelines.pdf", date: "Feb 15, 2026", size: "12.5 MB", type: "pdf", status: "SECURED", isFavorite: true },
-                { id: 3, name: "Brand_Guidelines.pdf", date: "Feb 15, 2026", size: "12.5 MB", type: "pdf", status: "SECURED", isFavorite: true },
+    { id: 3, name: "Brand_Guidelines.pdf", date: "Feb 15, 2026", size: "12.5 MB", type: "pdf", status: "SECURED", isFavorite: true },
+    { id: 3, name: "Brand_Guidelines.pdf", date: "Feb 15, 2026", size: "12.5 MB", type: "pdf", status: "SECURED", isFavorite: true },
+    { id: 3, name: "Brand_Guidelines.pdf", date: "Feb 15, 2026", size: "12.5 MB", type: "pdf", status: "SECURED", isFavorite: true },
   ]);
 
   const favoriteFiles = useMemo(() => files.filter(f => f.isFavorite), [files]);
 
- // Explicitly typing the parameter as a string
-const handleShareTrigger = (fileName: string): void => {
-  setSelectedFileName(fileName);
-  setIsShareModalOpen(true);
-};
+  // Explicitly typing the parameter as a string
+  const handleShareTrigger = (fileName: string): void => {
+    setSelectedFileName(fileName);
+    setIsShareModalOpen(true);
+  };
 
   return (
     <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
-      
+
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center">
@@ -38,14 +39,7 @@ const handleShareTrigger = (fileName: string): void => {
           <p className="text-gray-400 font-medium mt-1">Access your most important secured files instantly.</p>
         </div>
 
-        <div className="flex bg-white dark:bg-gray-800 p-1.5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-          <button onClick={() => setView('grid')} className={`px-4 py-2 rounded-xl transition-all ${view === 'grid' ? 'gradient-bg text-white shadow-lg' : 'text-gray-400 hover:text-indigo-500'}`}>
-            <i className="fas fa-th-large"></i>
-          </button>
-          <button onClick={() => setView('list')} className={`px-4 py-2 rounded-xl transition-all ${view === 'list' ? 'gradient-bg text-white shadow-lg' : 'text-gray-400 hover:text-indigo-600'}`}>
-            <i className="fas fa-list"></i>
-          </button>
-        </div>
+        <ViewToggle view={view} setView={setView} />
       </header>
 
       {favoriteFiles.length === 0 ? (
@@ -58,10 +52,10 @@ const handleShareTrigger = (fileName: string): void => {
       ) : (
         <div className={view === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "flex flex-col gap-4"}>
           {favoriteFiles.map(file => (
-            <FileCard 
-              key={file.id} 
-              file={file} 
-              view={view} 
+            <FileCard
+              key={file.id}
+              file={file}
+              view={view}
               onShare={handleShareTrigger} // Pass the trigger here
             />
           ))}
@@ -69,9 +63,9 @@ const handleShareTrigger = (fileName: string): void => {
       )}
 
       {/* 2. Global Modal Component */}
-      <ShareModal 
-        isOpen={isShareModalOpen} 
-        onClose={() => setIsShareModalOpen(false)} 
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
         fileName={selectedFileName}
       />
 
