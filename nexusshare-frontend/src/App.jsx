@@ -1,28 +1,28 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { ToastProvider } from "./components/ui/ToastContent"; // Your new global context
+import { ToastProvider } from "./components/common/ToastContent"; // Your new global context
 import MainLayout from "./components/layout/MainLayout"; 
-import Dashboard from "./pages/Dashboard";
-import MyFiles from "./pages/MyFiles";
-import SharedLinks from "./pages/SharedLinks";  
-import FileExplorer from "./pages/FileExplorer";  
-import FileDetailsPage from "./pages/FileDetailsPage";
-import Bin from "./pages/Bin";
-import Profile from "./pages/Profie";
-import EditProfile from "./pages/EditProfile";
-import ChangePassword from "./pages/ChangePassword";
-import FolderDetail from "./pages/FolderDetailsPage";
-import Landing from "./pages/LandingPage";
-import Login from "./pages/login";
-import Register from "./pages/Register";
-import NotFound from "./pages/not-found";
-import FavoritesPage from "./pages/FavoritesPage";
-import ManageStorage from "./pages/ManageStorage";
-import SharedFileView from "./pages/SharedFileView";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPasswordLink from "./pages/ResetPasswordLink";
-import DuplicateManager from "./pages/DuplicateManager";
-import Recents from "./pages/Recents";
+import Dashboard from "./pages/private/Dashboard";
+import MyFiles from "./pages/private/MyFiles";
+import SharedLinks from "./pages/private/SharedLinks";  
+import FileExplorer from "./pages/private/FileExplorer";  
+import FileDetailsPage from "./pages/private/FileDetailsPage";
+import Bin from "./pages/private/Bin";
+import Profile from "./pages/private/Profie";
+import EditProfile from "./pages/private/EditProfile";
+import ChangePassword from "./pages/auth/ChangePassword";
+import FolderDetail from "./pages/private/FolderDetailsPage";
+import Landing from "./pages/public/LandingPage";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import NotFound from "./pages/private/not-found";
+import FavoritesPage from "./pages/private/FavoritesPage";
+import ManageStorage from "./pages/private/ManageStorage";
+import SharedFileView from "./pages/public/SharedFileView";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPasswordLink from "./pages/auth/ResetPasswordLink";
+import DuplicateManager from "./pages/private/DuplicateManager";
+import Recents from "./pages/private/Recents";
 
 function App() {
   return (

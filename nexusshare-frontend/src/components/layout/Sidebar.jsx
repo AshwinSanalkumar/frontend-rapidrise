@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { useToast } from '../ui/ToastContent';
-import UploadConfirmModal from '../ui/UploadConfirmModel';
+import { useToast } from '../common/ToastContent';
+import UploadConfirmModal from '../modals/UploadConfirmModel';
 
 const SidebarLink = ({ to, icon, label }) => (
   <NavLink 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '../ui/ToastContent'; // Using your custom toast hook
+import { useToast } from '../common/ToastContent'; // Using your custom toast hook
 
 const FileCard = ({ file, onShare, view }) => {
   const navigate = useNavigate();

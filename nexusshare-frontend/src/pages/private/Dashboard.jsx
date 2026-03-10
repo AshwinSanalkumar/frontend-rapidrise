@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import UploadConfirmModal from '../components/ui/UploadConfirmModel';
+import UploadConfirmModal from '../../components/modals/UploadConfirmModel';
 
 const Dashboard = () => {
   const [stagedFiles, setStagedFiles] = useState([]);

@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import FileRow from '../components/ui/FileRow';
-import DeleteModal from '../components/ui/DeleteModal'; // Import the modal
-import { useToast } from '../components/ui/ToastContent';
-import NexusShareSelector from '../components/ui/NexusShareSelector';
+import FileRow from '../../components/elements/FileRow';
+import DeleteModal from '../../components/modals/DeleteModal'; // Import the modal
+import { useToast } from '../../components/common/ToastContent';
+import NexusShareSelector from '../../components/modals/NexusShareSelector';
 
 const FolderDetail = () => {
   const { showToast } = useToast();

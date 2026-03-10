@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import LandingNav from '../components/layout/LandingNav';
-import { AnalyticsCard, DeviceCard } from '../components/ui/LandingFeatureCard';
+import LandingNav from '../../components/layout/LandingNav';
+import { AnalyticsCard, DeviceCard } from '../../components/elements/LandingFeatureCard';
 
 const Landing = () => {
   return (

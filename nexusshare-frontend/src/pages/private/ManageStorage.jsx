@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useToast } from '../components/ui/ToastContent';
+import { useToast } from '../../components/common/ToastContent';
 
 const ManageStorage = () => {
   const { showToast } = useToast();

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import EditProfileForm from '../components/ui/EditProfileForm';
+import EditProfileForm from '../../components/elements/EditProfileForm';
 
 const EditProfile = () => {
   const navigate = useNavigate();

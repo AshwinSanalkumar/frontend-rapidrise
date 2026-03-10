@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import LinkStatus from '../components/ui/LinkStatus'; // We will use this for error states
+import LinkStatus from '../../components/common/LinkStatus'; // We will use this for error states
 
 const SharedFileView = () => {
   const { shareId } = useParams();
@@ -21,7 +21,7 @@ const SharedFileView = () => {
           previewUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc51?q=80&w=2000&auto=format&fit=crop',
           expiresIn: '04:52'
         });
-        setStatus('revoked'); 
+        setStatus('active'); 
         
         // Example: If link was > 5 mins old, you'd setStatus('expired')
       }, 2000);
