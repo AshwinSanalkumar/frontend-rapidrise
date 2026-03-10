@@ -6,7 +6,7 @@ const FileRow = ({ id, name, subtitle, modified, size, iconClass, colorClass, bg
 
   const handleRowClick = () => {
     // Navigates to the details page for this specific file
-    navigate(`/file-details`);
+    navigate(`/files/details`);
   };
 
   return (

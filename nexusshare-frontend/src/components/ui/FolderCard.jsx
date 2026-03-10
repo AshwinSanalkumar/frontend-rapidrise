@@ -9,7 +9,7 @@ const FolderCard = ({ id, name, fileCount, size, colorClass, onRename, onDelete,
   const isList = view === 'list';
 
   const handleFolderClick = () => {
-    navigate('/folder-detail');
+    navigate('/assets/details');
   };
 
   const handleConfirmDelete = () => {

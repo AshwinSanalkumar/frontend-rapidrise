@@ -105,8 +105,8 @@ const Sidebar = () => {
             <SidebarLink to="/Favorites" icon="fa-heart" label="Favorites" />
             <div className="pt-6">
               <p className="px-4 text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-2">Storage</p>
-              <SidebarLink to="/file-explore" icon="fa-compass" label="Explorer" />
-              <SidebarLink to="/recent" icon="fa-history" label="Recent" />
+              <SidebarLink to="/assets" icon="fa-compass" label="Explorer" />
+              <SidebarLink to="/recents" icon="fa-history" label="Recent" />
             </div>
             <div className="pt-6">
               <p className="px-4 text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-2">System</p>

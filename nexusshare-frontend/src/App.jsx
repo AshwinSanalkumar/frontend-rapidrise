@@ -22,10 +22,10 @@ import SharedFileView from "./pages/SharedFileView";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPasswordLink from "./pages/ResetPasswordLink";
 import DuplicateManager from "./pages/DuplicateManager";
+import Recents from "./pages/Recents";
 
 function App() {
   return (
-    /* Wrapping the entire App in the Provider */
     <ToastProvider>
       <Routes>
         {/* PUBLIC */}
@@ -35,24 +35,30 @@ function App() {
         <Route path="/404-not-found" element={<NotFound/>} />
         <Route path="/public/:shareId" element={<SharedFileView />} />
         <Route path="/forgot-password" element={<ForgotPassword/>}/>
-        <Route path="/reset-passwordlink" element={<ResetPasswordLink/>}/>
+        <Route path="/reset-password" element={<ResetPasswordLink/>}/>
 
         <Route element={<MainLayout />}>
           {/* PRIVATE */}
           
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/files" element={<MyFiles />} />
           <Route path="/shared" element={<SharedLinks />} />
-          <Route path="/file-explore" element={<FileExplorer />} />
-          <Route path="/file-details" element={<FileDetailsPage />} />   
-          <Route path="/profile" element={<Profile />} />  
-          <Route path="/bin" element={<Bin />} />         
-          <Route path="/profile-edit" element={<EditProfile />} /> 
-          <Route path="/password-change" element={<ChangePassword />}/>
-          <Route path="/folder-detail" element={<FolderDetail />}/>
           <Route path="/favorites" element={<FavoritesPage />}/>
-          <Route path="/managestorage" element={<ManageStorage/>}/>
+          <Route path="/bin" element={<Bin />} /> 
+          <Route path="/recents" element={<Recents/>}/>
+
+          <Route path="/assets" element={<FileExplorer />} />
+          <Route path="/assets/details" element={<FolderDetail />}/>
+
+          <Route path="/profile" element={<Profile />} /> 
+          <Route path="/profile/update" element={<EditProfile />} /> 
+          <Route path="/profile/update/credentials" element={<ChangePassword />}/>
+
+          <Route path="/files" element={<MyFiles />} />
+          <Route path="/files/details" element={<FileDetailsPage />} />   
+ 
+          <Route path="/storage" element={<ManageStorage/>}/>
           <Route path="/storage/duplicates" element={<DuplicateManager/>}/>
+
         </Route>
         {/* Catch-all route */}
         <Route path="*" element={<Navigate to="/404-not-found" replace />} />

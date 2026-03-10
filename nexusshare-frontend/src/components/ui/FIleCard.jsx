@@ -37,7 +37,7 @@ const FileCard = ({ file, onShare, view }) => {
   };
 
   const handleView = () => {
-    navigate(`/file-details`);
+    navigate(`/files/details`);
   };
 
   return (
