@@ -106,7 +106,7 @@ const FileDetailsPage = () => {
         className="flex items-center text-sm font-bold text-gray-400 hover:text-indigo-600 transition mb-6 group"
       >
         <i className="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i>
-        Go Ba ck
+        Go Back
       </button>
 
       <div className="flex flex-col xl:flex-row gap-8">
@@ -120,7 +120,9 @@ const FileDetailsPage = () => {
                 onClick={() => setIsEnlarged(true)}
                 className="absolute bottom-6 right-6 bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-white/40 transition border border-white/20 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 duration-300 shadow-xl"
               >
-                <i className="fas fa-expand-arrows-alt mr-2"></i> Fullscreen Preview
+                <span className='text-gray-900 dark:text-white text-center'>
+                <i className="fas fa-expand-arrows-alt mr-2"></i>Fullscreen Preview
+              </span>
               </button>
             </div>
 

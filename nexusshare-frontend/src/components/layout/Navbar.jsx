@@ -71,15 +71,20 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="glass sticky top-0 z-50 px-6 py-3 flex items-center justify-between transition-all duration-300">
+    <nav className="glass sticky top-0 z-50 px-6 py-6 flex items-center justify-between transition-all duration-300">
       {/* LEFT: LOGO SECTION */}
       <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
         <div className="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
           <i className="fas fa-share-nodes text-white text-xl"></i>
         </div>
-        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
-          NexusShare
-        </span>
+        <div className="flex flex-col">
+          <span className="text-xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
+            NEXUS<span className="text-indigo-500">SHARE</span>
+          </span>
+          <span className="text-[7px] font-black tracking-[0.3em] text-gray-400 uppercase leading-none mt-1">
+            Verified Protocol
+          </span>
+        </div>
       </div>
 
       {/* RIGHT: TOOLS & PROFILE */}

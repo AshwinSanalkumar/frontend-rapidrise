@@ -84,9 +84,9 @@ const Landing = () => {
       <footer className="py-12 px-6 border-t border-gray-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center space-x-2">
-            <div className="gradient-bg p-1.5 rounded-lg">
-              <i className="fas fa-cloud-upload-alt text-white"></i>
-            </div>
+            <div className="w-8 h-8 gradient-bg rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i className="fas fa-share-nodes text-white text-xl"></i>
+        </div>
             <span className="text-lg font-bold text-gray-800 dark:text-white">NexusShare</span>
           </div>
           <p className="text-sm text-gray-400">© 2026 NexusShare.</p>

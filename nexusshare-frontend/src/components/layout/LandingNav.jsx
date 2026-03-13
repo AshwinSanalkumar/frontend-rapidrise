@@ -22,9 +22,9 @@ const LandingNav = () => {
         
         {/* Logo - Link to Home */}
         <Link to="/" className="flex items-center space-x-2">
-          <div className="gradient-bg p-1.5 rounded-lg">
-            <i className="fas fa-cloud-upload-alt text-white text-lg"></i>
-          </div>
+          <div className="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i className="fas fa-share-nodes text-white text-xl"></i>
+        </div>
           <span className="text-xl font-extrabold tracking-tight text-gray-800 dark:text-white">
             NexusShare
           </span>

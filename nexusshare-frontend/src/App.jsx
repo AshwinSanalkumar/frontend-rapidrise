@@ -14,7 +14,6 @@ import FolderDetail from "./pages/private/FolderDetailsPage";
 import Landing from "./pages/public/LandingPage";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
-import NotFound from "./pages/private/not-found";
 import FavoritesPage from "./pages/private/FavoritesPage";
 import ManageStorage from "./pages/private/ManageStorage";
 import SharedFileView from "./pages/public/SharedFileView";
@@ -23,6 +22,8 @@ import ResetPasswordLink from "./pages/auth/ResetPasswordLink";
 import DuplicateManager from "./pages/private/DuplicateManager";
 import Recents from "./pages/private/Recents";
 import SharedLinksManagement from "./pages/private/SharedLinkManagement";
+import NotFoundPage from "./pages/private/not-found";
+import AnalyticsPage from "./pages/private/AnalyticsPage";
 
 function App() {
   return (
@@ -32,10 +33,11 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/404-not-found" element={<NotFound/>} />
+        <Route path="/404-not-found" element={<NotFoundPage/>} />
         <Route path="/public/:shareId" element={<SharedFileView />} />
         <Route path="/forgot-password" element={<ForgotPassword/>}/>
         <Route path="/reset-password" element={<ResetPasswordLink/>}/>
+
 
         <Route element={<MainLayout />}>
           {/* PRIVATE */}
@@ -58,6 +60,8 @@ function App() {
  
           <Route path="/storage" element={<ManageStorage/>}/>
           <Route path="/storage/duplicates" element={<DuplicateManager/>}/>
+
+          <Route path="/analytics" element={<AnalyticsPage/>}/>
 
         </Route>
         {/* Catch-all route */}
