@@ -21,7 +21,7 @@ const FileDetailsPage = () => {
     time: "10:54 AM",
     size: "1.8 MB",
     extension: ".PNG",
-    type: "application/pdf", // Added type for logic detection
+    type: "image/png", // Added type for logic detection
     status: "SECURED",
     preview: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"
   });

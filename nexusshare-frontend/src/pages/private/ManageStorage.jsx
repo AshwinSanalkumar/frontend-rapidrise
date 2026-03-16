@@ -63,7 +63,7 @@ const ManageStorage = () => {
 
       <div className="mb-10 flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Vault Analyzer</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Storage Analyzer</h1>
           <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">Deep-clean your storage and manage large assets.</p>
         </div>
         <div className="flex items-center space-x-3">

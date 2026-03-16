@@ -99,17 +99,21 @@ const Sidebar = () => {
 
         <div className="flex-1 overflow-y-auto px-2 custom-scrollbar">
           <nav className="space-y-1">
-            <SidebarLink to="/dashboard" icon="fa-th-large" label="Dashboard" />
+            <SidebarLink to="/dashboard" icon=" fa-house" label="Dashboard" />
             <SidebarLink to="/files" icon="fa-folder-open" label="My Files" />
             <SidebarLink to="/shared" icon="fa-share-alt" label="Shared Links" />
             <SidebarLink to="/Favorites" icon="fa-heart" label="Favorites" />
             <div className="pt-6">
               <p className="px-4 text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-2">Storage</p>
+<div className="border-b border-gray-300 mx-3 mb-2"></div>
               <SidebarLink to="/assets" icon="fa-compass" label="Explorer" />
               <SidebarLink to="/recents" icon="fa-history" label="Recent" />
             </div>
             <div className="pt-6">
+              
               <p className="px-4 text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-2">System</p>
+<div className="border-b border-gray-300 mx-3 mb-2"></div>
+              <SidebarLink to="/storage" icon="fa-compact-disc" label="Storage" />
               <SidebarLink to="/bin" icon="fa-trash-alt" label="Bin" />
             </div>
           </nav>

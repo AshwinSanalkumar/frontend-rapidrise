@@ -1,20 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Link } from 'react-router-dom'; // Import Link
 
 const LandingNav = () => {
-  const [isDark, setIsDark] = useState(localStorage.getItem('theme') === 'dark');
+   const [isDark, setIsDark] = useState(() => {
+     const saved = localStorage.getItem('theme');
+     return saved === 'dark';
+   });
 
-  const toggleTheme = () => {
-    const html = document.documentElement;
+useEffect(() => {
     if (isDark) {
-      html.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    } else {
-      html.classList.add('dark');
+      document.documentElement.classList.add('dark');
       localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
-    setIsDark(!isDark);
-  };
+  }, [isDark]);
 
   return (
     <nav className="fixed w-full z-50 px-6 py-4">
@@ -39,9 +40,12 @@ const LandingNav = () => {
             Sign In
           </Link>
 
-          <button onClick={toggleTheme} className="text-gray-400 hover:text-indigo-600 transition">
-            <i className={`fas ${isDark ? 'fa-sun' : 'fa-moon'} text-lg`}></i>
-          </button>
+          <button 
+          onClick={() => setIsDark(!isDark)}
+          className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:scale-110 transition-all"
+        >
+          <i className={isDark ? "fas fa-sun text-yellow-400" : "fas fa-moon text-indigo-600"}></i>
+        </button>
           
           {/* Register - Link */}
           <Link 
