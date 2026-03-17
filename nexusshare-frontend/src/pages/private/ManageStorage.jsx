@@ -48,16 +48,17 @@ const ManageStorage = () => {
   };
 
   return (
-    <main className="flex-1 p-8 lg:p-12 bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-y-auto">
+   <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
       {/* Header */}
       <div className="flex items-center space-x-4 mb-8">
         <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
           <i className="fas fa-arrow-left"></i>
         </button>
+     
         <nav className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
-          <Link to="/Dashboard" className="hover:text-indigo-600 transition">Dashboard</Link>
-          <i className="fas fa-chevron-right text-[10px]"></i>
-          <span className="text-gray-800 dark:text-gray-200">Storage</span>
+                               <Link to="/dashboard" className="hover:text-indigo-600 transition text-gray-500">Dashboard</Link>
+                  <i className="fas fa-chevron-right text-[10px]"></i>
+          <span className="text-gray-800 dark:text-gray-200">Manage Storage</span>
         </nav>
       </div>
 

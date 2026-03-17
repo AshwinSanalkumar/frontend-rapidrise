@@ -27,9 +27,19 @@ const AnalyticsPage = () => {
       <div className="max-w-7xl mx-auto">
         
         {/* 1. HEADER WITH TIMESTAMP */}
+        <div className="flex items-center space-x-4 mb-8">
+        <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
+          <i className="fas fa-arrow-left"></i>
+        </button>
+        <nav className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
+          <span className="text-gray-800 dark:text-gray-200">Analytics</span>
+        </nav>
+      </div>
         <div className="mb-10 flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight uppercase tracking-tighter">System Analytics</h1>
+            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center">
+                  System Analytics
+                </h1>
             <div className="flex items-center gap-2 mt-1">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

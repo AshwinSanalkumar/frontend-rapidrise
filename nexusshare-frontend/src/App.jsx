@@ -24,6 +24,10 @@ import Recents from "./pages/private/Recents";
 import SharedLinksManagement from "./pages/private/SharedLinkManagement";
 import NotFoundPage from "./pages/private/not-found";
 import AnalyticsPage from "./pages/private/AnalyticsPage";
+import UploadHistory from "./pages/private/UploadHistory";
+import FileRequestPage from "./pages/private/Requests";
+import PublicUploadHistory from "./pages/private/PublicUploadHistory";
+import ExternalFilePreview from "./pages/private/FilePreview";
 
 function App() {
   return (
@@ -62,6 +66,10 @@ function App() {
           <Route path="/storage/duplicates" element={<DuplicateManager/>}/>
 
           <Route path="/analytics" element={<AnalyticsPage/>}/>
+          <Route path="/history" element={<UploadHistory/>}/>  
+          <Route path="/request" element={<FileRequestPage/>}/> 
+          <Route path="/public/upload" element={<PublicUploadHistory/>}/>    
+          <Route path="/public/file/preview" element={<ExternalFilePreview/>}/>                     
 
         </Route>
         {/* Catch-all route */}

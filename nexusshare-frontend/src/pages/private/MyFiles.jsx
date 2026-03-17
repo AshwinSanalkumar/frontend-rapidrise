@@ -5,6 +5,7 @@ import FileCard from '../../components/elements/FIleCard';
 import ShareModal from '../../components/modals/ShareModal';
 import Pagination from '../../components/common/Pagination';
 import ViewToggle from '../../components/common/ViewToggle';
+import { Link } from 'react-router-dom';
 
 const MyFiles = () => {
   const location = useLocation();
@@ -52,6 +53,18 @@ const MyFiles = () => {
   return (
     <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header Section */}
+    <div className="flex items-center space-x-4 mb-8">
+        <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
+          <i className="fas fa-arrow-left"></i>
+        </button>
+
+        <nav className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
+                            <Link to="/dashboard" className="hover:text-indigo-600 transition text-gray-500">Dashboard</Link>
+          <i className="fas fa-chevron-right text-[10px]"></i>
+          <span className="text-gray-800 dark:text-gray-200">My Files</span>
+        </nav>
+      </div>
+
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
         <div>
           <div className="flex items-center gap-4">

@@ -106,7 +106,7 @@ const Navbar = () => {
 
           {/* LIVE POPUP - Designed to match your Glassmorphism style */}
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute top-full left-0 w-full mt-3 glass rounded-2xl shadow-2xl py-2 border border-gray-100 dark:border-gray-800 z-[100] animate-in fade-in zoom-in duration-200 overflow-hidden">
+            <div className="absolute top-full left-0 w-full mt-3 glass rounded-2xl shadow-2xl py-2 border border-gray-100 dark:border-gray-800  animate-in fade-in zoom-in duration-200 overflow-hidden">
               <p className="px-4 py-2 text-[10px] font-black uppercase text-gray-400 tracking-widest">Suggestions</p>
               {suggestions.map((file) => (
                 <button

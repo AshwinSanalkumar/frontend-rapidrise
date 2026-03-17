@@ -4,7 +4,7 @@ import ActionButton from '../../components/common/ActionButton';
 import FileSpecCard from '../../components/elements/FileSpecCard';
 import ShareModal from '../../components/modals/ShareModal';
 import DeleteModal from '../../components/modals/DeleteModal';
-
+import { Link } from 'react-router-dom';
 const FileDetailsPage = () => {
   const { showToast } = useToast();
 
@@ -101,13 +101,16 @@ const FileDetailsPage = () => {
         </div>
       )}
 
-      <button
-        onClick={() => window.history.back()}
-        className="flex items-center text-sm font-bold text-gray-400 hover:text-indigo-600 transition mb-6 group"
-      >
-        <i className="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i>
-        Go Back
-      </button>
+            <div className="flex items-center space-x-4 mb-8">
+        <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
+          <i className="fas fa-arrow-left"></i>
+        </button>
+        <nav className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
+                            <Link to="/files" className="hover:text-indigo-600 transition text-gray-500">My Files</Link>
+          <i className="fas fa-chevron-right text-[10px]"></i>
+          <span className="text-gray-800 dark:text-gray-200">File Details</span>
+        </nav>
+      </div>
 
       <div className="flex flex-col xl:flex-row gap-8">
         <div className="flex-1 space-y-6">

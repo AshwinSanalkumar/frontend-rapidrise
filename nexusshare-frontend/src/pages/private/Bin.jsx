@@ -55,7 +55,16 @@ const Bin = () => {
   };
 
   return (
-    <main className="flex-1 p-8 lg:p-12 overflow-y-auto bg-gray-50/50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+    <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+           <div className="flex items-center space-x-4 mb-8">
+        <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
+          <i className="fas fa-arrow-left"></i>
+        </button>
+        <nav className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
+          <span className="text-gray-800 dark:text-gray-200">Bin</span>
+        </nav>
+      </div>
+
       <div className="max-w-6xl mx-auto">
         
         {/* Header Section */}

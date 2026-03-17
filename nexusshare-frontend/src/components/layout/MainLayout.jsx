@@ -22,11 +22,10 @@ const MainLayout = () => {
         <Navbar isDark={isDark} onToggleTheme={() => setIsDark(!isDark)} />
       </div>
       <div className="flex flex-1 overflow-hidden">
-
         <Sidebar />
         <main className="flex-1 h-[calc(100vh-73px)] overflow-y-auto custom-scrollbar p-6 lg:p-12">
-          <div className="w-full max-w-none px-0"> 
-            <Outlet /> 
+          <div className="w-full max-w-none px-0">
+            <Outlet />
           </div>
         </main>
       </div>

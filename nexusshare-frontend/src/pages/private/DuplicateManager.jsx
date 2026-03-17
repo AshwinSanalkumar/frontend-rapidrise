@@ -47,20 +47,31 @@ const DuplicateManager = () => {
   };
 
   return (
-    <main className="flex-1 p-8 lg:p-12 bg-gray-50 dark:bg-gray-900 min-h-screen font-['Plus_Jakarta_Sans']">
+ <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
       {/* Header */}
-      <div className="flex items-center justify-between mb-10">
-        <div className="flex items-center space-x-4">
-          <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
-            <i className="fas fa-arrow-left"></i>
-          </button>
-          <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">Duplicate Finder</h1>
-            <p className="text-sm text-gray-500 font-medium">Clean up redundant assets to save 2.4 GB</p>
-          </div>
-        </div>
+<div className="flex items-center space-x-4 mb-8">
+        <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
+          <i className="fas fa-arrow-left"></i>
+        </button>
+        <nav className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
+                                    <Link to="/dashboard" className="hover:text-indigo-600 transition text-gray-500">Dashboard</Link>
+                  <i className="fas fa-chevron-right text-[10px]"></i> 
+                  <Link to="/storage" className="hover:text-indigo-600 transition text-gray-500">Manage Storage</Link>
+                  <i className="fas fa-chevron-right text-[10px]"></i> 
+          <span className="text-gray-800 dark:text-gray-200">Duplicates</span>
+        </nav>
       </div>
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+        <div>
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center">
+            <i className="fas fa-clone text-rose-500 mr-4"></i>
+            Duplicate Finder
+          </h1>
+          <p className="text-gray-400 font-medium mt-1">Clean up redundant assets to save 2.4 GB</p>
+        </div>
 
+
+      </header>
       <div className="space-y-6">
         {duplicateGroups.map((group) => (
           <div key={group.id} className="bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">

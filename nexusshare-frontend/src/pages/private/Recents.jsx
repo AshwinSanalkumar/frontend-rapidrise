@@ -33,17 +33,18 @@ const Recents = () => {
   };
 
   return (
-    <main className="flex-1 p-8 lg:p-12 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+    <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
       {/* Header section with activity pulse */}
+       <div className="flex items-center space-x-4 mb-8">
+        <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
+          <i className="fas fa-arrow-left"></i>
+        </button>
+        <nav className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
+          <span className="text-gray-800 dark:text-gray-200">Recents</span>
+        </nav>
+      </div>
       <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <div className="flex items-center space-x-2 mb-1">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-            </span>
-            <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Live Activity</p>
-          </div>
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Recent Activity</h1>
           <p className="text-gray-500 dark:text-gray-400 font-medium">Continue where you left off with your latest assets.</p>
         </div>
