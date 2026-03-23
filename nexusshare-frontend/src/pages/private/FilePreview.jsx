@@ -26,10 +26,10 @@ const ExternalFilePreview = () => {
         
         {/* Transparent Header */}
         <div className="flex items-center justify-between mb-8 px-2">
-          <Link to="/history" className="flex items-center group py-2">
+          <Link to="/received-request" className="flex items-center group py-2">
             <i className="fas fa-arrow-left text-gray-400 group-hover:text-indigo-600 mr-3 transition-colors"></i>
             <span className="text-sm font-bold text-gray-500 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white transition-colors">
-              Back to Audit Logs
+              Back to Inboub request
             </span>
           </Link>
 

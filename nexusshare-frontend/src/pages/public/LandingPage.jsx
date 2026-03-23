@@ -27,7 +27,7 @@ const Landing = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
 
             <Link 
-              to="/login" 
+              to="/register" 
               className="w-full sm:w-auto px-10 py-5 gradient-bg text-white font-bold rounded-2xl shadow-2xl hover:scale-105 hover:shadow-indigo-500/25 transition transform active:scale-95 flex items-center justify-center"
             >
               Start Sharing

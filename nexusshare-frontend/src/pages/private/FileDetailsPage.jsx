@@ -4,10 +4,10 @@ import ActionButton from '../../components/common/ActionButton';
 import FileSpecCard from '../../components/elements/FileSpecCard';
 import ShareModal from '../../components/modals/ShareModal';
 import DeleteModal from '../../components/modals/DeleteModal';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 const FileDetailsPage = () => {
   const { showToast } = useToast();
-
+  const navigate = useNavigate();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -80,7 +80,11 @@ const FileDetailsPage = () => {
 
   const handleDeleteAction = () => {
     setIsDeleteModalOpen(false);
-    showToast("File moved to trash", "success");
+    setTimeout(() => {
+      navigate('/files');
+      showToast("File moved to trash", "success");
+    }, 1);
+    
   };
 
   return (

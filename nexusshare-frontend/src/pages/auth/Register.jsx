@@ -153,6 +153,10 @@ const Register = () => {
           <p className="mt-8 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
             Existing Member? <Link to="/login" className="text-indigo-600 hover:underline">Sign In</Link>
           </p>
+
+          <p className=" text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+            <Link to="/" className="text-indigo-600 hover:underline">Back to Landing Page</Link>
+          </p>
         </div>
       </div>
     </div>

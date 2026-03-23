@@ -129,6 +129,9 @@ const Login = () => {
 
           <p className="mt-12 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
             New User? <Link to="/register" className="text-indigo-600 hover:underline">Request Account</Link>
+          </p><br />
+          <p className=" text-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+            <Link to="/" className="text-indigo-600 hover:underline">Back to Landing Page</Link>
           </p>
         </div>
       </div>

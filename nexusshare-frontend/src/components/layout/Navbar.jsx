@@ -8,7 +8,13 @@ const Navbar = () => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark';
   });
+  const requests = [
+    { id: 1, status: 'pending' }, 
+    { id: 2, status: 'approved' }
+  ];
 
+  // 2. Logic to check for any pending items
+  const hasPending = requests.some(req => req.status === 'pending');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -89,6 +95,7 @@ const Navbar = () => {
 
       {/* RIGHT: TOOLS & PROFILE */}
       <div className="flex items-center gap-6">
+        
         {/* SEARCH BAR SECTION */}
         <div className="relative" ref={searchRef}>
           <div className="hidden md:flex items-center bg-gray-100 dark:bg-gray-800/50 rounded-full px-4 py-2 border border-transparent focus-within:border-indigo-500 focus-within:bg-white dark:focus-within:bg-gray-800 transition-all">
@@ -128,7 +135,22 @@ const Navbar = () => {
         >
           <i className={isDark ? "fas fa-sun text-yellow-400" : "fas fa-moon text-indigo-600"}></i>
         </button>
-
+        <Link 
+          to="/received-request" 
+          className="relative w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:scale-110 transition-all group"
+        >
+          <i className="fas fa-inbox text-indigo-600"></i>
+          
+          {/* Notification Red Dot - Only shows if requests.length > 0 */}
+          {requests.filter(r => r.status === 'pending').length > 0 && (
+            <span className="absolute top-2.5 right-2.5 flex h-2 w-2">
+              {/* Outer Ping Animation */}
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              {/* Inner Static Dot */}
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+            </span>
+          )}
+        </Link>
         {/* PROFILE SECTION */}
         <div className="relative" ref={dropdownRef}>
           <button 

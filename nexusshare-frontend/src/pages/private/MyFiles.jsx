@@ -85,7 +85,17 @@ const MyFiles = () => {
           </p>
         </div>
         
-        <ViewToggle view={view} setView={setView} />
+        {/* Actions Container: Request Button + View Toggle */}
+        <div className="flex items-center gap-3">
+          <Link to="/send-request"
+            
+            className="gradient-bg text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 hover:opacity-90 transition active:scale-95 flex items-center gap-2"
+          >
+            <i className="fas fa-file-import"></i>
+            Request File
+          </Link>
+          <ViewToggle view={view} setView={setView} />
+        </div>
       </div>
 
       {/* Files Grid/List */}
