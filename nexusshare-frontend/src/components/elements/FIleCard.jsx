@@ -37,7 +37,7 @@ const FileCard = ({ file, onShare, view }) => {
   };
 
   const handleView = () => {
-    navigate(`/files/details`);
+    navigate(`/files/details/${file.id}`);
   };
 
   return (
@@ -62,24 +62,49 @@ const FileCard = ({ file, onShare, view }) => {
       )}
 
       {/* File Preview Container */}
-      <div className={`relative overflow-hidden flex-shrink-0 transition-colors duration-300
-        ${isList 
-          ? 'w-[60px] h-[45px] rounded-lg mr-6' 
-          : 'h-32 w-full rounded-[1.5rem] mb-4'}
-        ${file.type === 'image' ? 'bg-gray-50 dark:bg-gray-900/50' : `dark:bg-gray-900/30 ${config.bg.replace('bg-', 'bg-opacity-20 bg-')}`} `}
-      >
-        {file.type === 'image' && file.preview ? (
-          <img 
-            src={file.preview} 
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-            alt={file.name} 
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-             <i className={`fas ${config.icon} ${config.color} ${isList ? 'text-xl' : 'text-3xl'} group-hover:rotate-12 transition-transform duration-300`}></i>
-          </div>
-        )}
+        <div className={`relative overflow-hidden flex-shrink-0 transition-colors duration-300
+          ${isList 
+            ? 'w-[60px] h-[45px] rounded-lg mr-6' 
+            : 'h-32 w-full rounded-[1.5rem] mb-4'}
+          ${file.type === 'image' ? 'bg-gray-50 dark:bg-gray-900/50' : `dark:bg-gray-900/30 ${config.bg.replace('bg-', 'bg-opacity-20 bg-')}`} `}
+        >
+          {file.type === 'image' && file.preview ? (
+            <div className={`w-full h-full flex items-center justify-center bg-gray-50/50 dark:bg-gray-900/40 ${isList ? 'p-1' : 'p-3'}`}>
+              <img 
+                src={file.preview} 
+                className={`w-100 h-100 rounded-md object-contain shadow-sm transition-transform duration-500 group-hover:scale-105`} 
+                alt={file.name} 
+              />
+            </div>
+          ) : (
+            <div className={`${isList ? 'w-12 h-12 rounded-lg' : 'w-full h-48 rounded-t-3xl'} relative overflow-hidden bg-gray-50 group`}>
+    
+    {/* The "Glass Shield" - Prevents interaction and handles the click for both views */}
+    <div className="absolute inset-0 z-30 bg-transparent cursor-pointer" />
+
+    {isList ? (
+      /* --- LIST VIEW: ICON MODE --- */
+      <div className="absolute inset-0 flex items-center justify-center z-10">
+        <i className={`fas ${config.icon} ${config.color} text-xl group-hover:rotate-12 transition-transform duration-300`}></i>
       </div>
+    ) : (
+      /* --- GRID VIEW: THUMBNAIL MODE --- */
+      <iframe
+        src={`${file.preview}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+        title="PDF Thumbnail"
+        scrolling="no"
+        className="absolute top-0 left-0 border-0 z-10"
+        style={{ 
+          width: 'calc(100% + 40px)', 
+          height: '100%',
+          overflow: 'hidden',
+          pointerEvents: 'none' 
+        }}
+      />
+    )}
+  </div>
+          )}
+        </div>
 
       {/* File Details */}
       <div className={`${isList ? 'flex flex-1 items-center' : ''}`}>

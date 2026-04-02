@@ -1,25 +1,33 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({ email: '', password: '' });
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    const result = await login(formData);
+    
+    setIsLoading(false);
+    if (result.success) {
       navigate('/dashboard'); // Redirect to dashboard
-    }, 1500);
+    } else {
+      setError(result.message);
+    }
   };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError('');
   };
 
   return (
@@ -109,6 +117,13 @@ const Login = () => {
                 </button>
               </div>
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="text-[10px] text-red-500 font-bold uppercase tracking-tight animate-pulse ml-1">
+                {error}
+              </div>
+            )}
 
             {/* Submit Button */}
             <button 

@@ -1,55 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '../../components/common/ToastContent'; 
 import ActionButton from '../../components/common/ActionButton';
 import FileSpecCard from '../../components/elements/FileSpecCard';
 import ShareModal from '../../components/modals/ShareModal';
 import DeleteModal from '../../components/modals/DeleteModal';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { fetchFileDetail, updateFile, deleteFile } from '../../services/fileService';
+
 const FileDetailsPage = () => {
+  const { id } = useParams();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isEnlarged, setIsEnlarged] = useState(false); // State for enlarged view
+  const [isEnlarged, setIsEnlarged] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [fileData, setFileData] = useState({
-    name: "Project_Final_Logo.png",
-    description: "Final vector asset for rebranding. Includes dark and light variations.",
-    date: "Feb 25, 2026",
-    time: "10:54 AM",
-    size: "1.8 MB",
-    extension: ".PNG",
-    type: "image/png", // Added type for logic detection
-    status: "SECURED",
-    preview: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"
-  });
+  const [fileData, setFileData] = useState(null);
 
-  const lastDotIndex = fileData.name.lastIndexOf('.');
-  const namePart = fileData.name.substring(0, lastDotIndex);
-  const extPart = fileData.name.substring(lastDotIndex);
+  useEffect(() => {
+    const loadFile = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await fetchFileDetail(id);
+        setFileData({
+          ...data,
+          description: data.description || '',
+          time: new Date(data.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+          status: data.status || 'PRIVATE',
+        });
+      } catch (err) {
+        setError('Could not load file. It may have been deleted or you may not have access.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (id) loadFile();
+  }, [id]);
 
-  // --- PREVIEW LOGIC (SOLID Helper) ---
+  // Guard: use the actual filename (with extension) for splitting
+  const nameForEdit = fileData ? (fileData.name || fileData.name) : '';
+  const lastDotIndex = nameForEdit.lastIndexOf('.');
+  const namePart = lastDotIndex > 0 ? nameForEdit.substring(0, lastDotIndex) : nameForEdit;
+  const extPart  = lastDotIndex > 0 ? nameForEdit.substring(lastDotIndex) : '';
+
+  // --- PREVIEW LOGIC ---
   const renderPreviewContent = (isModal = false) => {
-    const isImage = fileData.type.startsWith('image/');
-    const isPDF = fileData.type.includes('pdf');
-    const isExcel = fileData.type.includes('excel') || fileData.type.includes('spreadsheet');
+    if (!fileData) return null;
+    const mimeType = fileData.type || '';
+    const isImage = mimeType === 'image';
+    const isPDF   = mimeType === 'pdf';
+    const isExcel = mimeType === 'excel';
 
-    if (isImage) {
+    if (isImage && fileData.preview) {
       return (
         <img 
           src={fileData.preview} 
-          className={`${isModal ? 'max-h-[85vh] max-w-[90vw] rounded-3xl' : 'w-full h-full object-cover'} transition-all duration-500 select-none`} 
+          className={`${isModal ? 'max-h-[85vh] max-w-[90vw] rounded-3xl' : 'w-full h-full object-contain'} transition-all duration-500 select-none`} 
           alt="Preview" 
           onContextMenu={(e) => e.preventDefault()}
         />
       );
     }
 
+    if (isPDF && fileData.preview) {
+      return (
+        <iframe
+          src={`${fileData.preview}#toolbar=0&navpanes=0&scrollbar=0`}
+          className={`${isModal ? 'w-[90vw] h-[85vh] rounded-3xl' : 'w-full h-full'} border-0`}
+          title="PDF Preview"
+        />
+      );
+    }
+
     return (
       <div className={`flex flex-col items-center justify-center p-12 text-center ${isModal ? 'scale-125' : ''}`}>
-        <div className={`rounded-[2rem] flex items-center justify-center mb-4 shadow-2xl animate-in zoom-in
+        <div className={`rounded-[2rem] flex items-center justify-center mb-4 shadow-2xl
           ${isModal ? 'w-40 h-40' : 'w-24 h-24'}
           ${isPDF ? 'bg-rose-500/10 text-rose-500' : isExcel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
           <i className={`fas ${isPDF ? 'fa-file-pdf' : isExcel ? 'fa-file-excel' : 'fa-file-lines'} ${isModal ? 'text-7xl' : 'text-4xl'}`}></i>
@@ -61,31 +91,86 @@ const FileDetailsPage = () => {
     );
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!namePart.trim()) {
       showToast("File name cannot be empty", "error");
       return;
     }
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      // The backend expects display_name and description
+      const updatedApiData = await updateFile(id, {
+        display_name: namePart + extPart,
+        description: fileData.description
+      });
+      
+      // Update local state with the mapped server response
+      const data = await fetchFileDetail(id); // Re-fetch to get consistent mapping or just map return value
+      setFileData({
+        ...data,
+        description: data.description || '',
+        time: new Date(data.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+        status: data.status || 'PRIVATE',
+      });
+
       setIsEditing(false);
-      showToast("File details updated successfully!");
-    }, 800);
+      showToast("File details updated successfully!", "success");
+    } catch (err) {
+      console.error("Failed to update file:", err);
+      showToast(err.response?.data?.error || "Failed to update file details", "error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDownload = () => {
-    showToast(`Downloading ${fileData.name}...`);
+    showToast(`Downloading ${fileData?.name}...`);
+    if (fileData?.preview) {
+      window.open(fileData.preview, '_blank');
+    }
   };
 
-  const handleDeleteAction = () => {
-    setIsDeleteModalOpen(false);
-    setTimeout(() => {
-      navigate('/files');
+  const handleDeleteAction = async () => {
+    try {
+      await deleteFile(id);
+      setIsDeleteModalOpen(false);
       showToast("File moved to trash", "success");
-    }, 1);
-    
+      navigate('/files');
+    } catch (err) {
+      console.error("Failed to delete file:", err);
+      showToast(err.response?.data?.error || "Failed to delete file", "error");
+    }
   };
+
+  // --- LOADING STATE ---
+  if (isLoading) {
+    return (
+      <main className="flex-1 p-8 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors duration-300 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-gray-400 font-black uppercase tracking-widest text-xs">Loading File...</p>
+        </div>
+      </main>
+    );
+  }
+
+  // --- ERROR STATE ---
+  if (error || !fileData) {
+    return (
+      <main className="flex-1 p-8 overflow-y-auto bg-gray-50 dark:bg-gray-900 transition-colors duration-300 flex items-center justify-center min-h-screen">
+        <div className="text-center max-w-sm">
+          <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <i className="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+          </div>
+          <h2 className="text-xl font-black text-gray-900 dark:text-white mb-2">File Not Found</h2>
+          <p className="text-gray-400 text-sm mb-6">{error}</p>
+          <button onClick={() => navigate('/files')} className="px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition">
+            Back to My Files
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 transition-colors duration-300 relative">
@@ -150,7 +235,12 @@ const FileDetailsPage = () => {
                     </div>
                   </div>
                 ) : (
-                  <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-none">{fileData.name}</h1>
+                  <>
+                    <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-none capitalize">{fileData.name}</h3>
+                    {fileData.filename && (
+                      <p className="text-xs text-gray-400 font-mono mt-1 px-1 opacity-70">{fileData.filename}</p>
+                    )}
+                  </>
                 )}
                 <p className="text-gray-400 font-medium mt-2 text-sm uppercase tracking-wider">Added on {fileData.date} • {fileData.time}</p>
               </div>
@@ -192,7 +282,9 @@ const FileDetailsPage = () => {
               <p className="text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
                 {fileData.description || "No description provided for this asset."}
               </p>
+           
             )}
+            
           </section>
         </div>
 

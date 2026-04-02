@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const UploadConfirmModal = ({ files, isOpen, onClose, onRemove, onConfirm }) => {
+const UploadConfirmModal = ({ files, isOpen, isUploading, onClose, onRemove, onConfirm }) => {
   const [descriptions, setDescriptions] = useState({});
 
   if (!isOpen) return null;
@@ -44,7 +44,7 @@ const UploadConfirmModal = ({ files, isOpen, onClose, onRemove, onConfirm }) => 
                       <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-tight">{formatBytes(file.size)}</p>
                     </div>
                   </div>
-                  <button onClick={() => onRemove(index)} className="text-gray-300 hover:text-red-500 transition px-2">
+                  <button onClick={() => onRemove(index)} disabled={isUploading} className="text-gray-300 hover:text-red-500 transition px-2 disabled:opacity-30 disabled:cursor-not-allowed">
                     <i className="fas fa-trash-alt text-sm"></i>
                   </button>
                 </div>
@@ -70,9 +70,13 @@ const UploadConfirmModal = ({ files, isOpen, onClose, onRemove, onConfirm }) => 
           </div>
 
           <div className="flex space-x-4">
-            <button onClick={onClose} className="flex-1 py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition">Cancel</button>
-            <button onClick={() => onConfirm(files, descriptions)} className="flex-[2] gradient-bg text-white font-bold py-4 rounded-2xl shadow-xl hover:opacity-90 transition active:scale-95 flex items-center justify-center">
-              <i className="fas fa-shield-alt mr-2"></i> Secure & Upload
+            <button onClick={onClose} disabled={isUploading} className="flex-1 py-4 text-sm font-bold text-gray-400 hover:text-gray-600 transition disabled:opacity-30 disabled:cursor-not-allowed">Cancel</button>
+            <button onClick={() => onConfirm(files, descriptions)} disabled={isUploading} className="flex-[2] gradient-bg text-white font-bold py-4 rounded-2xl shadow-xl hover:opacity-90 transition active:scale-95 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
+              {isUploading ? (
+                <><i className="fas fa-circle-notch fa-spin mr-2"></i> Uploading...</>
+              ) : (
+                <><i className="fas fa-shield-alt mr-2"></i> Secure & Upload</>
+              )}
             </button>
           </div>
         </div>

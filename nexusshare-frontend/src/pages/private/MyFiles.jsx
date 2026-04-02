@@ -1,21 +1,38 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { filesData } from '../../dummydata/filesData';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { fetchFiles } from '../../services/fileService';
 import FileCard from '../../components/elements/FIleCard';
 import ShareModal from '../../components/modals/ShareModal';
 import Pagination from '../../components/common/Pagination';
 import ViewToggle from '../../components/common/ViewToggle';
-import { Link } from 'react-router-dom';
 
 const MyFiles = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const [view, setView] = useState('grid');
+  const [files, setFiles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const filesPerPage = 8;
+
+  // Fetch files from API
+  useEffect(() => {
+    const loadFiles = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchFiles();
+        setFiles(data);
+      } catch (error) {
+        console.error('Failed to load files:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadFiles();
+  }, []);
 
   // Extract search query from URL
   const queryParams = new URLSearchParams(location.search);
@@ -28,13 +45,13 @@ const MyFiles = () => {
 
   // Filter logic
   const filteredData = useMemo(() => {
-    if (!searchTerm) return filesData;
+    if (!searchTerm) return files;
     const term = searchTerm.toLowerCase().trim();
-    return filesData.filter(file => 
+    return files.filter(file =>
       file.name.toLowerCase().includes(term) ||
       (file.subtitle && file.subtitle.toLowerCase().includes(term))
     );
-  }, [searchTerm]);
+  }, [searchTerm, files]);
 
   // Pagination logic on filtered data
   const indexOfLastFile = currentPage * filesPerPage;
@@ -53,13 +70,13 @@ const MyFiles = () => {
   return (
     <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header Section */}
-    <div className="flex items-center space-x-4 mb-8">
+      <div className="flex items-center space-x-4 mb-8">
         <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
           <i className="fas fa-arrow-left"></i>
         </button>
 
         <nav className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
-                            <Link to="/dashboard" className="hover:text-indigo-600 transition text-gray-500">Dashboard</Link>
+          <Link to="/dashboard" className="hover:text-indigo-600 transition text-gray-500">Dashboard</Link>
           <i className="fas fa-chevron-right text-[10px]"></i>
           <span className="text-gray-800 dark:text-gray-200">My Files</span>
         </nav>
@@ -72,7 +89,7 @@ const MyFiles = () => {
               {searchTerm ? `Results for "${searchTerm}"` : 'My Files'}
             </h1>
             {searchTerm && (
-              <button 
+              <button
                 onClick={clearSearch}
                 className="text-xs font-bold text-indigo-500 hover:underline bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full"
               >
@@ -84,11 +101,11 @@ const MyFiles = () => {
             {searchTerm ? `Found ${filteredData.length} matching items` : 'Select a file to generate a secure sharing link.'}
           </p>
         </div>
-        
+
         {/* Actions Container: Request Button + View Toggle */}
         <div className="flex items-center gap-3">
           <Link to="/send-request"
-            
+
             className="gradient-bg text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 hover:opacity-90 transition active:scale-95 flex items-center gap-2"
           >
             <i className="fas fa-file-import"></i>
@@ -99,17 +116,22 @@ const MyFiles = () => {
       </div>
 
       {/* Files Grid/List */}
-      <div className={view === 'grid' 
-        ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6" 
+      <div className={view === 'grid'
+        ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6"
         : "flex flex-col gap-4"
       }>
-        {currentFiles.length > 0 ? (
+        {isLoading ? (
+          <div className="col-span-full py-24 text-center">
+            <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Accessing Vault...</p>
+          </div>
+        ) : currentFiles.length > 0 ? (
           currentFiles.map(file => (
-            <FileCard 
-              key={file.id} 
-              file={file} 
-              onShare={openModal} 
-              view={view} 
+            <FileCard
+              key={file.id}
+              file={file}
+              onShare={openModal}
+              view={view}
             />
           ))
         ) : (
@@ -128,7 +150,7 @@ const MyFiles = () => {
       {/* Pagination Container */}
       {filteredData.length > filesPerPage && (
         <div className="mt-12">
-          <Pagination 
+          <Pagination
             currentPage={currentPage}
             totalFiles={filteredData.length}
             filesPerPage={filesPerPage}
@@ -137,10 +159,10 @@ const MyFiles = () => {
         </div>
       )}
 
-      <ShareModal 
-        isOpen={isModalOpen} 
-        fileName={selectedFile} 
-        onClose={() => setIsModalOpen(false)} 
+      <ShareModal
+        isOpen={isModalOpen}
+        fileName={selectedFile}
+        onClose={() => setIsModalOpen(false)}
       />
     </main>
   );

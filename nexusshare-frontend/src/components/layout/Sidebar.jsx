@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { useToast } from '../common/ToastContent';
 import UploadConfirmModal from '../modals/UploadConfirmModel';
 
+import { uploadFiles } from '../../services/fileService';
+
 const SidebarLink = ({ to, icon, label }) => (
   <NavLink
     to={to}
@@ -26,16 +28,17 @@ const Sidebar = () => {
   // States to handle the modal and staging
   const [stagedFiles, setStagedFiles] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState([]);
 
   // 1. When files are selected from the button
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     if (files.length > 0) {
-      setStagedFiles(files); // Put files in "waiting" area
-      setIsModalOpen(true);  // OPEN THE MODAL (Just like Dashboard)
+      setStagedFiles(files);
+      setIsModalOpen(true);
     }
-    event.target.value = null; // Clear input so same file can be picked again
+    event.target.value = null;
   };
 
   // 2. Remove file from the Modal list
@@ -46,34 +49,57 @@ const Sidebar = () => {
   };
 
   // 3. User clicks "Confirm & Secure" in the Modal
-  const handleConfirmUpload = () => {
-    const newUploads = stagedFiles.map(file => ({
+  const handleConfirmUpload = async (filesToUpload, descriptions) => {
+    setIsUploading(true);
+    
+    // Create temporary "uploading" visual items
+    const newUploads = filesToUpload.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
       progress: 0
     }));
-
-    setIsModalOpen(false);
     setUploadingFiles(prev => [...prev, ...newUploads]);
-    showToast(`Securing ${stagedFiles.length} files...`, "success");
 
-    // Simulate the progress bars in the sidebar
-    newUploads.forEach(upload => {
-      let prog = 0;
-      const interval = setInterval(() => {
-        prog += Math.floor(Math.random() * 25) + 5;
-        if (prog >= 100) {
-          prog = 100;
-          clearInterval(interval);
-          setTimeout(() => {
-            setUploadingFiles(prev => prev.filter(f => f.id !== upload.id));
-          }, 2000);
-        }
-        setUploadingFiles(prev => prev.map(f => f.id === upload.id ? { ...f, progress: prog } : f));
-      }, 500);
-    });
+    try {
+      // Simulate progress for UI feedback while real request happens
+      const intervals = newUploads.map(upload => {
+        let prog = 0;
+        return setInterval(() => {
+          prog += Math.floor(Math.random() * 15) + 5;
+          if (prog >= 95) prog = 95; // Wait at 95% for actual completion
+          setUploadingFiles(prev => prev.map(f => f.id === upload.id ? { ...f, progress: prog } : f));
+        }, 300);
+      });
 
-    setStagedFiles([]); // Clear staged files after starting upload
+      const { successes, failures } = await uploadFiles(filesToUpload, descriptions);
+      
+      // Stop simulations
+      intervals.forEach(clearInterval);
+
+      if (successes.length > 0) {
+        showToast(`${successes.length} file(s) uploaded successfully!`, 'success');
+        // Complete progress bars
+        setUploadingFiles(prev => prev.map(f => ({ ...f, progress: 100 })));
+      }
+      
+      if (failures.length > 0) {
+        showToast(`${failures.length} file(s) failed to upload.`, 'error');
+      }
+
+      setIsModalOpen(false);
+      setStagedFiles([]);
+      
+      // Clear uploading items after 2 seconds
+      setTimeout(() => {
+        setUploadingFiles(prev => prev.filter(f => !newUploads.some(nu => nu.id === f.id)));
+      }, 2000);
+      
+    } catch (error) {
+      showToast('Upload failed. Please try again.', 'error');
+      setUploadingFiles(prev => prev.filter(f => !newUploads.some(nu => nu.id === f.id)));
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -159,7 +185,13 @@ const Sidebar = () => {
       <UploadConfirmModal
         isOpen={isModalOpen}
         files={stagedFiles}
-        onClose={() => setIsModalOpen(false)}
+        isUploading={isUploading}
+        onClose={() => {
+          if (!isUploading) {
+            setIsModalOpen(false);
+            setStagedFiles([]);
+          }
+        }}
         onRemove={removeStagedFile}
         onConfirm={handleConfirmUpload}
       />

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { filesData } from '../../dummydata/filesData'; 
+import { useAuth } from '../../context/AuthContext';
+import { fetchFiles } from '../../services/fileService';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark';
@@ -17,11 +19,25 @@ const Navbar = () => {
   const hasPending = requests.some(req => req.status === 'pending');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [files, setFiles] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   
   const dropdownRef = useRef(null);
   const searchRef = useRef(null);
+
+  // Fetch files for search suggestions
+  useEffect(() => {
+    const loadFiles = async () => {
+      try {
+        const data = await fetchFiles();
+        setFiles(data);
+      } catch (error) {
+        console.error('Failed to load files for navbar:', error);
+      }
+    };
+    if (user) loadFiles();
+  }, [user]);
 
   // Theme Logic
   useEffect(() => {
@@ -37,7 +53,7 @@ const Navbar = () => {
   // LIVE SEARCH LOGIC (Suggestions)
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
-      const filtered = filesData.filter(file => 
+      const filtered = files.filter(file => 
         file.name.toLowerCase().includes(searchQuery.toLowerCase())
       ).slice(0, 5); 
       setSuggestions(filtered);
@@ -46,7 +62,7 @@ const Navbar = () => {
       setSuggestions([]);
       setShowSuggestions(false);
     }
-  }, [searchQuery]);
+  }, [searchQuery, files]);
 
   // Click Outside Logic
   useEffect(() => {
@@ -158,11 +174,11 @@ const Navbar = () => {
             className="flex items-center gap-3 border-l pl-6 border-gray-200 dark:border-gray-700 hover:opacity-80 transition-all"
           >
               <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold border-2 border-white dark:border-gray-800 shadow-sm">
-              A
+              {user ? (user.first_name ? user.first_name[0] : user.email[0].toUpperCase()) : 'A'}
             </div>
             <div className="text-left hidden sm:block">
-              <p className="text-sm font-bold dark:text-white leading-none">Ashwin</p>
-              <p className="text-[8px] text-gray-500 dark:text-gray-400 tracking-wider">ashwin@example.com</p>
+              <p className="text-sm font-bold dark:text-white leading-none">{user?.first_name || 'User'}</p>
+              <p className="text-[8px] text-gray-500 dark:text-gray-400 tracking-wider">{user?.email || 'email@example.com'}</p>
             </div>
           
           </button>
@@ -178,13 +194,17 @@ const Navbar = () => {
                 Profile Settings
               </Link>
               <div className="border-t border-gray-100 dark:border-gray-800 my-1"></div>
-              <Link 
-                to="/"
+              <button 
+                onClick={() => {
+                  logout();
+                  setIsProfileOpen(false);
+                  navigate('/login');
+                }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors text-left font-medium"
               >
                 <i className="fas fa-sign-out-alt"></i>
                 Logout
-              </Link>
+              </button>
             </div>
           )}
         </div>
