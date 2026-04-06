@@ -55,7 +55,7 @@ function App() {
             <Route path="/recents" element={<Recents/>}/>
 
             <Route path="/assets" element={<FileExplorer />} />
-            <Route path="/assets/details" element={<FolderDetail />}/>
+            <Route path="/assets/details/:id" element={<FolderDetail />}/>
 
             <Route path="/profile" element={<Profile />} /> 
             <Route path="/profile/update" element={<EditProfile />} /> 

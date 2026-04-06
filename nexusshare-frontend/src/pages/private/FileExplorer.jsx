@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FolderCard from '../../components/elements/FolderCard';
 import ViewToggle from '../../components/common/ViewToggle'; 
 import { useToast } from '../../components/common/ToastContent';
+import { fetchFolders, createFolder, renameFolder, deleteFolder } from '../../services/folderService';
 
 const FileExplorer = () => {
   const { showToast } = useToast();
   const [view, setView] = useState('grid');
-  const [folders, setFolders] = useState([
-    { id: 1, name: 'Product Specs', files: 12, size: '1.2 GB', color: 'text-amber-400' },
-    { id: 2, name: 'Company Logos', files: 45, size: '400 MB', color: 'text-indigo-400' },
-    { id: 3, name: 'Shared Designs', files: 8, size: '2.4 GB', color: 'text-emerald-400' },
-  ]);
+  const [folders, setFolders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -20,44 +18,66 @@ const FileExplorer = () => {
   const [newFolderName, setNewFolderName] = useState("");
   const [editingFolder, setEditingFolder] = useState(null); // Stores {id, name}
 
-  const handleCreateFolder = () => {
-    if (!newFolderName.trim()) return;
-    const newFolder = {
-      id: Date.now(),
-      name: newFolderName,
-      files: 0,
-      size: '0 KB',
-      color: 'text-gray-400'
+  // Fetch folders from API
+  useEffect(() => {
+    const loadFolders = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchFolders();
+        setFolders(data);
+      } catch (error) {
+        console.error('Failed to load folders:', error);
+        showToast("Failed to load your folders. Please try again later.", "error");
+      } finally {
+        setIsLoading(false);
+      }
     };
-    setFolders([...folders, newFolder]);
-    setIsCreateModalOpen(false);
-    setNewFolderName("");
-    showToast(`Folder "${newFolderName}" created successfully!`);
+    loadFolders();
+  }, []);
+
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return;
+    try {
+      const created = await createFolder(newFolderName.trim());
+      setFolders(prev => [...prev, created]);
+      setIsCreateModalOpen(false);
+      setNewFolderName("");
+      showToast(`Folder "${newFolderName}" created successfully!`, "success");
+    } catch (error) {
+      showToast("Failed to create folder.", "error");
+    }
   };
 
-  // --- NEW: Rename Logic ---
-  const handleRenameFolder = () => {
+  const handleRenameFolder = async () => {
     if (!editingFolder.name.trim()) return;
 
-    setFolders(folders.map(folder => 
-      folder.id === editingFolder.id 
-        ? { ...folder, name: editingFolder.name } 
-        : folder
-    ));
-    
-    showToast(`Renamed to "${editingFolder.name}"`, "success");
-    setIsRenameModalOpen(false);
-    setEditingFolder(null);
+    try {
+      const updated = await renameFolder(editingFolder.id, editingFolder.name.trim());
+      setFolders(prev => prev.map(folder => 
+        folder.id === editingFolder.id ? { ...folder, ...updated } : folder
+      ));
+      
+      showToast(`Renamed to "${editingFolder.name}"`, "success");
+      setIsRenameModalOpen(false);
+      setEditingFolder(null);
+    } catch (error) {
+      showToast("Failed to rename folder.", "error");
+    }
   };
 
-  const handleDelete = (id, name) => {
-    setFolders(folders.filter(f => f.id !== id));
-    showToast(`Deleted ${name}`, "success");
+  const handleDelete = async (id, name) => {
+    try {
+      await deleteFolder(id);
+      setFolders(prev => prev.filter(f => f.id !== id));
+      showToast(`Deleted ${name}`, "success");
+    } catch (error) {
+      showToast(`Failed to delete ${name}.`, "error");
+    }
   };
 
   return (
-   <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
-            <div className="flex items-center space-x-4 mb-8">
+    <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+      <div className="flex items-center space-x-4 mb-8">
         <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
           <i className="fas fa-arrow-left"></i>
         </button>
@@ -66,9 +86,8 @@ const FileExplorer = () => {
         </nav>
       </div>
 
-
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
- <div>
+        <div>
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Assets</h1>
           <p className="text-gray-500 dark:text-gray-400 font-medium">Organise your files.</p>
         </div>
@@ -83,26 +102,50 @@ const FileExplorer = () => {
         </div>
       </div>
 
-      <div className={view === 'grid' 
-        ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mb-12" 
-        : "flex flex-col gap-4 mb-12"
-      }>
-        {folders.map(folder => (
-          <FolderCard 
-            key={folder.id}
-            name={folder.name}
-            fileCount={folder.files}
-            size={folder.size}
-            colorClass={folder.color}
-            view={view}
-            onRename={() => {
-              setEditingFolder({ id: folder.id, name: folder.name });
-              setIsRenameModalOpen(true);
-            }}
-            onDelete={() => handleDelete(folder.id, folder.name)}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Synchronizing Assets...</p>
+        </div>
+      ) : folders.length > 0 ? (
+        <div className={view === 'grid' 
+          ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mb-12" 
+          : "flex flex-col gap-4 mb-12"
+        }>
+          {folders.map(folder => (
+            <FolderCard 
+              key={folder.id}
+              id={folder.id}
+              name={folder.name}
+              fileCount={folder.filesCount}
+              size={folder.size}
+              colorClass={folder.color}
+              view={view}
+              onRename={() => {
+                setEditingFolder({ id: folder.id, name: folder.name });
+                setIsRenameModalOpen(true);
+              }}
+              onDelete={() => handleDelete(folder.id, folder.name)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="py-24 text-center bg-white dark:bg-gray-800/50 rounded-[2.5rem] border-2 border-dashed border-gray-100 dark:border-gray-700 mx-auto">
+          <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+            <i className="fas fa-folder-open text-3xl"></i>
+          </div>
+          <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">No assets yet</h3>
+          <p className="text-sm text-gray-500 max-w-xs mx-auto mb-8">
+            Create your first folder to start organizing your files professionally.
+          </p>
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="gradient-bg text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 active:scale-95 transition"
+          >
+            Create My First Folder
+          </button>
+        </div>
+      )}
 
       {/* CREATE MODAL */}
       {isCreateModalOpen && (
@@ -127,6 +170,7 @@ const FileExplorer = () => {
                   placeholder="Enter name..." 
                   className="w-full px-5 py-4 rounded-2xl text-sm mb-6 bg-gray-50 dark:bg-gray-900 dark:text-white border border-gray-100 dark:border-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none" 
                   autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
                 />
               </div>
               <div className="flex space-x-3 justify-end">

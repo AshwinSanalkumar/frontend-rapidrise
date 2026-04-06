@@ -31,7 +31,8 @@ export const mapFileFromApi = (apiFile) => {
     preview: apiFile.content ? `http://localhost:8000${apiFile.content}` : null,
     extension: apiFile.filename ? '.' + apiFile.filename.split('.').pop().toUpperCase() : '',
     status: 'PRIVATE',
-    isFavorite: false,
+    isDeleted: apiFile.is_deleted || false,
+    isFavorite: apiFile.is_favorite || false,
     uploadedAt: apiFile.uploaded_at,
   };
 };
@@ -39,8 +40,8 @@ export const mapFileFromApi = (apiFile) => {
 /**
  * Fetches all files for the authenticated user.
  */
-export const fetchFiles = async () => {
-  const response = await apiClient.get('files/list/');
+export const fetchFiles = async (is_deleted=false) => {
+  const response = await apiClient.get('files/list/',{params:{is_deleted}});
   const filesArray = Array.isArray(response.data) ? response.data : (response.data.results || []);
   return filesArray.map(mapFileFromApi);
 };
@@ -111,5 +112,13 @@ export const deleteFile = async (fileId) => {
  */
 export const updateFile = async (fileId, data) => {
   const response = await apiClient.put(`files/update/${fileId}/`, data);
+  return response.data;
+};
+/**
+ * Toggles a file's favorite status.
+ * @param {string} fileId
+ */
+export const toggleFileFavorite = async (fileId) => {
+  const response = await apiClient.patch(`files/favorite/${fileId}/`);
   return response.data;
 };

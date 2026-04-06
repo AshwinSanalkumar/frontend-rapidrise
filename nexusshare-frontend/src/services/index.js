@@ -9,3 +9,4 @@ export * from './shareService';
 export * from './storageService';
 export * from './requestService';
 export * from './profileService';
+export * from './folderService';
