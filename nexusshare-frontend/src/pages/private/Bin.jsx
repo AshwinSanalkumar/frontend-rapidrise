@@ -1,36 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TrashTable from '../../components/elements/TrashTable';
 import { useToast } from '../../components/common/ToastContent';
+import { fetchDeletedFiles,restoreFile , deleteFilePermanently} from '../../services/fileService';
 
 const Bin = () => {
   const { showToast } = useToast();
-  
-  // Mock data for the bin
-  const [deletedItems, setDeletedItems] = useState([
-    { 
-      id: 1, 
-      name: 'Q4_Report_Draft.pdf', 
-      path: '/Documents/Reports', 
-      deletedDate: 'Oct 24, 2026', 
-      size: '2.4 MB', 
-      icon: 'fa-file-pdf', 
-      color: 'text-red-400' 
-    },
-    { 
-      id: 2, 
-      name: 'Old_Assets_Folder', 
-      path: '/Projects', 
-      deletedDate: 'Oct 22, 2026', 
-      size: '145 MB', 
-      icon: 'fa-folder', 
-      color: 'text-amber-400' 
-    }
-  ]);
+  const [deletedItems, setDeletedItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDeletedItems = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchDeletedFiles();
+        setDeletedItems(data || []);
+      } catch (error) {
+        console.error('Failed to load deleted items:', error);
+        showToast('Error loading deleted items', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadDeletedItems();
+  }, []); 
+
 
   const handleRestore = (id) => {
     const item = deletedItems.find(i => i.id === id);
     if (!item) return;
     setDeletedItems(deletedItems.filter(i => i.id !== id));
+    restoreFile(item.id);
     showToast(`${item.name} restored successfully!`, 'success');
   };
 
@@ -38,7 +37,8 @@ const Bin = () => {
     const item = deletedItems.find(i => i.id === id);
     if (window.confirm(`Delete "${item?.name}" permanently? This cannot be undone.`)) {
       setDeletedItems(deletedItems.filter(i => i.id !== id));
-      showToast("Item purged from vault.", "error");
+      deleteFilePermanently(item.id);
+      showToast("Item purged from vault.", "success");
     }
   };
 
@@ -98,12 +98,19 @@ const Bin = () => {
 
         {/* Content Table Area */}
         <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
-          <TrashTable 
-            items={deletedItems} 
-            onRestore={handleRestore} 
-            onDeletePermanently={handleDeletePermanently}
-            isEmpty={deletedItems.length === 0}
-          />
+          {isLoading ? (
+            <div className="py-20 text-center">
+              <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Scanning Trash...</p>
+            </div>
+          ) : (
+            <TrashTable 
+              items={deletedItems} 
+              onRestore={handleRestore} 
+              onDeletePermanently={handleDeletePermanently}
+              isEmpty={deletedItems.length === 0}
+            />
+          )}
         </div>
 
         {/* Security Footnote */}

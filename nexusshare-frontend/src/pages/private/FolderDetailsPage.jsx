@@ -5,7 +5,7 @@ import DeleteModal from '../../components/modals/DeleteModal';
 import { useToast } from '../../components/common/ToastContent';
 import NexusShareSelector from '../../components/modals/NexusShareSelector';
 import { fetchFolderDetails, uploadFilesToFolder, importFilesToFolder, removeFileFromFolder } from '../../services/folderService';
-import { deleteFile } from '../../services/fileService';
+
 
 const FolderDetail = () => {
   const { id } = useParams();

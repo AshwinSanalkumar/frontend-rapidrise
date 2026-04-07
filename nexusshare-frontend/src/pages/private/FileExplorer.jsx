@@ -64,6 +64,11 @@ const FileExplorer = () => {
       showToast("Failed to rename folder.", "error");
     }
   };
+  
+  const formatFileSize = (bytes) => {
+    const size = Number(bytes) || 0;
+    return (size / (1024 * 1024)).toFixed(2) + " MB";
+  };
 
   const handleDelete = async (id, name) => {
     try {
@@ -118,7 +123,7 @@ const FileExplorer = () => {
               id={folder.id}
               name={folder.name}
               fileCount={folder.filesCount}
-              size={folder.size}
+              size={formatFileSize(folder.size)}
               colorClass={folder.color}
               view={view}
               onRename={() => {

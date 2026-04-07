@@ -40,10 +40,26 @@ export const mapFileFromApi = (apiFile) => {
 /**
  * Fetches all files for the authenticated user.
  */
-export const fetchFiles = async (is_deleted=false) => {
-  const response = await apiClient.get('files/list/',{params:{is_deleted}});
+export const fetchFiles = async () => {
+  const response = await apiClient.get('files/list/');
   const filesArray = Array.isArray(response.data) ? response.data : (response.data.results || []);
   return filesArray.map(mapFileFromApi);
+};
+
+export const fetchDeletedFiles = async () => {
+  const response = await apiClient.get('trash/');
+  const filesArray = Array.isArray(response.data) ? response.data : (response.data.results || []);
+  return filesArray.map(mapFileFromApi);
+};
+
+export const restoreFile = async (fileId) => {
+  const response = await apiClient.post(`files/restore/${fileId}/`);
+  return response.data;
+};
+
+export const deleteFilePermanently = async (fileId) => {
+  const response = await apiClient.delete(`trash/delete/${fileId}/`);
+  return response.data;
 };
 
 /**

@@ -9,11 +9,11 @@ const Recents = () => {
 
   // Mock data with "lastAccessed" timestamps
   const [recentFiles, setRecentFiles] = useState([
-    { id: 1, name: 'Project_Alpha_v2.fig', subtitle: 'Design System', modified: '2 mins ago', size: '42 MB', iconClass: 'fab fa-figma', colorClass: 'text-purple-500', bgClass: 'bg-purple-50 dark:bg-purple-900/20', timeframe: 'Today' },
-    { id: 2, name: 'API_Documentation.pdf', subtitle: 'Technical Specs', modified: '1 hour ago', size: '1.2 MB', iconClass: 'fas fa-file-pdf', colorClass: 'text-red-500', bgClass: 'bg-red-50 dark:bg-red-900/20', timeframe: 'Today' },
-    { id: 3, name: 'Q1_Financials.xlsx', subtitle: 'Spreadsheet', modified: 'Yesterday', size: '850 KB', iconClass: 'fas fa-file-excel', colorClass: 'text-emerald-500', bgClass: 'bg-emerald-50 dark:bg-emerald-900/20', timeframe: 'Yesterday' },
-    { id: 4, name: 'Team_Sync_Recording.mp4', subtitle: 'Video Meeting', modified: 'Yesterday', size: '156 MB', iconClass: 'fas fa-video', colorClass: 'text-blue-500', bgClass: 'bg-blue-50 dark:bg-blue-900/20', timeframe: 'Yesterday' },
-    { id: 5, name: 'Deployment_Script.sh', subtitle: 'Shell Script', modified: '3 days ago', size: '4 KB', iconClass: 'fas fa-terminal', colorClass: 'text-gray-600', bgClass: 'bg-gray-100 dark:bg-gray-800', timeframe: 'Earlier this Week' },
+    { id: 1, name: 'Project_Alpha_v2.fig', subtitle: 'Design System', modified: '2 mins ago', size: '42 MB', iconClass: 'fab fa-figma', colorClass: 'text-purple-500', timeframe: 'Today' },
+    { id: 2, name: 'API_Documentation.pdf', subtitle: 'Technical Specs', modified: '1 hour ago', size: '1.2 MB', iconClass: 'fas fa-file-pdf', colorClass: 'text-red-500', timeframe: 'Today' },
+    { id: 3, name: 'Q1_Financials.xlsx', subtitle: 'Spreadsheet', modified: 'Yesterday', size: '850 KB', iconClass: 'fas fa-file-excel', colorClass: 'text-emerald-500', timeframe: 'Yesterday' },
+    { id: 4, name: 'Team_Sync_Recording.mp4', subtitle: 'Video Meeting', modified: 'Yesterday', size: '156 MB', iconClass: 'fas fa-video', colorClass: 'text-blue-500', timeframe: 'Yesterday' },
+    { id: 5, name: 'Deployment_Script.sh', subtitle: 'Shell Script', modified: '3 days ago', size: '4 KB', iconClass: 'fas fa-terminal', colorClass: 'text-gray-600', timeframe: 'Earlier this Week' },
   ]);
 
   // Grouping logic for the UI

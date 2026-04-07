@@ -294,7 +294,12 @@ const FileDetailsPage = () => {
       </div>
 
       <ShareModal isOpen={isShareModalOpen} fileName={fileData.name} onClose={() => setIsShareModalOpen(false)} />
-      <DeleteModal isOpen={isDeleteModalOpen} fileName={fileData.name} onClose={() => setIsDeleteModalOpen(false)} onDelete={handleDeleteAction} />
+      <DeleteModal 
+      isOpen={isDeleteModalOpen} 
+      fileName={fileData.name} 
+      message={`This will move "${fileData.name}" to the trash.`}
+      onClose={() => setIsDeleteModalOpen(false)} 
+      onDelete={handleDeleteAction} />
     </main>
   );
 };

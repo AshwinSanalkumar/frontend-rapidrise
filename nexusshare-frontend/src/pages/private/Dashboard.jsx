@@ -155,7 +155,7 @@ const Dashboard = () => {
           <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
             <div className="p-8 border-b border-gray-50 dark:border-gray-700 flex justify-between items-center">
               <h2 className="font-bold text-gray-800 dark:text-white text-lg">Recent Activity</h2>
-              <Link to="/files" className="text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:underline">Full History</Link>
+              <Link to="/recents" className="text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:underline">Full History</Link>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
