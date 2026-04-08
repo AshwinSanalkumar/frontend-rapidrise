@@ -42,10 +42,6 @@ const FileDetailsPage = () => {
     if (id) loadFile();
   }, [id]);
 
-  // The fileData.name already contains the display name (mapped in the service)
-  const nameForEdit = fileData?.name || '';
-
-
   // --- PREVIEW LOGIC ---
   const renderPreviewContent = (isModal = false) => {
     if (!fileData) return null;
