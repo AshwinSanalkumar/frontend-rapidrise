@@ -75,7 +75,7 @@ const FileCard = ({ file, onShare, view, onToggleFavorite }) => {
       onClick={handleView}
       className={`file-card bg-white dark:bg-gray-800 p-4 border border-gray-100 dark:border-gray-700 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer relative
         ${isList
-          ? 'flex flex-row items-center !py-4 !px-6 !rounded-[1.25rem]'
+          ? 'flex flex-row items-center !py-3 !px-4 md:!py-4 md:!px-6 !rounded-2xl md:!rounded-[1.25rem]'
           : 'flex flex-col rounded-[2.5rem]'}`}
     >
       {/* Favorite Button - Top Right Overlay for Grid View */}

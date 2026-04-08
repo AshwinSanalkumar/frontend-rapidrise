@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { fetchFiles } from '../../services/fileService';
 
-const Navbar = () => {
+const Navbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isDark, setIsDark] = useState(() => {
@@ -93,20 +93,30 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="glass sticky top-0 z-50 px-6 py-6 flex items-center justify-between transition-all duration-300">
-      {/* LEFT: LOGO SECTION */}
-      <div className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-        <div className="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-          <i className="fas fa-share-nodes text-white text-xl"></i>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
-            NEXUS<span className="text-indigo-500">SHARE</span>
-          </span>
-          <span className="text-[7px] font-black tracking-[0.3em] text-gray-400 uppercase leading-none mt-1">
-            Verified Protocol
-          </span>
-        </div>
+    <nav className="glass sticky top-0 z-50 px-4 md:px-6 py-4 md:py-6 flex items-center justify-between transition-all duration-300">
+      {/* LEFT: LOGO & MOBILE TOGGLE SECTION */}
+      <div className="flex items-center gap-3 md:gap-4">
+        {/* Hamburger Menu (Mobile Only) */}
+        <button 
+          onClick={onToggleSidebar}
+          className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 active:scale-95 transition-all"
+        >
+          <i className="fas fa-bars text-lg"></i>
+        </button>
+
+        <Link to="/dashboard" className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity">
+          <div className="w-8 h-8 md:w-10 md:h-10 gradient-bg rounded-lg md:rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <i className="fas fa-share-nodes text-white text-sm md:text-xl"></i>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-base md:text-xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
+              NEXUS<span className="text-indigo-500">SHARE</span>
+            </span>
+            <span className="hidden xs:block text-[6px] md:text-[7px] font-black tracking-[0.2em] md:tracking-[0.3em] text-gray-400 uppercase leading-none mt-1">
+              Verified Protocol
+            </span>
+          </div>
+        </Link>
       </div>
 
       {/* RIGHT: TOOLS & PROFILE */}

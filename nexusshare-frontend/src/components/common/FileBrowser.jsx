@@ -102,7 +102,7 @@ const FileBrowser = ({
   };
 
   return (
-    <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <main className="flex-1 p-4 sm:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header Section */}
       <div className="flex items-center space-x-4 mb-8">
         <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
@@ -116,10 +116,10 @@ const FileBrowser = ({
         </nav>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-10 gap-6">
         <div>
-          <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white truncate max-w-[200px] sm:max-w-none">
               {searchTerm ? `Results for "${searchTerm}"` : title}
             </h1>
             {searchTerm && (
@@ -137,9 +137,9 @@ const FileBrowser = ({
         </div>
 
         {/* Actions Container */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 justify-between md:justify-end">
           <Link to="/send-request"
-            className="gradient-bg text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 hover:opacity-90 transition active:scale-95 flex items-center gap-2"
+            className="flex-1 sm:flex-none gradient-bg text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 hover:opacity-90 transition active:scale-95 flex items-center justify-center gap-2"
           >
             <i className="fas fa-file-import"></i>
             Request File

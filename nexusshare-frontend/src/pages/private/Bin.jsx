@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import TrashTable from '../../components/elements/TrashTable';
+import DeleteModal from '../../components/modals/DeleteModal';
 import { useToast } from '../../components/common/ToastContent';
-import { fetchDeletedFiles,restoreFile , deleteFilePermanently} from '../../services/fileService';
+import { fetchDeletedFiles, restoreFile, deleteFilePermanently } from '../../services/fileService';
 
 const Bin = () => {
   const { showToast } = useToast();
   const [deletedItems, setDeletedItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
     const loadDeletedItems = async () => {
@@ -35,18 +37,31 @@ const Bin = () => {
 
   const handleDeletePermanently = (id) => {
     const item = deletedItems.find(i => i.id === id);
-    if (window.confirm(`Delete "${item?.name}" permanently? This cannot be undone.`)) {
-      setDeletedItems(deletedItems.filter(i => i.id !== id));
-      deleteFilePermanently(item.id);
-      showToast("Item purged from vault.", "success");
+    if (item) {
+      setDeleteTarget({ type: 'single', item });
     }
   };
 
   const emptyTrash = () => {
-    if (window.confirm("Empty entire trash? All data will be permanently wiped.")) {
+    if (deletedItems.length > 0) {
+      setDeleteTarget({ type: 'all' });
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+
+    if (deleteTarget.type === 'single') {
+      const item = deleteTarget.item;
+      setDeletedItems(deletedItems.filter(i => i.id !== item.id));
+      deleteFilePermanently(item.id);
+      showToast("Item purged from vault.", "success");
+    } else if (deleteTarget.type === 'all') {
       setDeletedItems([]);
       showToast("Vault trash emptied.", "info");
+      // Ensure backend call is made here to empty trash in real usage
     }
+    setDeleteTarget(null);
   };
 
   const restoreAll = () => {
@@ -119,6 +134,20 @@ const Bin = () => {
           <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Secure Deletion Protocol Active</span>
         </div>
       </div>
+      
+      {/* Delete Confirmation Modal */}
+      <DeleteModal 
+        isOpen={!!deleteTarget} 
+        onClose={() => setDeleteTarget(null)} 
+        onDelete={handleConfirmDelete}
+        title={deleteTarget?.type === 'all' ? "Empty entirely?" : "Delete Permanently?"}
+        message={deleteTarget?.type === 'all' 
+          ? "This will wipe all items in the bin. This cannot be undone." 
+          : `This will permanently delete "${deleteTarget?.item?.name}". This cannot be undone.`}
+        confirmText={deleteTarget?.type === 'all' ? "Empty Bin" : "Delete"}
+        variant="danger"
+        icon="fas fa-trash-alt"
+      />
     </main>
   );
 };
