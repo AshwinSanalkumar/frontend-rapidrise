@@ -138,3 +138,10 @@ export const toggleFileFavorite = async (fileId) => {
   const response = await apiClient.patch(`files/favorite/${fileId}/`);
   return response.data;
 };
+/**
+ * Fetches all files and returns them sorted by upload date (newest first).
+ */
+export const fetchRecentFiles = async () => {
+  const files = await fetchFiles();
+  return files.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+};

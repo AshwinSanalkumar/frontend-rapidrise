@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useToast } from '../../components/common/ToastContent'; 
+import { useToast } from '../../components/common/ToastContent';
 import ActionButton from '../../components/common/ActionButton';
 import FileSpecCard from '../../components/elements/FileSpecCard';
 import ShareModal from '../../components/modals/ShareModal';
@@ -42,26 +42,24 @@ const FileDetailsPage = () => {
     if (id) loadFile();
   }, [id]);
 
-  // Guard: use the actual filename (with extension) for splitting
-  const nameForEdit = fileData ? (fileData.name || fileData.name) : '';
-  const lastDotIndex = nameForEdit.lastIndexOf('.');
-  const namePart = lastDotIndex > 0 ? nameForEdit.substring(0, lastDotIndex) : nameForEdit;
-  const extPart  = lastDotIndex > 0 ? nameForEdit.substring(lastDotIndex) : '';
+  // The fileData.name already contains the display name (mapped in the service)
+  const nameForEdit = fileData?.name || '';
+
 
   // --- PREVIEW LOGIC ---
   const renderPreviewContent = (isModal = false) => {
     if (!fileData) return null;
     const mimeType = fileData.type || '';
     const isImage = mimeType === 'image';
-    const isPDF   = mimeType === 'pdf';
+    const isPDF = mimeType === 'pdf';
     const isExcel = mimeType === 'excel';
 
     if (isImage && fileData.preview) {
       return (
-        <img 
-          src={fileData.preview} 
-          className={`${isModal ? 'max-h-[85vh] max-w-[90vw] rounded-3xl' : 'w-full h-full object-contain'} transition-all duration-500 select-none`} 
-          alt="Preview" 
+        <img
+          src={fileData.preview}
+          className={`${isModal ? 'max-h-[85vh] max-w-[90vw] rounded-3xl' : 'w-full h-full object-contain'} transition-all duration-500 select-none`}
+          alt="Preview"
           onContextMenu={(e) => e.preventDefault()}
         />
       );
@@ -92,7 +90,7 @@ const FileDetailsPage = () => {
   };
 
   const handleSaveEdit = async () => {
-    if (!namePart.trim()) {
+    if (!fileData.name || !fileData.name.trim()) {
       showToast("File name cannot be empty", "error");
       return;
     }
@@ -100,10 +98,10 @@ const FileDetailsPage = () => {
     try {
       // The backend expects display_name and description
       const updatedApiData = await updateFile(id, {
-        display_name: namePart + extPart,
-        description: fileData.description
+        display_name: fileData.name.trim(),
+        description: fileData.description.trim() || null
       });
-      
+
       // Update local state with the mapped server response
       const data = await fetchFileDetail(id); // Re-fetch to get consistent mapping or just map return value
       setFileData({
@@ -117,7 +115,10 @@ const FileDetailsPage = () => {
       showToast("File details updated successfully!", "success");
     } catch (err) {
       console.error("Failed to update file:", err);
-      showToast(err.response?.data?.error || "Failed to update file details", "error");
+
+      // Extract specific error messages from the backend response
+      let errorMessage = "Failed to update file details";
+      showToast(errorMessage, "error");
     } finally {
       setIsSaving(false);
     }
@@ -173,12 +174,12 @@ const FileDetailsPage = () => {
   }
 
   return (
-    <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 transition-colors duration-300 relative">
-      
+    <main className="flex-1 p-4 sm:p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 transition-colors duration-300 relative">
+
       {/* --- ENLARGED VIEW MODAL --- */}
       {isEnlarged && (
         <div className="fixed inset-0 z-[100] bg-gray-950/95 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <button 
+          <button
             onClick={() => setIsEnlarged(false)}
             className="absolute top-8 right-8 w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border border-white/10 transition-all"
           >
@@ -190,14 +191,14 @@ const FileDetailsPage = () => {
         </div>
       )}
 
-            <div className="flex items-center space-x-4 mb-8">
+      <div className="flex items-center space-x-4 mb-6 md:mb-8">
         <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
           <i className="fas fa-arrow-left"></i>
         </button>
-        <nav className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
-                            <Link to="/files" className="hover:text-indigo-600 transition text-gray-500">My Files</Link>
-          <i className="fas fa-chevron-right text-[10px]"></i>
-          <span className="text-gray-800 dark:text-gray-200">File Details</span>
+        <nav className="flex items-center space-x-2 text-sm font-medium">
+          <Link to="/files" className="hover:text-indigo-600 transition text-gray-500">My Files</Link>
+          <i className="fas fa-chevron-right text-[10px] text-gray-400"></i>
+          <span className="text-gray-800 dark:text-gray-200">Details</span>
         </nav>
       </div>
 
@@ -207,18 +208,18 @@ const FileDetailsPage = () => {
             {/* PREVIEW CONTAINER */}
             <div className="relative w-full aspect-video bg-gray-50 dark:bg-gray-900 rounded-[2rem] overflow-hidden flex items-center justify-center border border-gray-100 dark:border-gray-800 group">
               {renderPreviewContent()}
-              
-              <button 
+
+              <button
                 onClick={() => setIsEnlarged(true)}
                 className="absolute bottom-6 right-6 bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-white/40 transition border border-white/20 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 duration-300 shadow-xl"
               >
                 <span className='text-gray-900 dark:text-white text-center'>
-                <i className="fas fa-expand-arrows-alt mr-2"></i>Fullscreen Preview
-              </span>
+                  <i className="fas fa-expand-arrows-alt mr-2"></i>Fullscreen Preview
+                </span>
               </button>
             </div>
 
-            <div className="mt-8 flex flex-col md:flex-row justify-between items-start gap-4">
+            <div className="mt-6 md:mt-8 flex flex-col md:flex-row justify-between items-start gap-6">
               <div className="flex-1 w-full">
                 {isEditing ? (
                   <div className="flex flex-col space-y-1">
@@ -226,41 +227,42 @@ const FileDetailsPage = () => {
                     <div className="flex items-center w-full bg-gray-50 dark:bg-gray-900 border-2 border-indigo-500 rounded-xl px-4 py-2 transition-all">
                       <input
                         type="text"
-                        defaultValue={namePart}
-                        onChange={(e) => setFileData({ ...fileData, name: e.target.value + extPart })}
+                        defaultValue={fileData.name}
+                        onChange={(e) => setFileData({ ...fileData, name: e.target.value })}
                         className="bg-transparent border-none outline-none flex-1 text-2xl font-bold text-gray-900 dark:text-white py-1"
                         autoFocus
                       />
-                      <span className="text-2xl font-bold text-gray-400 dark:text-gray-500 select-none ml-2">{extPart}</span>
                     </div>
                   </div>
                 ) : (
                   <>
-                    <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-none capitalize">{fileData.name}</h3>
+                    <h3 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-none break-all">{fileData.name}</h3>
                     {fileData.filename && (
-                      <p className="text-xs text-gray-400 font-mono mt-1 px-1 opacity-70">{fileData.filename}</p>
+                      <p className="text-[10px] md:text-xs text-gray-400 font-mono mt-1 px-1 opacity-70 break-all">{fileData.filename}</p>
                     )}
                   </>
                 )}
-                <p className="text-gray-400 font-medium mt-2 text-sm uppercase tracking-wider">Added on {fileData.date} • {fileData.time}</p>
+                <p className="text-gray-400 font-medium mt-2 text-[10px] md:text-sm uppercase tracking-wider">Added on {fileData.date} • {fileData.time}</p>
               </div>
 
-              <div className="flex space-x-3 shrink-0">
+              <div className="flex flex-wrap gap-2 md:space-x-3 shrink-0 w-full md:w-auto">
                 {isEditing ? (
                   <>
-                    <button onClick={() => setIsEditing(false)} className="px-4 py-2 text-sm font-bold text-gray-400 hover:text-gray-600 transition">Cancel</button>
+                    <button onClick={() => setIsEditing(false)} className="flex-1 md:flex-none px-4 py-2 text-sm font-bold text-gray-400 hover:text-gray-600 transition border border-gray-200 dark:border-gray-700 rounded-xl">Cancel</button>
                     <button
                       onClick={handleSaveEdit}
                       disabled={isSaving}
-                      className="gradient-bg text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:opacity-90 transition active:scale-95 flex items-center min-w-[100px] justify-center"
+                      className="flex-1 md:flex-none gradient-bg text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:opacity-90 transition active:scale-95 flex items-center min-w-[100px] justify-center"
                     >
                       {isSaving ? <i className="fas fa-circle-notch fa-spin"></i> : 'Save Changes'}
                     </button>
                   </>
                 ) : (
                   <>
-                    <ActionButton icon="fa-edit" title="Update" onClick={() => setIsEditing(true)} />
-                    <ActionButton icon="fa-download" title="Download" onClick={handleDownload} />
+                    <div className="flex flex-1 sm:flex-none gap-2">
+                       <ActionButton icon="fa-edit" title="Update" onClick={() => setIsEditing(true)} />
+                       <ActionButton icon="fa-download" title="Download" onClick={handleDownload} />
+                    </div>
                     <ActionButton icon="fa-trash-alt" title="Delete" variant="danger" onClick={() => setIsDeleteModalOpen(true)} />
                   </>
                 )}
@@ -282,9 +284,9 @@ const FileDetailsPage = () => {
               <p className="text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
                 {fileData.description || "No description provided for this asset."}
               </p>
-           
+
             )}
-            
+
           </section>
         </div>
 
@@ -294,12 +296,12 @@ const FileDetailsPage = () => {
       </div>
 
       <ShareModal isOpen={isShareModalOpen} fileName={fileData.name} onClose={() => setIsShareModalOpen(false)} />
-      <DeleteModal 
-      isOpen={isDeleteModalOpen} 
-      fileName={fileData.name} 
-      message={`This will move "${fileData.name}" to the trash.`}
-      onClose={() => setIsDeleteModalOpen(false)} 
-      onDelete={handleDeleteAction} />
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        fileName={fileData.name}
+        message={`This will move "${fileData.name}" to the trash.`}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDelete={handleDeleteAction} />
     </main>
   );
 };

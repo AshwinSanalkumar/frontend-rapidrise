@@ -74,7 +74,7 @@ const Dashboard = () => {
   };
 
   return (
-    <main className="flex-1 p-8 lg:p-12 overflow-y-auto custom-scrollbar relative">
+    <main className="flex-1 p-4 sm:p-8 lg:p-12 overflow-y-auto custom-scrollbar relative">
       {/* Header Section */}
       <header className="mb-10">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Hello, Ashwin Sanalkumar</h1>
@@ -138,7 +138,7 @@ const Dashboard = () => {
             onDragLeave={(e) => e.currentTarget.classList.remove('bg-indigo-50/30')}
             onDrop={(e) => { e.preventDefault(); e.currentTarget.classList.remove('bg-indigo-50/30'); handleFiles(e); }}
             onClick={() => hiddenInputRef.current.click()}
-            className="border-2 border-dashed border-indigo-200 dark:border-indigo-900 rounded-[2.5rem] p-16 text-center bg-white dark:bg-gray-800 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all cursor-pointer group relative"
+            className="border-2 border-dashed border-indigo-200 dark:border-indigo-900 rounded-[2.5rem] p-8 sm:p-16 text-center bg-white dark:bg-gray-800 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all cursor-pointer group relative"
           >
             <div className="bg-indigo-50 dark:bg-indigo-900/30 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all">
               <i className="fas fa-cloud-upload-alt text-indigo-500 text-3xl"></i>
@@ -153,11 +153,11 @@ const Dashboard = () => {
 
           {/* Recent Activity Table */}
           <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <div className="p-8 border-b border-gray-50 dark:border-gray-700 flex justify-between items-center">
+            <div className="p-6 md:p-8 border-b border-gray-50 dark:border-gray-700 flex justify-between items-center">
               <h2 className="font-bold text-gray-800 dark:text-white text-lg">Recent Activity</h2>
               <Link to="/recents" className="text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:underline">Full History</Link>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto scrollbar-hide">
               <table className="w-full text-left">
                 <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-400 text-[10px] uppercase font-bold tracking-widest">
                   <tr>
