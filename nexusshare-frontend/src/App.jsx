@@ -28,6 +28,7 @@ import FileRequestPage from "./pages/private/Requests";
 import ExternalFilePreview from "./pages/private/FilePreview";
 import ReceivedRequests from "./pages/private/ReceivedRequests";
 import UploadHistory from "./pages/private/UploadHistory";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   return (
@@ -43,34 +44,36 @@ function App() {
         <Route path="/reset-password" element={<ResetPasswordLink/>}/>
 
 
-        <Route element={<MainLayout />}>
-          {/* PRIVATE */}
-          
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/shared" element={<SharedLinksManagement />} />
-          <Route path="/favorites" element={<FavoritesPage />}/>
-          <Route path="/bin" element={<Bin />} /> 
-          <Route path="/recents" element={<Recents/>}/>
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            {/* PRIVATE */}
+            
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/shared" element={<SharedLinksManagement />} />
+            <Route path="/favorites" element={<FavoritesPage />}/>
+            <Route path="/bin" element={<Bin />} /> 
+            <Route path="/recents" element={<Recents/>}/>
 
-          <Route path="/assets" element={<FileExplorer />} />
-          <Route path="/assets/details" element={<FolderDetail />}/>
+            <Route path="/assets" element={<FileExplorer />} />
+            <Route path="/assets/details/:id" element={<FolderDetail />}/>
 
-          <Route path="/profile" element={<Profile />} /> 
-          <Route path="/profile/update" element={<EditProfile />} /> 
-          <Route path="/profile/update/credentials" element={<ChangePassword />}/>
+            <Route path="/profile" element={<Profile />} /> 
+            <Route path="/profile/update" element={<EditProfile />} /> 
+            <Route path="/profile/update/credentials" element={<ChangePassword />}/>
 
-          <Route path="/files" element={<MyFiles />} />
-          <Route path="/files/details" element={<FileDetailsPage />} />   
- 
-          <Route path="/storage" element={<ManageStorage/>}/>
-          <Route path="/storage/duplicates" element={<DuplicateManager/>}/>
+            <Route path="/files" element={<MyFiles />} />
+            <Route path="/files/details/:id" element={<FileDetailsPage />} />   
+   
+            <Route path="/storage" element={<ManageStorage/>}/>
+            <Route path="/storage/duplicates" element={<DuplicateManager/>}/>
 
-          <Route path="/analytics" element={<AnalyticsPage/>}/>
-          <Route path="/send-request" element={<FileRequestPage/>}/>
-          <Route path="/received-request" element={<ReceivedRequests/>}/>           
-          <Route path="/history" element={<UploadHistory/>}/> 
-          <Route path="/public/file/preview" element={<ExternalFilePreview/>}/>                     
+            <Route path="/analytics" element={<AnalyticsPage/>}/>
+            <Route path="/send-request" element={<FileRequestPage/>}/>
+            <Route path="/received-request" element={<ReceivedRequests/>}/>           
+            <Route path="/history" element={<UploadHistory/>}/> 
+            <Route path="/public/file/preview" element={<ExternalFilePreview/>}/>                     
 
+          </Route>
         </Route>
         {/* Catch-all route */}
         <Route path="*" element={<Navigate to="/404-not-found" replace />} />

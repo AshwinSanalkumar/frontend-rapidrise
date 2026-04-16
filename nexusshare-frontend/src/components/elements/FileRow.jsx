@@ -1,12 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const FileRow = ({ id, name, subtitle, modified, size, iconClass, colorClass, bgClass, imageUrl, onShare, onDelete }) => {
+const FileRow = ({ id, name, subtitle, modified, size, iconClass, colorClass, bgClass, imageUrl, type, onShare, onDelete }) => {
   const navigate = useNavigate();
 
   const handleRowClick = () => {
     // Navigates to the details page for this specific file
-    navigate(`/files/details`);
+    navigate(`/files/details/${id}`);
   };
 
   return (
@@ -16,18 +16,18 @@ const FileRow = ({ id, name, subtitle, modified, size, iconClass, colorClass, bg
     >
       <td className="px-8 py-6">
         <div className="flex items-center space-x-4">
-          {imageUrl ? (
-            <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-gray-700 overflow-hidden border border-gray-100 dark:border-gray-600 group-hover:scale-105 transition-transform">
-              <img src={imageUrl} alt="preview" className="w-full h-full object-cover opacity-80" />
-            </div>
-          ) : (
-            <div className={`p-3 ${bgClass} rounded-xl ${colorClass} group-hover:scale-110 transition-transform`}>
-              <i className={iconClass}></i>
-            </div>
-          )}
+          <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 overflow-hidden group-hover:scale-105 transition-transform duration-500 flex items-center justify-center">
+            {type === 'image' && imageUrl ? (
+              <img src={imageUrl} alt={name} className="w-full h-full object-cover opacity-90" />
+            ) : (
+              <div className={`w-full h-full flex items-center justify-center ${bgClass || 'bg-gray-100'} ${colorClass || 'text-gray-400'}`}>
+                <i className={`${iconClass || 'fas fa-file'} text-xl group-hover:rotate-12 transition-transform duration-300`}></i>
+              </div>
+            )}
+          </div>
           <div>
             <p className="font-bold text-gray-700 dark:text-gray-200">{name}</p>
-            <p className={`text-[10px] uppercase font-extrabold ${imageUrl ? 'text-blue-500' : 'text-gray-400'}`}>
+            <p className={`text-[10px] uppercase font-extrabold ${type === 'image' && imageUrl ? 'text-blue-500' : 'text-gray-400'}`}>
               {subtitle}
             </p>
           </div>

@@ -1,6 +1,18 @@
 import React from 'react';
 
 const TrashTable = ({ items, onRestore, onDeletePermanently, isEmpty }) => {
+  const getFileConfig = (type) => {
+    const configs = {
+      image: { icon: 'fa-file-image', color: 'text-blue-500', bg: 'bg-blue-50' },
+      pdf: { icon: 'fa-file-pdf', color: 'text-red-500', bg: 'bg-red-50' },
+      excel: { icon: 'fa-file-excel', color: 'text-emerald-500', bg: 'bg-emerald-50' },
+      word: { icon: 'fa-file-word', color: 'text-indigo-500', bg: 'bg-indigo-50' },
+      zip: { icon: 'fa-file-archive', color: 'text-amber-500', bg: 'bg-amber-50' },
+      default: { icon: 'fa-file', color: 'text-gray-400', bg: 'bg-gray-50' }
+    };
+    return configs[type] || configs.default;
+  };
+
   if (isEmpty) {
     return (
       <div className="p-20 text-center">
@@ -27,41 +39,43 @@ const TrashTable = ({ items, onRestore, onDeletePermanently, isEmpty }) => {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-          {items.map((item) => (
-            <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition group">
-              <td className="px-6 py-4">
-                <div className="flex items-center">
-                  <i className={`fas ${item.icon} ${item.color} text-xl mr-3`}></i>
-                  <div>
-                    <p className="text-sm font-bold text-gray-700 dark:text-gray-200">{item.name}</p>
-                    <p className="text-[10px] text-gray-400 font-medium tracking-tight">Original: {item.path}</p>
+          {(items || []).map((item) => {
+            const config = getFileConfig(item.type);
+            return (
+              <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition group">
+                <td className="px-6 py-4">
+                  <div className="flex items-center">
+                    <i className={`fas ${config.icon} ${config.color} text-xl mr-3`}></i>
+                    <div>
+                      <p className="text-sm font-bold text-gray-700 dark:text-gray-200">{item.name}</p>
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 font-medium">
-                {item.deletedDate}
-              </td>
-              <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{item.size}</td>
-              <td className="px-6 py-4 text-right">
-                <div className="flex justify-end space-x-1">
-                  <button 
-                    onClick={() => onRestore(item.id)}
-                    className="p-2 text-gray-400 hover:text-indigo-600 transition" 
-                    title="Restore"
-                  >
-                    <i className="fas fa-undo-alt text-xs"></i>
-                  </button>
-                  <button 
-                    onClick={() => onDeletePermanently(item.id)}
-                    className="p-2 text-gray-400 hover:text-red-500 transition" 
-                    title="Delete Permanently"
-                  >
-                    <i className="fas fa-times"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 font-medium">
+                  {item.date}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{item.size}</td>
+                <td className="px-6 py-4 text-right">
+                  <div className="flex justify-end space-x-1">
+                    <button 
+                      onClick={() => onRestore(item.id)}
+                      className="p-2 text-gray-400 hover:text-indigo-600 transition" 
+                      title="Restore"
+                    >
+                      <i className="fas fa-undo-alt text-xs"></i>
+                    </button>
+                    <button 
+                      onClick={() => onDeletePermanently(item.id)}
+                      className="p-2 text-gray-400 hover:text-red-500 transition" 
+                      title="Delete Permanently"
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

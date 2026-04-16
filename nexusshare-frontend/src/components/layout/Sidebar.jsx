@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { useToast } from '../common/ToastContent';
 import UploadConfirmModal from '../modals/UploadConfirmModel';
 
+import { uploadFiles } from '../../services/fileService';
+
 const SidebarLink = ({ to, icon, label }) => (
   <NavLink
     to={to}
@@ -19,23 +21,24 @@ const SidebarLink = ({ to, icon, label }) => (
   </NavLink>
 );
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { showToast } = useToast();
   const fileInputRef = useRef(null);
 
   // States to handle the modal and staging
   const [stagedFiles, setStagedFiles] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState([]);
 
   // 1. When files are selected from the button
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     if (files.length > 0) {
-      setStagedFiles(files); // Put files in "waiting" area
-      setIsModalOpen(true);  // OPEN THE MODAL (Just like Dashboard)
+      setStagedFiles(files);
+      setIsModalOpen(true);
     }
-    event.target.value = null; // Clear input so same file can be picked again
+    event.target.value = null;
   };
 
   // 2. Remove file from the Modal list
@@ -46,43 +49,80 @@ const Sidebar = () => {
   };
 
   // 3. User clicks "Confirm & Secure" in the Modal
-  const handleConfirmUpload = () => {
-    const newUploads = stagedFiles.map(file => ({
+  const handleConfirmUpload = async (filesToUpload, descriptions) => {
+    setIsUploading(true);
+    
+    // Create temporary "uploading" visual items
+    const newUploads = filesToUpload.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
       progress: 0
     }));
-
-    setIsModalOpen(false);
     setUploadingFiles(prev => [...prev, ...newUploads]);
-    showToast(`Securing ${stagedFiles.length} files...`, "success");
 
-    // Simulate the progress bars in the sidebar
-    newUploads.forEach(upload => {
-      let prog = 0;
-      const interval = setInterval(() => {
-        prog += Math.floor(Math.random() * 25) + 5;
-        if (prog >= 100) {
-          prog = 100;
-          clearInterval(interval);
-          setTimeout(() => {
-            setUploadingFiles(prev => prev.filter(f => f.id !== upload.id));
-          }, 2000);
-        }
-        setUploadingFiles(prev => prev.map(f => f.id === upload.id ? { ...f, progress: prog } : f));
-      }, 500);
-    });
+    try {
+      // Simulate progress for UI feedback while real request happens
+      const intervals = newUploads.map(upload => {
+        let prog = 0;
+        return setInterval(() => {
+          prog += Math.floor(Math.random() * 15) + 5;
+          if (prog >= 95) prog = 95; // Wait at 95% for actual completion
+          setUploadingFiles(prev => prev.map(f => f.id === upload.id ? { ...f, progress: prog } : f));
+        }, 300);
+      });
 
-    setStagedFiles([]); // Clear staged files after starting upload
+      const { successes, failures } = await uploadFiles(filesToUpload, descriptions);
+      
+      // Stop simulations
+      intervals.forEach(clearInterval);
+
+      if (successes.length > 0) {
+        showToast(`${successes.length} file(s) uploaded successfully!`, 'success');
+        // Complete progress bars
+        setUploadingFiles(prev => prev.map(f => ({ ...f, progress: 100 })));
+      }
+      
+      if (failures.length > 0) {
+        showToast(`${failures.length} file(s) failed to upload.`, 'error');
+      }
+
+      setIsModalOpen(false);
+      setStagedFiles([]);
+      
+      // Clear uploading items after 2 seconds
+      setTimeout(() => {
+        setUploadingFiles(prev => prev.filter(f => !newUploads.some(nu => nu.id === f.id)));
+      }, 2000);
+      
+    } catch (error) {
+      showToast('Upload failed. Please try again.', 'error');
+      setUploadingFiles(prev => prev.filter(f => !newUploads.some(nu => nu.id === f.id)));
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <>
-      <aside className="w-64 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 hidden lg:flex flex-col sticky top-[73px] h-[calc(100vh-73px)]">
+      <aside 
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col transition-transform duration-300 transform 
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
+          lg:translate-x-0 lg:static lg:h-[calc(100vh-73px)] lg:w-64`}
+      >
 
-        <div className="px-6 py-6">
+        <div className="px-6 py-6 border-b border-gray-50 dark:border-gray-800 lg:border-none">
+          <div className="flex items-center justify-between mb-6 lg:hidden">
+            <span className="text-xl font-black text-gray-900 dark:text-white">Menu</span>
+            <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+              <i className="fas fa-times text-xl"></i>
+            </button>
+          </div>
+          
           <button
-            onClick={() => fileInputRef.current.click()}
+            onClick={() => {
+              fileInputRef.current.click();
+              if (window.innerWidth < 1024) onClose();
+            }}
             className="w-full gradient-bg text-white font-bold py-3 rounded-2xl shadow-lg hover:shadow-indigo-200 transition flex items-center justify-center group active:scale-95"
           >
             <i className="fas fa-plus mr-2 group-hover:rotate-90 transition-transform"></i>
@@ -98,27 +138,48 @@ const Sidebar = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto px-2 custom-scrollbar">
-          <nav className="space-y-1">
-            <SidebarLink to="/dashboard" icon=" fa-house" label="Dashboard" />
-            <SidebarLink to="/files" icon="fa-folder-open" label="My Files" />
-            <SidebarLink to="/shared" icon="fa-share-alt" label="Shared Links" />
-            <SidebarLink to="/Favorites" icon="fa-heart" label="Favorites" />
-            <SidebarLink to="/send-request" icon="fa-paper-plane" label="Request Files" />
-            <div className="pt-6">
-              <p className="px-4 text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-2">Storage</p>
-<div className="border-b border-gray-300 mx-3 mb-2"></div>
-
-              <SidebarLink to="/assets" icon="fa-compass" label="Explorer" />
-              <SidebarLink to="/recents" icon="fa-history" label="Recent" />
-              <SidebarLink to="/history" icon="fa-calendar-days" label="Log" />             
+          <nav className="space-y-1 py-4">
+            <div onClick={() => window.innerWidth < 1024 && onClose()}>
+              <SidebarLink to="/dashboard" icon=" fa-house" label="Dashboard" />
+            </div>
+            <div onClick={() => window.innerWidth < 1024 && onClose()}>
+              <SidebarLink to="/files" icon="fa-folder-open" label="My Files" />
+            </div>
+            <div onClick={() => window.innerWidth < 1024 && onClose()}>
+              <SidebarLink to="/shared" icon="fa-share-alt" label="Shared Links" />
+            </div>
+            <div onClick={() => window.innerWidth < 1024 && onClose()}>
+              <SidebarLink to="/Favorites" icon="fa-heart" label="Favorites" />
+            </div>
+            <div onClick={() => window.innerWidth < 1024 && onClose()}>
+              <SidebarLink to="/send-request" icon="fa-paper-plane" label="Request Files" />
             </div>
             <div className="pt-6">
-              
+              <p className="px-4 text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-2">Storage</p>
+              <div className="border-b border-gray-100 dark:border-gray-800 mx-3 mb-2"></div>
+
+              <div onClick={() => window.innerWidth < 1024 && onClose()}>
+                <SidebarLink to="/assets" icon="fa-compass" label="Explorer" />
+              </div>
+              <div onClick={() => window.innerWidth < 1024 && onClose()}>
+                <SidebarLink to="/recents" icon="fa-history" label="Recent" />
+              </div>
+              <div onClick={() => window.innerWidth < 1024 && onClose()}>
+                <SidebarLink to="/history" icon="fa-calendar-days" label="Log" />             
+              </div>
+            </div>
+            <div className="pt-6">
               <p className="px-4 text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-2">System</p>
-<div className="border-b border-gray-300 mx-3 mb-2"></div>
-              <SidebarLink to="/storage" icon="fa-compact-disc" label="Manage Storage" />
-              <SidebarLink to="/analytics" icon="fa-chart-pie" label="Analytics" />
-              <SidebarLink to="/bin" icon="fa-trash-alt" label="Bin" />
+              <div className="border-b border-gray-100 dark:border-gray-800 mx-3 mb-2"></div>
+              <div onClick={() => window.innerWidth < 1024 && onClose()}>
+                <SidebarLink to="/storage" icon="fa-compact-disc" label="Manage Storage" />
+              </div>
+              <div onClick={() => window.innerWidth < 1024 && onClose()}>
+                <SidebarLink to="/analytics" icon="fa-chart-pie" label="Analytics" />
+              </div>
+              <div onClick={() => window.innerWidth < 1024 && onClose()}>
+                <SidebarLink to="/bin" icon="fa-trash-alt" label="Bin" />
+              </div>
             </div>
           </nav>
 
@@ -143,8 +204,12 @@ const Sidebar = () => {
 
         {/* Storage Stats Indicator */}
         <div className="p-6 border-t border-gray-50 dark:border-gray-800/50">
-          <Link to="/storage">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700">
+          <Link 
+            to="/storage" 
+            onClick={() => window.innerWidth < 1024 && onClose()}
+            className="block"
+          >
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
               <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-3">Cloud Storage</p>
               <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div className="h-full gradient-bg w-[65%]"></div>
@@ -159,7 +224,13 @@ const Sidebar = () => {
       <UploadConfirmModal
         isOpen={isModalOpen}
         files={stagedFiles}
-        onClose={() => setIsModalOpen(false)}
+        isUploading={isUploading}
+        onClose={() => {
+          if (!isUploading) {
+            setIsModalOpen(false);
+            setStagedFiles([]);
+          }
+        }}
         onRemove={removeStagedFile}
         onConfirm={handleConfirmUpload}
       />

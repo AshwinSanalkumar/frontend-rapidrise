@@ -1,22 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { fetchUploadHistory } from '../../services/fileService';
 
 const UploadHistory = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDay, setSelectedDay] = useState(null);
+    const [uploadData, setUploadData] = useState({});
+    const [monthStats, setMonthStats] = useState({ count: 0, total_size: 0 });
+    const [globalStats, setGlobalStats] = useState({ total_uploads: 0 });
+    const [isLoading, setIsLoading] = useState(true);
+
+    const formatSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    const loadData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1; // Backend expects 1-12
+            const response = await fetchUploadHistory(year, month);
+            
+            setUploadData(response.history);
+            setMonthStats(response.month_stats);
+            setGlobalStats(response.global_stats);
+
+            // Update selectedDay if it's currently set for this month
+            if (selectedDay) {
+                const updatedFiles = response.history[selectedDay.day] || [];
+                setSelectedDay({ day: selectedDay.day, files: updatedFiles });
+            }
+        } catch (error) {
+            console.error('Error loading upload history:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [currentDate, selectedDay?.day]);
+
+    useEffect(() => {
+        loadData();
+    }, [currentDate.getMonth(), currentDate.getFullYear()]);
 
     const changeMonth = (offset) => {
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1));
         setSelectedDay(null);
     };
 
-    const uploadData = {
-        2: [{ name: 'Invoice_Feb.pdf', size: '1.2MB', time: '14:20' }, { name: 'Logo_Final.png', size: '2.4MB', time: '16:45' }, { name: 'Logo_Final.png', size: '2.4MB', time: '16:45' }, { name: 'Logo_Final.png', size: '2.4MB', time: '16:45' }],
-        5: [{ name: 'Project_Alpha.docx', size: '800KB', time: '09:15' }],
-        12: [{ name: 'Security_Audit.pdf', size: '3.1MB', time: '11:30' }],
-        15: [{ name: 'Meeting_Notes.txt', size: '12KB', time: '10:00' }, { name: 'Backup_DB.sql', size: '45MB', time: '23:10' }],
-        26: [{ name: 'Contract_Draft.pdf', size: '2.2MB', time: '13:05' }]
-    };
 
     const todayDate = new Date();
     const isCurrentMonth = currentDate.getMonth() === todayDate.getMonth() && currentDate.getFullYear() === todayDate.getFullYear();
@@ -58,7 +91,12 @@ const UploadHistory = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-7 gap-4">
+                    <div className="grid grid-cols-7 gap-4 relative">
+                        {isLoading && (
+                            <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 z-10 flex items-center justify-center rounded-2xl">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                            </div>
+                        )}
                         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                             <div key={day} className="text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest pb-4">
                                 {day}
@@ -114,10 +152,21 @@ const UploadHistory = () => {
                         <div className="space-y-4">
                             <div className="flex justify-between text-sm">
                                 <span>Total Uploads</span>
-                                <span className="font-bold">128 Files</span>
+                                <span className="font-bold">{globalStats.total_uploads} Files</span>
                             </div>
                             <div className="w-full bg-white/20 h-1 rounded-full">
-                                <div className="bg-white h-full rounded-full" style={{ width: '70%' }}></div>
+                                <div 
+                                    className="bg-white h-full rounded-full transition-all duration-500" 
+                                    style={{ width: globalStats.total_uploads > 0 ? `${Math.min((monthStats.count / globalStats.total_uploads) * 100, 100)}%` : '0%' }}
+                                ></div>
+                            </div>
+                            <div className="flex justify-between text-[10px] text-indigo-200 uppercase font-bold">
+                                <span>In {monthName}</span>
+                                <span>{monthStats.count} Uploads</span>
+                            </div>
+                            <div className="flex justify-between text-[10px] text-indigo-300 uppercase font-bold">
+                                <span>Data Volume</span>
+                                <span>{formatSize(monthStats.total_size)}</span>
                             </div>
                         </div>
                     </div>
@@ -137,13 +186,17 @@ const UploadHistory = () => {
                                 <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-2">
                                     {selectedDay.files.length > 0 ? (
                                         selectedDay.files.map((file, idx) => (
-                                            <div key={idx} className="flex items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-transparent hover:border-indigo-100 transition-all">
+                                            <Link 
+                                                key={idx} 
+                                                to={`/files/details/${file.id}`}
+                                                className="flex items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-transparent hover:border-indigo-100 hover:bg-white dark:hover:bg-gray-700 transition-all cursor-pointer group"
+                                            >
                                                 <i className="fas fa-file-pdf text-indigo-500 text-[10px] mr-2"></i>
                                                 <div className="flex-1 overflow-hidden">
-                                                    <p className="text-[10px] font-bold text-gray-700 dark:text-gray-200 truncate">{file.name}</p>
-                                                    <p className="text-[8px] text-gray-400 uppercase">{file.time} • {file.size}</p>
+                                                    <p className="text-[10px] font-bold text-gray-700 dark:text-gray-200 truncate group-hover:text-indigo-600 transition-colors">{file.name}</p>
+                                                    <p className="text-[8px] text-gray-400 uppercase">{file.time} • {formatSize(file.size)}</p>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         ))
                                     ) : (
                                         <div className="h-full flex flex-col items-center justify-center opacity-40">

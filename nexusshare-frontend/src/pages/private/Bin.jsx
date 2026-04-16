@@ -1,52 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TrashTable from '../../components/elements/TrashTable';
+import DeleteModal from '../../components/modals/DeleteModal';
 import { useToast } from '../../components/common/ToastContent';
+import { fetchDeletedFiles, restoreFile, deleteFilePermanently } from '../../services/fileService';
 
 const Bin = () => {
   const { showToast } = useToast();
-  
-  // Mock data for the bin
-  const [deletedItems, setDeletedItems] = useState([
-    { 
-      id: 1, 
-      name: 'Q4_Report_Draft.pdf', 
-      path: '/Documents/Reports', 
-      deletedDate: 'Oct 24, 2026', 
-      size: '2.4 MB', 
-      icon: 'fa-file-pdf', 
-      color: 'text-red-400' 
-    },
-    { 
-      id: 2, 
-      name: 'Old_Assets_Folder', 
-      path: '/Projects', 
-      deletedDate: 'Oct 22, 2026', 
-      size: '145 MB', 
-      icon: 'fa-folder', 
-      color: 'text-amber-400' 
-    }
-  ]);
+  const [deletedItems, setDeletedItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  useEffect(() => {
+    const loadDeletedItems = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchDeletedFiles();
+        setDeletedItems(data || []);
+      } catch (error) {
+        console.error('Failed to load deleted items:', error);
+        showToast('Error loading deleted items', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadDeletedItems();
+  }, []); 
+
 
   const handleRestore = (id) => {
     const item = deletedItems.find(i => i.id === id);
     if (!item) return;
     setDeletedItems(deletedItems.filter(i => i.id !== id));
+    restoreFile(item.id);
     showToast(`${item.name} restored successfully!`, 'success');
   };
 
   const handleDeletePermanently = (id) => {
     const item = deletedItems.find(i => i.id === id);
-    if (window.confirm(`Delete "${item?.name}" permanently? This cannot be undone.`)) {
-      setDeletedItems(deletedItems.filter(i => i.id !== id));
-      showToast("Item purged from vault.", "error");
+    if (item) {
+      setDeleteTarget({ type: 'single', item });
     }
   };
 
   const emptyTrash = () => {
-    if (window.confirm("Empty entire trash? All data will be permanently wiped.")) {
+    if (deletedItems.length > 0) {
+      setDeleteTarget({ type: 'all' });
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+
+    if (deleteTarget.type === 'single') {
+      const item = deleteTarget.item;
+      setDeletedItems(deletedItems.filter(i => i.id !== item.id));
+      deleteFilePermanently(item.id);
+      showToast("Item purged from vault.", "success");
+    } else if (deleteTarget.type === 'all') {
       setDeletedItems([]);
       showToast("Vault trash emptied.", "info");
+      // Ensure backend call is made here to empty trash in real usage
     }
+    setDeleteTarget(null);
   };
 
   const restoreAll = () => {
@@ -98,12 +113,19 @@ const Bin = () => {
 
         {/* Content Table Area */}
         <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
-          <TrashTable 
-            items={deletedItems} 
-            onRestore={handleRestore} 
-            onDeletePermanently={handleDeletePermanently}
-            isEmpty={deletedItems.length === 0}
-          />
+          {isLoading ? (
+            <div className="py-20 text-center">
+              <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Scanning Trash...</p>
+            </div>
+          ) : (
+            <TrashTable 
+              items={deletedItems} 
+              onRestore={handleRestore} 
+              onDeletePermanently={handleDeletePermanently}
+              isEmpty={deletedItems.length === 0}
+            />
+          )}
         </div>
 
         {/* Security Footnote */}
@@ -112,6 +134,20 @@ const Bin = () => {
           <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Secure Deletion Protocol Active</span>
         </div>
       </div>
+      
+      {/* Delete Confirmation Modal */}
+      <DeleteModal 
+        isOpen={!!deleteTarget} 
+        onClose={() => setDeleteTarget(null)} 
+        onDelete={handleConfirmDelete}
+        title={deleteTarget?.type === 'all' ? "Empty entirely?" : "Delete Permanently?"}
+        message={deleteTarget?.type === 'all' 
+          ? "This will wipe all items in the bin. This cannot be undone." 
+          : `This will permanently delete "${deleteTarget?.item?.name}". This cannot be undone.`}
+        confirmText={deleteTarget?.type === 'all' ? "Empty Bin" : "Delete"}
+        variant="danger"
+        icon="fas fa-trash-alt"
+      />
     </main>
   );
 };

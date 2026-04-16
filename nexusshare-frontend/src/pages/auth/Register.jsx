@@ -1,45 +1,52 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../components/common/ToastContent';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState('');
   
   // Visibility states for both password fields
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    first_name: '',
+    last_name: '',
     email: '',
-    phone: '',
+    dob: '',
     password: '',
-    confirmPassword: ''
+    confirm_password: ''
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-    if (error) setError(false); // Reset error when user types
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError(''); // Reset error when user types
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     
-    if (formData.password !== formData.confirmPassword) {
-      setError(true);
+    if (formData.password !== formData.confirm_password) {
+      setError('Passwords do not match');
       return;
     }
 
     setIsLoading(true);
-    setError(false);
-
-    // Simulate API registration call
-    setTimeout(() => {
-      setIsLoading(false);
+    const result = await register(formData);
+    
+    setIsLoading(false);
+    if (result.success) {
+      showToast('Account created successfully! Please sign in.', 'success');
       navigate('/login');
-    }, 1500);
+    } else {
+      setError(result.message);
+      showToast(result.message || 'Registration failed', 'error');
+    }
   };
 
   return (
@@ -89,29 +96,29 @@ const Register = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">First Name</label>
-                <input type="text" id="firstName" required placeholder="First name" value={formData.firstName} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                <input type="text" name="first_name" required placeholder="First name" value={formData.first_name} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
               </div>
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Last Name</label>
-                <input type="text" id="lastName" required placeholder="Last name" value={formData.lastName} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                <input type="text" name="last_name" required placeholder="Last name" value={formData.last_name} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email / Username</label>
-              <input type="email" id="email" required placeholder="example@gmail.com" value={formData.email} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+              <input type="email" name="email" required placeholder="example@gmail.com" value={formData.email} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
-              <input type="tel" id="phone" required placeholder="+91 7034 XXX XXX" value={formData.phone} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Birth Date</label>
+              <input type="date" name="dob" required value={formData.dob} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
                 <div className="relative">
-                  <input type={showPass ? "text" : "password"} id="password" required placeholder="••••••••" value={formData.password} onChange={handleChange} className="input-clean w-full px-4 pr-10 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                  <input type={showPass ? "text" : "password"} name="password" required placeholder="••••••••" value={formData.password} onChange={handleChange} className="input-clean w-full px-4 pr-10 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
                   <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition">
                     <i className={`fas ${showPass ? 'fa-eye-slash' : 'fa-eye'} text-xs`}></i>
                   </button>
@@ -120,7 +127,7 @@ const Register = () => {
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Confirm</label>
                 <div className="relative">
-                  <input type={showConfirm ? "text" : "password"} id="confirmPassword" required placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} className="input-clean w-full px-4 pr-10 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                  <input type={showConfirm ? "text" : "password"} name="confirm_password" required placeholder="••••••••" value={formData.confirm_password} onChange={handleChange} className="input-clean w-full px-4 pr-10 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
                   <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition">
                     <i className={`fas ${showConfirm ? 'fa-eye-slash' : 'fa-eye'} text-xs`}></i>
                   </button>
@@ -130,7 +137,7 @@ const Register = () => {
 
             {error && (
               <div className="text-[10px] text-red-500 font-bold uppercase tracking-tight animate-pulse ml-1">
-                Passwords do not match
+                {error}
               </div>
             )}
 

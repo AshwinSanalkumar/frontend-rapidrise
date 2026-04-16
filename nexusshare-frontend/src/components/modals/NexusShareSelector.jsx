@@ -1,17 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchFiles } from '../../services/fileService';
 
 const NexusShareSelector = ({ onClose, onImport }) => {
-  // Mocking your existing cloud/vault assets
-  const [cloudAssets] = useState([
-    { id: 'n1', name: 'Brand_Guidelines_2026.pdf', size: '14.2 MB', ext: 'pdf', icon: 'fa-file-pdf', color: 'text-rose-500' },
-    { id: 'n2', name: 'UI_Kit_Final.zip', size: '128 MB', ext: 'zip', icon: 'fa-file-archive', color: 'text-amber-500' },
-    { id: 'n3', name: 'Nexus_Core_v2.json', size: '12 KB', ext: 'json', icon: 'fa-file-code', color: 'text-indigo-500' },
-    { id: 'n4', name: 'Marketing_Assets.rar', size: '45 MB', ext: 'zip', icon: 'fa-file-archive', color: 'text-blue-500' },
-    { id: 'n5', name: 'System_Architecture.png', size: '2.4 MB', ext: 'png', icon: 'fa-file-image', color: 'text-emerald-500' }
-  ]);
-
+  const [cloudAssets, setCloudAssets] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Fetch real vault assets from API
+  useEffect(() => {
+    const loadAssets = async () => {
+      setIsLoading(true);
+      try {
+        const files = await fetchFiles();
+        // Map to format suitable for selector
+        const mapped = files.map(f => ({
+          id: f.id,
+          name: f.name,
+          size: f.size,
+          icon: f.type === 'image' ? 'fa-file-image' : 'fa-file',
+          color: f.type === 'image' ? 'text-blue-500' : 'text-indigo-500'
+        }));
+        setCloudAssets(mapped);
+      } catch (error) {
+        console.error('Failed to load cloud assets:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadAssets();
+  }, []);
 
   // Filter assets based on search
   const filteredAssets = cloudAssets.filter(asset => 
@@ -25,22 +43,8 @@ const NexusShareSelector = ({ onClose, onImport }) => {
   };
 
   const handleFinalImport = () => {
-    // Map selected cloud items to the format your FolderDetail state expects
-    const assetsToImport = cloudAssets
-      .filter(asset => selectedIds.includes(asset.id))
-      .map(asset => ({
-        id: `nexus-${Date.now()}-${Math.random()}`,
-        name: asset.name,
-        subtitle: 'Imported from Nexus Share',
-        modified: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        size: asset.size,
-        iconClass: `fas ${asset.icon}`,
-        colorClass: asset.color,
-        bgClass: asset.color.replace('text', 'bg').replace('500', '50') + ' dark:bg-opacity-10',
-        imageUrl: asset.ext === 'png' ? 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&q=80' : null
-      }));
-
-    onImport(assetsToImport);
+    // Pass only the selected IDs to the callback
+    onImport(selectedIds);
   };
 
   return (
@@ -52,7 +56,7 @@ const NexusShareSelector = ({ onClose, onImport }) => {
       ></div>
 
       {/* Modal Container */}
-      <div className="relative bg-white dark:bg-gray-800 w-full max-w-2xl rounded-[3rem] shadow-2xl border border-white/20 flex flex-col max-h-[85vh] animate-in zoom-in duration-200 overflow-hidden">
+      <div className="relative bg-white dark:bg-gray-800 w-full max-w-2xl rounded-[3rem] shadow-2xl border border-white/20 flex flex-col max-h-[85vh] animate-in zoom-in duration-200 overflow-hidden text-left">
         
         {/* Header */}
         <div className="p-8 border-b border-gray-100 dark:border-gray-700">
@@ -81,7 +85,12 @@ const NexusShareSelector = ({ onClose, onImport }) => {
 
         {/* Scrollable List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-3 custom-scrollbar bg-gray-50/30 dark:bg-gray-900/10">
-          {filteredAssets.length > 0 ? (
+          {isLoading ? (
+            <div className="py-20 text-center">
+              <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Opening vault...</p>
+            </div>
+          ) : filteredAssets.length > 0 ? (
             filteredAssets.map((asset) => (
               <div 
                 key={asset.id}

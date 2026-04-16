@@ -1,18 +1,42 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import UploadConfirmModal from '../../components/modals/UploadConfirmModel';
+import { fetchFiles, uploadFiles } from '../../services/fileService';
+import { useToast } from '../../components/common/ToastContent';
 
 const Dashboard = () => {
+  const { showToast } = useToast();
   const [stagedFiles, setStagedFiles] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [files, setFiles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const hiddenInputRef = useRef(null);
+
+  // Fetch files from API
+  useEffect(() => {
+    loadFiles();
+  }, []);
+
+  const loadFiles = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchFiles();
+      // Sort by uploadedAt descending for recent activity
+      setFiles(data.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)));
+    } catch (error) {
+      console.error('Failed to load files:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Logic to handle file selection (Browse or Drop)
   const handleFiles = (e) => {
     e.preventDefault();
-    const files = Array.from(e.target.files || e.dataTransfer.files);
-    if (files.length > 0) {
-      setStagedFiles((prev) => [...prev, ...files]);
+    const filesArray = Array.from(e.target.files || e.dataTransfer.files);
+    if (filesArray.length > 0) {
+      setStagedFiles((prev) => [...prev, ...filesArray]);
       setIsModalOpen(true);
     }
     if (e.target.value) e.target.value = null;
@@ -24,15 +48,33 @@ const Dashboard = () => {
     if (updated.length === 0) setIsModalOpen(false);
   };
 
-  const handleFinalUpload = (files, descriptions) => {
-    // This is where you'd connect to your backend API
-    console.log("Files:", files, "Descriptions:", descriptions);
-    setIsModalOpen(false);
-    setStagedFiles([]);
+  const handleFinalUpload = async (filesToUpload, descriptions) => {
+    setIsUploading(true);
+    try {
+      const { successes, failures } = await uploadFiles(filesToUpload, descriptions);
+      
+      if (successes.length > 0) {
+        showToast(`${successes.length} file(s) uploaded successfully!`, 'success');
+      }
+      if (failures.length > 0) {
+        showToast(`${failures.length} file(s) failed to upload.`, 'error');
+        console.error('Upload failures:', failures);
+      }
+
+      setIsModalOpen(false);
+      setStagedFiles([]);
+      // Refresh the file list to show newly uploaded files
+      await loadFiles();
+    } catch (error) {
+      showToast('Upload failed. Please try again.', 'error');
+      console.error('Upload error:', error);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
-    <main className="flex-1 p-8 lg:p-12 overflow-y-auto custom-scrollbar relative">
+    <main className="flex-1 p-4 sm:p-8 lg:p-12 overflow-y-auto custom-scrollbar relative">
       {/* Header Section */}
       <header className="mb-10">
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Hello, Ashwin Sanalkumar</h1>
@@ -42,16 +84,16 @@ const Dashboard = () => {
       {/* Top Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         <Link to="/files">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
-          <div className="flex justify-between items-center mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600">
-              <i className="fas fa-file-alt text-xl"></i>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
+            <div className="flex justify-between items-center mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600">
+                <i className="fas fa-file-alt text-xl"></i>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-lg">+5 today</span>
             </div>
-            <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-lg">+5 today</span>
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold">Total Vault Files</p>
+            <h3 className="text-2xl font-black text-gray-800 dark:text-white mt-1">{isLoading ? '...' : files.length.toLocaleString()}</h3>
           </div>
-          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold">Total Vault Files</p>
-          <h3 className="text-2xl font-black text-gray-800 dark:text-white mt-1">1,284</h3>
-        </div>
         </Link>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
@@ -72,31 +114,31 @@ const Dashboard = () => {
             <div className="flex items-center text-[9px] font-bold text-gray-400 uppercase"><span className="w-1.5 h-1.5 rounded-full bg-orange-400 mr-1.5"></span>Other</div>
           </div>
         </div>
-<Link to="/shared">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
-          <div className="flex justify-between items-center mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600">
-              <i className="fas fa-link text-xl"></i>
+        <Link to="/shared">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.01]">
+            <div className="flex justify-between items-center mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600">
+                <i className="fas fa-link text-xl"></i>
+              </div>
+              <span className="text-[10px] font-bold text-purple-500 bg-purple-50 dark:bg-purple-500/10 px-2 py-1 rounded-lg">Active</span>
             </div>
-            <span className="text-[10px] font-bold text-purple-500 bg-purple-50 dark:bg-purple-500/10 px-2 py-1 rounded-lg">Active</span>
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold">Active Shared Assets</p>
+            <h3 className="text-2xl font-black text-gray-800 dark:text-white mt-1">42</h3>
           </div>
-          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold">Active Shared Assets</p>
-          <h3 className="text-2xl font-black text-gray-800 dark:text-white mt-1">42</h3>
-        </div>
         </Link>
       </div>
 
       {/* Main Grid: Staging Area & Storage Stats */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
         <div className="xl:col-span-2 space-y-10">
-          
+
           {/* QUICK STAGING AREA (DROP ZONE) */}
-          <div 
+          <div
             onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('bg-indigo-50/30'); }}
             onDragLeave={(e) => e.currentTarget.classList.remove('bg-indigo-50/30')}
             onDrop={(e) => { e.preventDefault(); e.currentTarget.classList.remove('bg-indigo-50/30'); handleFiles(e); }}
             onClick={() => hiddenInputRef.current.click()}
-            className="border-2 border-dashed border-indigo-200 dark:border-indigo-900 rounded-[2.5rem] p-16 text-center bg-white dark:bg-gray-800 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all cursor-pointer group relative"
+            className="border-2 border-dashed border-indigo-200 dark:border-indigo-900 rounded-[2.5rem] p-8 sm:p-16 text-center bg-white dark:bg-gray-800 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all cursor-pointer group relative"
           >
             <div className="bg-indigo-50 dark:bg-indigo-900/30 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all">
               <i className="fas fa-cloud-upload-alt text-indigo-500 text-3xl"></i>
@@ -111,11 +153,11 @@ const Dashboard = () => {
 
           {/* Recent Activity Table */}
           <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <div className="p-8 border-b border-gray-50 dark:border-gray-700 flex justify-between items-center">
+            <div className="p-6 md:p-8 border-b border-gray-50 dark:border-gray-700 flex justify-between items-center">
               <h2 className="font-bold text-gray-800 dark:text-white text-lg">Recent Activity</h2>
               <Link to="/recents" className="text-indigo-600 dark:text-indigo-400 text-sm font-bold hover:underline">Full History</Link>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto scrollbar-hide">
               <table className="w-full text-left">
                 <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-400 text-[10px] uppercase font-bold tracking-widest">
                   <tr>
@@ -125,16 +167,44 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                  <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition group">
-                    <td className="px-8 py-5 flex items-center space-x-4">
-                      <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl text-red-500"><i className="fas fa-file-pdf"></i></div>
-                      <span className="font-bold text-gray-700 dark:text-gray-200 text-sm">Marketing_Plan.pdf</span>
-                    </td>
-                    <td className="px-8 py-5 text-sm">
-                      <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 text-[10px] font-bold rounded-full">Encrypted</span>
-                    </td>
-                    <td className="px-8 py-5 text-right text-xs text-gray-400 font-medium">2 mins ago</td>
-                  </tr>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan="3" className="px-8 py-10 text-center text-gray-400 text-xs font-bold uppercase tracking-widest">
+                        Loading activity...
+                      </td>
+                    </tr>
+                  ) : files.length > 0 ? (
+                    files.slice(0, 5).map(file => {
+                      const iconMap = {
+                        pdf: { icon: 'fa-file-pdf', color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
+                        image: { icon: 'fa-file-image', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+                        excel: { icon: 'fa-file-excel', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+                        word: { icon: 'fa-file-word', color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+                        zip: { icon: 'fa-file-archive', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+                        default: { icon: 'fa-file', color: 'text-gray-400', bg: 'bg-gray-50 dark:bg-gray-800' }
+                      };
+                      const config = iconMap[file.type] || iconMap.default;
+
+                      return (
+                        <tr key={file.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition group">
+                          <td className="px-8 py-5 flex items-center space-x-4">
+                            <div className={`p-3 ${config.bg} rounded-xl ${config.color}`}><i className={`fas ${config.icon}`}></i></div>
+                            <span className="font-bold text-gray-700 dark:text-gray-200 text-sm truncate max-w-[200px]">{file.name}</span>
+                          </td>
+                          <td className="px-8 py-5 text-sm">
+                            <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 text-[10px] font-bold rounded-full">{file.status}</span>
+                          </td>
+                          <td className="px-8 py-5 text-right text-xs text-gray-400 font-medium">{file.date}</td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="3" className="px-8 py-10 text-center text-gray-400 text-xs font-bold uppercase tracking-widest">
+                        No recent activity
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -155,13 +225,13 @@ const Dashboard = () => {
                   </linearGradient>
                 </defs>
                 <circle className="text-slate-100 dark:text-slate-800 stroke-current" cx="80" cy="80" r="70" strokeWidth="12" fill="none" />
-                <circle 
-                  cx="80" cy="80" r="70" 
-                  strokeWidth="12" 
-                  fill="none" 
+                <circle
+                  cx="80" cy="80" r="70"
+                  strokeWidth="12"
+                  fill="none"
                   stroke="url(#storageGradient)"
-                  strokeDasharray="440" 
-                  strokeDashoffset="154" 
+                  strokeDasharray="440"
+                  strokeDashoffset="154"
                   strokeLinecap="round"
                   className="transition-all duration-1000"
                 />
@@ -198,12 +268,15 @@ const Dashboard = () => {
       </div>
 
       {/* Upload Confirmation Modal */}
-      <UploadConfirmModal 
+      <UploadConfirmModal
         isOpen={isModalOpen}
         files={stagedFiles}
+        isUploading={isUploading}
         onClose={() => {
-          setIsModalOpen(false);
-          setStagedFiles([]);
+          if (!isUploading) {
+            setIsModalOpen(false);
+            setStagedFiles([]);
+          }
         }}
         onRemove={removeFile}
         onConfirm={handleFinalUpload}
