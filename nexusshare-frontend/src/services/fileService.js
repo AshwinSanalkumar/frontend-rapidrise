@@ -145,3 +145,16 @@ export const fetchRecentFiles = async () => {
   const files = await fetchFiles();
   return files.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
 };
+
+/**
+ * Fetches upload history and stats for a specific month and year.
+ * Returns { history, month_stats, global_stats }
+ * @param {number} year 
+ * @param {number} month 
+ */
+export const fetchUploadHistory = async (year, month) => {
+  const response = await apiClient.get('files/history/', {
+    params: { year, month }
+  });
+  return response.data;
+};
