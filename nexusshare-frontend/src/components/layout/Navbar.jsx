@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { fetchFiles } from '../../services/fileService';
@@ -6,10 +7,7 @@ import { fetchFiles } from '../../services/fileService';
 const Navbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved === 'dark';
-  });
+  const { isDark, toggleTheme } = useTheme();
   const requests = [
     { id: 1, status: 'pending' }, 
     { id: 2, status: 'approved' }
@@ -39,16 +37,6 @@ const Navbar = ({ onToggleSidebar }) => {
     if (user) loadFiles();
   }, [user]);
 
-  // Theme Logic
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
 
   // LIVE SEARCH LOGIC (Suggestions)
   useEffect(() => {
@@ -156,7 +144,7 @@ const Navbar = ({ onToggleSidebar }) => {
         </div>
 
         <button 
-          onClick={() => setIsDark(!isDark)}
+          onClick={toggleTheme}
           className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:scale-110 transition-all"
         >
           <i className={isDark ? "fas fa-sun text-yellow-400" : "fas fa-moon text-indigo-600"}></i>

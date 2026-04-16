@@ -8,13 +8,6 @@ const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Theme Sync (Checks if the parent/layout set dark mode)
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
 
   const handleRecovery = (e) => {
     e.preventDefault();

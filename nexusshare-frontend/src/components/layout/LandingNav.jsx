@@ -1,22 +1,10 @@
 import React, { useState,useEffect } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 import { Link } from 'react-router-dom'; // Import Link
 
 const LandingNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('theme');
-    return saved === 'dark';
-  });
-
-useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <nav className="fixed w-full z-50 px-4 md:px-6 py-4">
@@ -42,7 +30,7 @@ useEffect(() => {
           </Link>
 
           <button 
-          onClick={() => setIsDark(!isDark)}
+            onClick={toggleTheme}
           className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:scale-110 transition-all"
         >
           <i className={isDark ? "fas fa-sun text-yellow-400" : "fas fa-moon text-indigo-600"}></i>
@@ -60,7 +48,7 @@ useEffect(() => {
         {/* Mobile Menu Button */}
         <div className="flex md:hidden items-center gap-3">
            <button 
-             onClick={() => setIsDark(!isDark)}
+             onClick={toggleTheme}
              className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 transition-all"
            >
              <i className={isDark ? "fas fa-sun text-yellow-400" : "fas fa-moon text-indigo-600"}></i>

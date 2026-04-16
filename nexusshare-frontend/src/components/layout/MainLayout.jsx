@@ -1,21 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 
 const MainLayout = () => {
-  const [isDark, setIsDark] = useState(() => localStorage.getItem('theme') === 'dark');
+  const { isDark } = useTheme();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
 
   // Close sidebar on navigation (optional, but usually better UX)
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -25,8 +16,6 @@ const MainLayout = () => {
     <div className="bg-gray-50 dark:bg-[#0f172a] min-h-screen flex flex-col transition-colors duration-300">
       <div className="sticky top-0 z-50 w-full">
         <Navbar 
-          isDark={isDark} 
-          onToggleTheme={() => setIsDark(!isDark)} 
           onToggleSidebar={toggleSidebar}
         />
       </div>

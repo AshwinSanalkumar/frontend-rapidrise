@@ -13,11 +13,6 @@ const ResetPasswordLink = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isExpired] = useState(false); 
 
-  useEffect(() => {
-    if (localStorage.getItem('theme') === 'dark') {
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
 
   const handleReset = (e) => {
     e.preventDefault();
