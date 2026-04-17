@@ -125,7 +125,8 @@ const UploadHistory = () => {
         ${isSelected ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600' : ''}
         
         /* 2. Today State - Persistent Border */
-        ${isToday && !isSelected ? 'border-indigo-500 text-indigo-600 shadow-sm' : ''}
+        ${isToday && !isSelected ? 'border-green-500 text-green-600 shadow-sm' : ''}
+        ${isToday && isSelected ? 'border-green-600 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600' : ''}
         ${!isToday && !isSelected ? 'border-transparent' : ''}
         
         /* 3. Upload State - Background Fill */
@@ -216,9 +217,14 @@ const UploadHistory = () => {
                     <div className="bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700">
                         <h3 className="font-bold text-gray-800 dark:text-white mb-4 text-sm uppercase tracking-wider">Quick Legend</h3>
                         <div className="flex items-center space-x-3 mb-3">
+                            <div className="w-4 h-4 rounded border-2 border-green-400"></div>
+                            <span className="text-sm text-gray-500">Today</span>
+                        </div>
+                        <div className="flex items-center space-x-3 mb-3">
                             <div className="w-4 h-4 rounded bg-indigo-600"></div>
                             <span className="text-sm text-gray-500">Upload Event</span>
                         </div>
+                        
 
                     </div>
                 </div>

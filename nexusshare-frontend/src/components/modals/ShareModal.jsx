@@ -110,7 +110,7 @@ const ShareModal = ({ isOpen, onClose, fileName }) => {
           <div className="space-y-6">
             {/* Recipients */}
             <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Recipients</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-2 block">* Recipients</label>
               <div className="flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-2xl min-h-[56px] focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
                 {emails.map((email, index) => (
                   <span key={index} className="flex items-center bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-lg text-xs font-bold border border-indigo-100 dark:border-indigo-800">

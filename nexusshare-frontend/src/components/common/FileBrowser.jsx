@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { fetchFiles } from '../../services/fileService';
 import FileCard from '../elements/FIleCard';
 import ShareModal from '../modals/ShareModal';
@@ -35,7 +35,9 @@ const FileBrowser = ({
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pageParam = parseInt(searchParams.get('page')) || 1;
+  const [currentPage, setCurrentPage] = useState(pageParam);
   const filesPerPage = 8;
 
   // Fetch files from API
@@ -60,10 +62,30 @@ const FileBrowser = ({
   const queryParams = new URLSearchParams(location.search);
   const searchTerm = queryParams.get('search') || '';
 
-  // Reset to first page whenever search term changes
   useEffect(() => {
-    setCurrentPage(1);
+    if (searchTerm) {
+      setCurrentPage(1);
+      // Update URL to remove page param if searching, or keep it consistent
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('page');
+      setSearchParams(newParams, { replace: true });
+    }
   }, [searchTerm]);
+
+  // Sync state with URL manually if needed (e.g. back button)
+  useEffect(() => {
+    const page = parseInt(searchParams.get('page')) || 1;
+    if (page !== currentPage) {
+      setCurrentPage(page);
+    }
+  }, [searchParams]);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('page', pageNumber);
+    setSearchParams(newParams);
+  };
 
   // Handle local favorite toggle to keep UI in sync
   const handleToggleFavorite = (fileId, isFavorite) => {
@@ -166,6 +188,7 @@ const FileBrowser = ({
               onShare={openModal}
               view={view}
               onToggleFavorite={handleToggleFavorite}
+              currentPage={currentPage}
             />
           ))
         ) : (
@@ -188,7 +211,7 @@ const FileBrowser = ({
             currentPage={currentPage}
             totalFiles={filteredData.length}
             filesPerPage={filesPerPage}
-            onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
+            onPageChange={handlePageChange}
           />
         </div>
       )}

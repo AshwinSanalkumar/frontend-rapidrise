@@ -62,6 +62,16 @@ export const deleteFilePermanently = async (fileId) => {
   return response.data;
 };
 
+export const restoreAllFiles = async () => {
+  const response = await apiClient.post('trash/restore-all/');
+  return response.data;
+};
+
+export const emptyTrash = async () => {
+  const response = await apiClient.delete('trash/empty/');
+  return response.data;
+};
+
 /**
  * Fetches a single file's details by its ID.
  */

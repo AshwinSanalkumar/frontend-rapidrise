@@ -4,13 +4,16 @@ import ActionButton from '../../components/common/ActionButton';
 import FileSpecCard from '../../components/elements/FileSpecCard';
 import ShareModal from '../../components/modals/ShareModal';
 import DeleteModal from '../../components/modals/DeleteModal';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { fetchFileDetail, updateFile, deleteFile } from '../../services/fileService';
 
 const FileDetailsPage = () => {
   const { id } = useParams();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromPage = location.state?.fromPage;
+
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -132,7 +135,11 @@ const FileDetailsPage = () => {
       await deleteFile(id);
       setIsDeleteModalOpen(false);
       showToast("File moved to trash", "success");
-      navigate('/files');
+      if (fromPage) {
+        navigate(`/files?page=${fromPage}`);
+      } else {
+        navigate('/files');
+      }
     } catch (err) {
       console.error("Failed to delete file:", err);
       showToast(err.response?.data?.error || "Failed to delete file", "error");

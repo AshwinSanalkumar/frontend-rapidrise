@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '../common/ToastContent'; // Using your custom toast hook
 import { toggleFileFavorite } from '../../services/fileService';
 
-const FileCard = ({ file, onShare, view, onToggleFavorite }) => {
+const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage }) => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const isList = view === 'list';
@@ -67,7 +67,7 @@ const FileCard = ({ file, onShare, view, onToggleFavorite }) => {
   };
 
   const handleView = () => {
-    navigate(`/files/details/${file.id}`);
+    navigate(`/files/details/${file.id}`, { state: { fromPage: currentPage } });
   };
 
   return (

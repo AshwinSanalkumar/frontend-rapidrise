@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TrashTable from '../../components/elements/TrashTable';
 import DeleteModal from '../../components/modals/DeleteModal';
 import { useToast } from '../../components/common/ToastContent';
-import { fetchDeletedFiles, restoreFile, deleteFilePermanently } from '../../services/fileService';
+import { fetchDeletedFiles, restoreFile, deleteFilePermanently, restoreAllFiles, emptyTrash } from '../../services/fileService';
 
 const Bin = () => {
   const { showToast } = useToast();
@@ -42,31 +42,50 @@ const Bin = () => {
     }
   };
 
-  const emptyTrash = () => {
+  const handleEmptyTrashClick = () => {
     if (deletedItems.length > 0) {
       setDeleteTarget({ type: 'all' });
     }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
 
-    if (deleteTarget.type === 'single') {
-      const item = deleteTarget.item;
-      setDeletedItems(deletedItems.filter(i => i.id !== item.id));
-      deleteFilePermanently(item.id);
-      showToast("Item purged from vault.", "success");
-    } else if (deleteTarget.type === 'all') {
-      setDeletedItems([]);
-      showToast("Vault trash emptied.", "info");
-      // Ensure backend call is made here to empty trash in real usage
+    try {
+      if (deleteTarget.type === 'single') {
+        const item = deleteTarget.item;
+        await deleteFilePermanently(item.id);
+        setDeletedItems(prev => prev.filter(i => i.id !== item.id));
+        showToast("Item purged from vault.", "success");
+      } else if (deleteTarget.type === 'all') {
+        setIsLoading(true);
+        await emptyTrash();
+        setDeletedItems([]);
+        showToast("Vault trash emptied.", "success");
+      }
+    } catch (error) {
+      console.error('Operation failed:', error);
+      showToast(error.response?.data?.error || "Operation failed", "error");
+    } finally {
+      setIsLoading(false);
+      setDeleteTarget(null);
     }
-    setDeleteTarget(null);
   };
 
-  const restoreAll = () => {
-    setDeletedItems([]);
-    showToast("All items restored to original paths.", "success");
+  const restoreAll = async () => {
+    if (deletedItems.length === 0) return;
+    
+    setIsLoading(true);
+    try {
+      await restoreAllFiles();
+      setDeletedItems([]);
+      showToast("All items restored to original paths.", "success");
+    } catch (error) {
+      console.error('Failed to restore items:', error);
+      showToast(error.response?.data?.error || "Failed to restore items", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -95,7 +114,7 @@ const Bin = () => {
             {deletedItems.length > 0 && (
               <>
                 <button 
-                  onClick={emptyTrash} 
+                  onClick={handleEmptyTrashClick} 
                   className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-xl transition-all"
                 >
                   Empty Bin
