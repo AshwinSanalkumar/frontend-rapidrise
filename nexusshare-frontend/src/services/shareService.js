@@ -3,7 +3,7 @@ import apiClient from '../api/apiClient';
 /**
  * Creates a shareable link for a file.
  * @param {number|string} fileId
- * @param {Object} options - { email, access, expiry_minutes, ... }
+ * @param {Object} options - { emails, message, duration_minutes }
  */
 export const createShareLink = async (fileId, options = {}) => {
   const response = await apiClient.post(`files/${fileId}/share/`, options);
@@ -27,12 +27,11 @@ export const revokeShareLink = async (shareId) => {
   return response.data;
 };
 
+
 /**
- * Fetches the publicly-accessible file data from a share token.
- * Used by the SharedFileView page (no auth required).
- * @param {string} shareToken
+ * Returns the full absolute URL for the public file download/preview.
+ * @param {string} shareToken 
  */
-export const fetchSharedFile = async (shareToken) => {
-  const response = await apiClient.get(`files/shared/${shareToken}/`);
-  return response.data;
+export const getPublicShareUrl = (shareToken) => {
+  return `http://localhost:8000/api/file/shared/${shareToken}/`;
 };

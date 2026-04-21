@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import LinkStatus from '../../components/common/LinkStatus';
+import { getPublicShareUrl } from '../../services/shareService';
+import apiClient from '../../api/apiClient';
 
 const SharedFileView = () => {
   const { shareId } = useParams();
@@ -13,17 +15,25 @@ const SharedFileView = () => {
   const AUTHORIZED_EMAIL = "ashwin@example.com"; 
 
   useEffect(() => {
-    const checkLinkIntegrity = () => {
-      setTimeout(() => {
-        const isExpired = false; 
-        const isRevoked = false; 
-
-        if (isRevoked) setStatus('revoked');
-        else if (isExpired) setStatus('expired');
-        else setStatus('gatekeeper'); 
-      }, 1200);
+    const checkLinkValidity = async () => {
+      try {
+        // We perform a head or basic get request to check link status
+        await apiClient.get(`file/shared/${shareId}/`);
+        setStatus('gatekeeper');
+      } catch (error) {
+        if (error.response?.status === 410) {
+          setStatus('expired');
+        } else if (error.response?.status === 404) {
+          setStatus('revoked');
+        } else {
+          setStatus('gatekeeper'); // Fallback to gatekeeper
+        }
+      }
     };
-    checkLinkIntegrity();
+
+    if (shareId) {
+      checkLinkValidity();
+    }
   }, [shareId]);
 
   const handleVerify = (e) => {
@@ -32,47 +42,36 @@ const SharedFileView = () => {
 
     setTimeout(() => {
       if (email.toLowerCase().trim() === AUTHORIZED_EMAIL) {
+        const publicUrl = getPublicShareUrl(shareId);
         setFileData({
-          name: 'Core_System_Architecture.pdf',
-          size: '12.4 MB',
-          type: 'application/pdf', 
-          owner: 'Senior Dev Team',
-          previewUrl: 'https://picsum.photos/seed/nexus/1200/800',
-          expiresIn: '04:52'
+          name: 'Protected Asset',
+          size: 'Encrypted',
+          type: 'application/octet-stream', // Generic, browser will handle based on response headers 
+          owner: 'Restricted Access',
+          previewUrl: publicUrl,
+          expiresIn: 'Single Access'
         });
         setStatus('active');
       } else {
         setStatus('denied');
       }
-    }, 1500);
+    }, 1200);
   };
 
   const renderFilePreview = (isModal = false) => {
-    const isImage = fileData.type.startsWith('image/');
-    const isPDF = fileData.type.includes('pdf');
-    const isExcel = fileData.type.includes('excel') || fileData.type.includes('spreadsheet');
-
-    if (isImage) {
-      return (
-        <img 
-          src={fileData.previewUrl} 
-          alt="Secure Preview" 
-          className={`${isModal ? 'max-h-[85vh] max-w-[90vw] rounded-3xl' : 'w-full h-full object-cover'} select-none transition-all duration-500`}
-          onContextMenu={(e) => e.preventDefault()} 
-        />
-      );
-    }
-
+    // Since we don't know the exact type until headers are received, 
+    // we use a generic approach. If it's a known image/pdf token, we can do better,
+    // but here we'll try to guess or use the preview endpoint directly.
     return (
-      <div className={`flex flex-col items-center justify-center p-12 text-center transition-all ${isModal ? 'scale-125' : ''}`}>
-        <div className={`w-32 h-32 rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl animate-in zoom-in duration-300
-          ${isPDF ? 'bg-rose-500/10 text-rose-500' : isExcel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
-          <i className={`fas ${isPDF ? 'fa-file-pdf' : isExcel ? 'fa-file-excel' : 'fa-file-lines'} text-6xl`}></i>
-        </div>
-        <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest">
-          {isPDF ? 'Encrypted PDF' : isExcel ? 'Secure Spreadsheet' : 'Protected Asset'}
-        </h3>
-        <p className="text-[10px] text-gray-400 mt-2 font-bold uppercase tracking-widest">Preview Mode Restricted</p>
+      <div className="w-full h-full flex items-center justify-center relative group">
+        <iframe 
+          src={fileData.previewUrl} 
+          title="Secure Preview"
+          className={`${isModal ? 'w-[90vw] h-[85vh] rounded-3xl' : 'w-full h-full'} border-0 transition-opacity duration-700 bg-gray-100 dark:bg-gray-900`}
+          onLoad={(e) => e.target.style.opacity = 1}
+        />
+        {/* Overlay to prevent interaction if not in modal */}
+        {!isModal && <div className="absolute inset-0 z-10 bg-transparent" />}
       </div>
     );
   };
@@ -176,8 +175,8 @@ const SharedFileView = () => {
             </div>
             <div className="space-y-4 mb-10">
               <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-900/40 p-4 rounded-2xl border border-gray-100 dark:border-gray-700">
-                <span className="font-bold text-gray-400 uppercase text-[10px]">Format</span>
-                <span className="font-black dark:text-white uppercase text-xs">{fileData.type.split('/')[1]}</span>
+                <span className="font-bold text-gray-400 uppercase text-[10px]">Security</span>
+                <span className="font-black dark:text-white uppercase text-xs">One-Time Access</span>
               </div>
               <div className="flex justify-between items-center bg-rose-50 dark:bg-rose-900/10 p-4 rounded-2xl border border-rose-100 dark:border-rose-900/20">
                 <span className="font-bold text-rose-500 uppercase text-[10px]">Expires in</span>
@@ -186,10 +185,14 @@ const SharedFileView = () => {
             </div>
           </div>
           <div className="space-y-4">
-            <button className="w-full py-5 gradient-bg text-white font-black rounded-2xl shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-3">
+            <a 
+              href={fileData.previewUrl}
+              download
+              className="w-full py-5 gradient-bg text-white font-black rounded-2xl shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-3 pointer-events-auto"
+            >
               <i className="fas fa-download"></i>
-              <span>Download {fileData.size}</span>
-            </button>
+              <span>Download File</span>
+            </a>
             <button onClick={() => window.location.reload()} className="w-full py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-indigo-500 transition-colors">
               Destroy Session
             </button>

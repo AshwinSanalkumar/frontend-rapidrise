@@ -114,8 +114,8 @@ const FileBrowser = ({
   const indexOfFirstFile = indexOfLastFile - filesPerPage;
   const currentFiles = filteredData.slice(indexOfFirstFile, indexOfLastFile);
 
-  const openModal = (name) => {
-    setSelectedFile(name);
+  const openModal = (file) => {
+    setSelectedFile(file);
     setIsModalOpen(true);
   };
 
@@ -218,7 +218,7 @@ const FileBrowser = ({
 
       <ShareModal
         isOpen={isModalOpen}
-        fileName={selectedFile}
+        file={selectedFile}
         onClose={() => setIsModalOpen(false)}
       />
     </main>

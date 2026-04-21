@@ -147,7 +147,7 @@ const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage }) => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onShare(file.name);
+                onShare(file);
               }}
               className="text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition whitespace-nowrap flex items-center"
             >
