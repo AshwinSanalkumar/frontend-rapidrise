@@ -298,7 +298,7 @@ const FileDetailsPage = () => {
         </div>
       </div>
 
-      <ShareModal isOpen={isShareModalOpen} fileName={fileData.name} onClose={() => setIsShareModalOpen(false)} />
+      <ShareModal isOpen={isShareModalOpen} file={fileData} onClose={() => setIsShareModalOpen(false)} />
       <DeleteModal
         isOpen={isDeleteModalOpen}
         fileName={fileData.name}

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '../common/ToastContent';
+import { createShareLink } from '../../services/shareService';
 
-const ShareModal = ({ isOpen, onClose, fileName }) => {
+const ShareModal = ({ isOpen, onClose, file }) => {
   const { showToast } = useToast();
   
   // States
@@ -11,17 +12,20 @@ const ShareModal = ({ isOpen, onClose, fileName }) => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [expiry, setExpiry] = useState("5m");
+  const [customDuration, setCustomDuration] = useState(60);
   
   const inputRef = useRef(null);
 
   // Helper to determine file icon based on extension
   const getFileIcon = (name) => {
-    const ext = name?.split('.').pop().toLowerCase();
+    const ext = name?.split('.')?.pop()?.toLowerCase();
     if (['jpg', 'png', 'jpeg', 'gif'].includes(ext)) return 'fa-file-image text-blue-500';
     if (ext === 'pdf') return 'fa-file-pdf text-rose-500';
-    if (['zip', 'rar'].includes(ext)) return 'fa-file-archive text-amber-500';
+    if (['zip', 'rar', '7z'].includes(ext)) return 'fa-file-archive text-amber-500';
     return 'fa-file-alt text-indigo-500';
   };
+
+  const fileName = file?.name || "unnamed_file";
 
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
@@ -59,23 +63,61 @@ const ShareModal = ({ isOpen, onClose, fileName }) => {
 
   const removeEmail = (index) => setEmails(emails.filter((_, i) => i !== index));
 
-  const handleGenerate = () => {
-    if (emails.length === 0 && !currentInput) {
+  const handleGenerate = async () => {
+    // Collect all unique emails (including what's in the input field if it's a valid email)
+    let finalEmails = [...emails];
+    if (currentInput.trim()) {
+      const val = currentInput.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailRegex.test(val) && !finalEmails.includes(val)) {
+        finalEmails.push(val);
+      } else if (!emailRegex.test(val)) {
+        showToast("Please finish entering a valid email or clear the input", "error");
+        return;
+      }
+    }
+
+    if (finalEmails.length === 0) {
       showToast("Please add at least one recipient", "error");
       return;
     }
+
+    if (!file?.id) {
+      showToast("File data is incomplete", "error");
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
+    try {
+      // Map expiry to minutes
+      let duration_minutes = 60;
+      if (expiry === "5m") duration_minutes = 5;
+      else if (expiry === "1h") duration_minutes = 60;
+      else if (expiry === "24h") duration_minutes = 1440;
+      else if (expiry === "custom") duration_minutes = parseInt(customDuration) || 60;
+
+      await createShareLink(file.id, {
+        emails: finalEmails,
+        message,
+        duration_minutes: duration_minutes
+      });
+
       setLoading(false);
       setSent(true);
-      showToast(`Secure link shared successfully!`, 'success');
+      showToast(`Shared ${fileName} successfully!`, 'success');
+      
       setTimeout(() => {
         setSent(false);
         onClose();
         setEmails([]);
         setMessage("");
-      }, 1200);
-    }, 1500);
+        setCurrentInput("");
+      }, 1500);
+    } catch (error) {
+      setLoading(false);
+      console.error('Share failed:', error);
+      showToast(error.response?.data?.error || "Failed to generate shared link", "error");
+    }
   };
 
   return (
@@ -141,18 +183,36 @@ const ShareModal = ({ isOpen, onClose, fileName }) => {
               />
             </div>
             
-            {/* Expiry Select - Enforcing your 5m preference */}
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Link Expiry</label>
-              <select 
-                value={expiry}
-                onChange={(e) => setExpiry(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
-              >
-                <option value="5m">5 Minutes (Highest Security)</option>
-                <option value="1h">1 Hour (Standard)</option>
-                <option value="24h">24 Hours</option>
-              </select>
+            {/* Expiry Select */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Link Expiry</label>
+                <select 
+                  value={expiry}
+                  onChange={(e) => setExpiry(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
+                >
+                  <option value="5m">5 Minutes (Highest Security)</option>
+                  <option value="1h">1 Hour (Standard)</option>
+                  <option value="24h">24 Hours</option>
+                  <option value="custom">Custom Duration...</option>
+                </select>
+              </div>
+
+              {expiry === "custom" && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Duration (Minutes)</label>
+                  <input 
+                    type="number"
+                    min="1"
+                    max="43200" // 30 days
+                    value={customDuration}
+                    onChange={(e) => setCustomDuration(e.target.value)}
+                    placeholder="Enter minutes..."
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
