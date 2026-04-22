@@ -15,7 +15,7 @@ const Bin = () => {
       setIsLoading(true);
       try {
         const data = await fetchDeletedFiles();
-        setDeletedItems(data || []);
+        setDeletedItems(data.files || []);
       } catch (error) {
         console.error('Failed to load deleted items:', error);
         showToast('Error loading deleted items', 'error');

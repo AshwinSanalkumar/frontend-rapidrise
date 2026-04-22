@@ -10,6 +10,7 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [files, setFiles] = useState([]);
+  const [totalFiles, setTotalFiles] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const hiddenInputRef = useRef(null);
 
@@ -22,8 +23,8 @@ const Dashboard = () => {
     setIsLoading(true);
     try {
       const data = await fetchFiles();
-      // Sort by uploadedAt descending for recent activity
-      setFiles(data.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)));
+      setFiles(data.files || []);
+      setTotalFiles(data.count || 0);
     } catch (error) {
       console.error('Failed to load files:', error);
     } finally {
@@ -92,7 +93,7 @@ const Dashboard = () => {
               <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-lg">+5 today</span>
             </div>
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold">Total Vault Files</p>
-            <h3 className="text-2xl font-black text-gray-800 dark:text-white mt-1">{isLoading ? '...' : files.length.toLocaleString()}</h3>
+            <h3 className="text-2xl font-black text-gray-800 dark:text-white mt-1">{isLoading ? '...' : totalFiles.toLocaleString()}</h3>
           </div>
         </Link>
 

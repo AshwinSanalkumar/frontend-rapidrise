@@ -29,10 +29,22 @@ export const mapFolderFromApi = (apiFolder) => {
 /**
  * Fetches all folders (assets) for the authenticated user.
  */
-export const fetchFolders = async () => {
-  const response = await apiClient.get('assets/list/');
-  const foldersArray = Array.isArray(response.data) ? response.data : (response.data.results || []);
-  return foldersArray.map(mapFolderFromApi);
+export const fetchFolders = async (page = 1) => {
+  const response = await apiClient.get('assets/list/', {
+    params: { page }
+  });
+  
+  if (response.data.results) {
+    return {
+      folders: response.data.results.map(mapFolderFromApi),
+      count: response.data.count,
+      next: response.data.next,
+      previous: response.data.previous
+    };
+  }
+  
+  const foldersArray = Array.isArray(response.data) ? response.data : [];
+  return { folders: foldersArray.map(mapFolderFromApi), count: foldersArray.length };
 };
 
 /**
@@ -62,13 +74,27 @@ export const deleteFolder = async (id) => {
 /**
  * Fetches specific folder data including its files.
  */
-export const fetchFolderDetails = async (id) => {
-  const response = await apiClient.get(`assets/view/${id}/`);
+export const fetchFolderDetails = async (id, page = 1) => {
+  const response = await apiClient.get(`assets/view/${id}/`, {
+    params: { page }
+  });
   const data = response.data;
   
+  // Handle paginated response
+  if (data.results) {
+    return {
+      ...mapFolderFromApi(data.results),
+      files: (data.results.files || []).map(mapFileFromApi),
+      count: data.count,
+      next: data.next,
+      previous: data.previous
+    };
+  }
+
   return {
     ...mapFolderFromApi(data),
-    files: (data.files || []).map(mapFileFromApi)
+    files: (data.files || []).map(mapFileFromApi),
+    count: (data.files || []).length
   };
 };
 

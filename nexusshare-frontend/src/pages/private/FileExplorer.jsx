@@ -24,7 +24,7 @@ const FileExplorer = () => {
       setIsLoading(true);
       try {
         const data = await fetchFolders();
-        setFolders(data);
+        setFolders(data.folders || []);
       } catch (error) {
         console.error('Failed to load folders:', error);
         showToast("Failed to load your folders. Please try again later.", "error");
