@@ -20,6 +20,7 @@ import ViewToggle from './ViewToggle';
 const FileBrowser = ({ 
   title, 
   subtitle, 
+  showFavoritesOnly = false,
   initialFilter = () => true, 
   emptyState = {
     icon: 'fa-search',
@@ -32,6 +33,7 @@ const FileBrowser = ({
 
   const [view, setView] = useState('grid');
   const [files, setFiles] = useState([]);
+  const [totalFiles, setTotalFiles] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,16 +41,21 @@ const FileBrowser = ({
   const pageParam = parseInt(searchParams.get('page')) || 1;
   const [currentPage, setCurrentPage] = useState(pageParam);
   const filesPerPage = 8;
+  // Extract search query from URL
+  const queryParams = new URLSearchParams(location.search);
+  const searchTerm = queryParams.get('search') || '';
 
-  // Fetch files from API
+  // Fetch files from API when page or searchTerm changes
   useEffect(() => {
     const loadFiles = async () => {
       setIsLoading(true);
       try {
-        const data = await fetchFiles();
-        // Apply the base filter (e.g. isFavorite)
-        const filteredBase = data.filter(initialFilter);
-        setFiles(filteredBase);
+        const data = await fetchFiles(currentPage, searchTerm, showFavoritesOnly); 
+        
+        // We still apply initialFilter locally just in case there are custom rules
+        // but it's no longer a dependency for the fetch effect.
+        setFiles(data.files.filter(initialFilter));
+        setTotalFiles(data.count);
       } catch (error) {
         console.error('Failed to load files:', error);
       } finally {
@@ -56,11 +63,9 @@ const FileBrowser = ({
       }
     };
     loadFiles();
-  }, []);
-
-  // Extract search query from URL
-  const queryParams = new URLSearchParams(location.search);
-  const searchTerm = queryParams.get('search') || '';
+    // initialFilter is excluded from dependencies to prevent infinite loops
+    // since it is often passed as an unstable inline function.
+  }, [currentPage, searchTerm, showFavoritesOnly]);
 
   useEffect(() => {
     if (searchTerm) {
@@ -99,20 +104,8 @@ const FileBrowser = ({
     });
   };
 
-  // Filter logic for search
-  const filteredData = useMemo(() => {
-    if (!searchTerm) return files;
-    const term = searchTerm.toLowerCase().trim();
-    return files.filter(file =>
-      file.name.toLowerCase().includes(term) ||
-      (file.description && file.description.toLowerCase().includes(term))
-    );
-  }, [searchTerm, files]);
-
-  // Pagination logic
-  const indexOfLastFile = currentPage * filesPerPage;
-  const indexOfFirstFile = indexOfLastFile - filesPerPage;
-  const currentFiles = filteredData.slice(indexOfFirstFile, indexOfLastFile);
+  // Server-side search and pagination means files ARE the currentFiles
+  const currentFiles = files;
 
   const openModal = (file) => {
     setSelectedFile(file);
@@ -154,7 +147,7 @@ const FileBrowser = ({
             )}
           </div>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
-            {searchTerm ? `Found ${filteredData.length} matching items` : subtitle}
+            {searchTerm ? `Found ${totalFiles} matching items` : subtitle}
           </p>
         </div>
 
@@ -205,11 +198,11 @@ const FileBrowser = ({
       </div>
 
       {/* Pagination Container */}
-      {filteredData.length > filesPerPage && (
+      {totalFiles > filesPerPage && (
         <div className="mt-12">
           <Pagination
             currentPage={currentPage}
-            totalFiles={filteredData.length}
+            totalFiles={totalFiles}
             filesPerPage={filesPerPage}
             onPageChange={handlePageChange}
           />

@@ -40,16 +40,40 @@ export const mapFileFromApi = (apiFile) => {
 /**
  * Fetches all files for the authenticated user.
  */
-export const fetchFiles = async () => {
-  const response = await apiClient.get('files/list/');
-  const filesArray = Array.isArray(response.data) ? response.data : (response.data.results || []);
-  return filesArray.map(mapFileFromApi);
+export const fetchFiles = async (page = 1, search = '', favorites = false) => {
+  const response = await apiClient.get('files/list/', {
+    params: { page, search, favorites }
+  });
+  
+  if (response.data.results) {
+    return {
+      files: response.data.results.map(mapFileFromApi),
+      count: response.data.count,
+      next: response.data.next,
+      previous: response.data.previous
+    };
+  }
+  
+  const filesArray = Array.isArray(response.data) ? response.data : [];
+  return { files: filesArray.map(mapFileFromApi), count: filesArray.length };
 };
 
-export const fetchDeletedFiles = async () => {
-  const response = await apiClient.get('trash/');
-  const filesArray = Array.isArray(response.data) ? response.data : (response.data.results || []);
-  return filesArray.map(mapFileFromApi);
+export const fetchDeletedFiles = async (page = 1) => {
+  const response = await apiClient.get('trash/', {
+    params: { page }
+  });
+  
+  if (response.data.results) {
+    return {
+      files: response.data.results.map(mapFileFromApi),
+      count: response.data.count,
+      next: response.data.next,
+      previous: response.data.previous
+    };
+  }
+  
+  const filesArray = Array.isArray(response.data) ? response.data : [];
+  return { files: filesArray.map(mapFileFromApi), count: filesArray.length };
 };
 
 export const restoreFile = async (fileId) => {
@@ -152,8 +176,8 @@ export const toggleFileFavorite = async (fileId) => {
  * Fetches all files and returns them sorted by upload date (newest first).
  */
 export const fetchRecentFiles = async () => {
-  const files = await fetchFiles();
-  return files.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+  const data = await fetchFiles(1);
+  return data.files.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
 };
 
 /**

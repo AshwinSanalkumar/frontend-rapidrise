@@ -29,7 +29,7 @@ const Navbar = ({ onToggleSidebar }) => {
     const loadFiles = async () => {
       try {
         const data = await fetchFiles();
-        setFiles(data);
+        setFiles(data.files || []);
       } catch (error) {
         console.error('Failed to load files for navbar:', error);
       }
