@@ -4,37 +4,54 @@ import { fetchFiles } from '../../services/fileService';
 const NexusShareSelector = ({ onClose, onImport }) => {
   const [cloudAssets, setCloudAssets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
-  // Fetch real vault assets from API
+  // Reset and reload when search changes
   useEffect(() => {
-    const loadAssets = async () => {
-      setIsLoading(true);
-      try {
-        const files = await fetchFiles();
-        // Map to format suitable for selector
-        const mapped = files.map(f => ({
-          id: f.id,
-          name: f.name,
-          size: f.size,
-          icon: f.type === 'image' ? 'fa-file-image' : 'fa-file',
-          color: f.type === 'image' ? 'text-blue-500' : 'text-indigo-500'
-        }));
-        setCloudAssets(mapped);
-      } catch (error) {
-        console.error('Failed to load cloud assets:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadAssets();
-  }, []);
+    setCurrentPage(1);
+    loadAssets(1, true);
+  }, [searchQuery]);
 
-  // Filter assets based on search
-  const filteredAssets = cloudAssets.filter(asset => 
-    asset.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const loadAssets = async (page, reset = false) => {
+    if (reset) setIsLoading(true);
+    else setIsLoadingMore(true);
+
+    try {
+      const response = await fetchFiles(page, searchQuery);
+      const filesList = response.files || [];
+      
+      const mapped = filesList.map(f => ({
+        id: f.id,
+        name: f.name,
+        size: f.size,
+        icon: f.type === 'image' ? 'fa-file-image' : 'fa-file',
+        color: f.type === 'image' ? 'text-blue-500' : 'text-indigo-500'
+      }));
+
+      setCloudAssets(prev => reset ? mapped : [...prev, ...mapped]);
+      setHasMore(!!response.next);
+    } catch (error) {
+      console.error('Failed to load cloud assets:', error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMore) {
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      loadAssets(nextPage);
+    }
+  };
+
+  // Filter assets based on search (Client-side redundant if server-side is used, but keeping for safety/instant feedback if cached)
+  const filteredAssets = cloudAssets;
 
   const toggleSelection = (id) => {
     setSelectedIds(prev => 
@@ -91,34 +108,50 @@ const NexusShareSelector = ({ onClose, onImport }) => {
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Opening vault...</p>
             </div>
           ) : filteredAssets.length > 0 ? (
-            filteredAssets.map((asset) => (
-              <div 
-                key={asset.id}
-                onClick={() => toggleSelection(asset.id)}
-                className={`group flex items-center p-4 rounded-[1.5rem] border-2 transition-all cursor-pointer ${
-                  selectedIds.includes(asset.id) 
-                  ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20' 
-                  : 'border-transparent bg-white dark:bg-gray-800 hover:shadow-lg'
-                }`}
-              >
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 bg-gray-50 dark:bg-gray-900 group-hover:scale-110 transition-transform`}>
-                  <i className={`fas ${asset.icon} ${asset.color} text-xl`}></i>
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-800 dark:text-gray-100 text-sm truncate">{asset.name}</p>
-                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5">{asset.size}</p>
-                </div>
+            <>
+              {filteredAssets.map((asset) => (
+                <div 
+                  key={asset.id}
+                  onClick={() => toggleSelection(asset.id)}
+                  className={`group flex items-center p-4 rounded-[1.5rem] border-2 transition-all cursor-pointer ${
+                    selectedIds.includes(asset.id) 
+                    ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20' 
+                    : 'border-transparent bg-white dark:bg-gray-800 hover:shadow-lg'
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 bg-gray-50 dark:bg-gray-900 group-hover:scale-110 transition-transform`}>
+                    <i className={`fas ${asset.icon} ${asset.color} text-xl`}></i>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-800 dark:text-gray-100 text-sm truncate">{asset.name}</p>
+                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5">{asset.size}</p>
+                  </div>
 
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                  selectedIds.includes(asset.id) 
-                  ? 'bg-indigo-500 border-indigo-500 text-white' 
-                  : 'border-gray-200 dark:border-gray-600 text-transparent'
-                }`}>
-                  <i className="fas fa-check text-[10px]"></i>
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                    selectedIds.includes(asset.id) 
+                    ? 'bg-indigo-500 border-indigo-500 text-white' 
+                    : 'border-gray-200 dark:border-gray-600 text-transparent'
+                  }`}>
+                    <i className="fas fa-check text-[10px]"></i>
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+
+              {hasMore && (
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  className="w-full py-4 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-500 hover:border-indigo-500 transition-all font-bold text-xs uppercase tracking-widest"
+                >
+                  {isLoadingMore ? (
+                    <i className="fas fa-circle-notch fa-spin"></i>
+                  ) : (
+                    'Load More Assets'
+                  )}
+                </button>
+              )}
+            </>
           ) : (
             <div className="py-20 text-center">
               <i className="fas fa-search text-gray-200 text-4xl mb-4"></i>

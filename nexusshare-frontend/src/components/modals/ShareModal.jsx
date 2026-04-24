@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '../common/ToastContent';
 import { createShareLink } from '../../services/shareService';
 
-const ShareModal = ({ isOpen, onClose, file }) => {
+const ShareModal = ({ isOpen, onClose, file, onSuccess }) => {
   const { showToast } = useToast();
   
   // States
@@ -113,6 +113,7 @@ const ShareModal = ({ isOpen, onClose, file }) => {
         setMessage("");
         setCurrentInput("");
       }, 1500);
+      if (onSuccess) onSuccess();
     } catch (error) {
       setLoading(false);
       console.error('Share failed:', error);
@@ -218,7 +219,7 @@ const ShareModal = ({ isOpen, onClose, file }) => {
 
           <button 
             onClick={handleGenerate}
-            disabled={loading}
+            disabled={loading || sent}
             className={`w-full mt-8 py-4 rounded-2xl shadow-lg transition flex items-center justify-center font-bold text-white active:scale-[0.98] ${sent ? 'bg-emerald-500' : 'gradient-bg hover:opacity-90'}`}
           >
             {loading ? (

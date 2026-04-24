@@ -13,17 +13,17 @@ export const createShareLink = async (fileId, options = {}) => {
 /**
  * Fetches all active shared links for the current user.
  */
-export const fetchSharedLinks = async () => {
-  const response = await apiClient.get('files/shared-links/');
-  return Array.isArray(response.data) ? response.data : (response.data.results || []);
+export const fetchSharedLinks = async (page = 1, search = '', status = '', fileId = '') => {
+  const response = await apiClient.get(`files/shared-links/?page=${page}&search=${search}&status=${status}&file_id=${fileId}`);
+  return response.data;
 };
 
 /**
  * Revokes a specific shared link.
  * @param {number|string} shareId
  */
-export const revokeShareLink = async (shareId) => {
-  const response = await apiClient.delete(`files/shared-links/${shareId}/`);
+export const revokeShareLink = async (token) => {
+  const response = await apiClient.post(`files/share/revoke/${token}/`);
   return response.data;
 };
 

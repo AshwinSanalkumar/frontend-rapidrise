@@ -6,27 +6,55 @@ import apiClient from '../../api/apiClient';
 
 const SharedFileView = () => {
   const { shareId } = useParams();
-  
+
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState('verifying'); 
+  const [status, setStatus] = useState('verifying');
   const [fileData, setFileData] = useState(null);
   const [isEnlarged, setIsEnlarged] = useState(false);
 
-  const AUTHORIZED_EMAIL = "ashwin@example.com"; 
+  const AUTHORIZED_EMAIL = "ashwin@example.com";
 
   useEffect(() => {
     const checkLinkValidity = async () => {
       try {
-        // We perform a head or basic get request to check link status
-        await apiClient.get(`file/shared/${shareId}/`);
-        setStatus('gatekeeper');
+        // Fetch metadata using HEAD to get MIME type and real filename without downloading
+        const response = await apiClient.head(`file/shared/${shareId}/`);
+        const contentType = response.headers['content-type'] || 'application/octet-stream';
+        
+        // Try to extract real filename from content-disposition
+        let filename = 'Protected Asset';
+        const disposition = response.headers['content-disposition'];
+        if (disposition && disposition.includes('filename=')) {
+          filename = disposition.split('filename=')[1].replace(/"/g, '');
+        }
+
+        const publicUrl = getPublicShareUrl(shareId);
+        setFileData({
+          name: filename,
+          size: response.headers['content-length'] ? `${(parseInt(response.headers['content-length']) / (1024 * 1024)).toFixed(2)} MB` : 'Encrypted',
+          type: contentType,
+          owner: 'Restricted Access',
+          previewUrl: publicUrl,
+          expiresIn: 'Single Access'
+        });
+        setStatus('active');
       } catch (error) {
         if (error.response?.status === 410) {
           setStatus('expired');
         } else if (error.response?.status === 404) {
           setStatus('revoked');
         } else {
-          setStatus('gatekeeper'); // Fallback to gatekeeper
+          // Fallback to basic info if HEAD fails but link exists
+          const publicUrl = getPublicShareUrl(shareId);
+          setFileData({
+            name: 'Protected Asset',
+            size: 'Encrypted',
+            type: 'application/octet-stream',
+            owner: 'Restricted Access',
+            previewUrl: publicUrl,
+            expiresIn: 'Single Access'
+          });
+          setStatus('active');
         }
       }
     };
@@ -38,7 +66,7 @@ const SharedFileView = () => {
 
   const handleVerify = (e) => {
     e.preventDefault();
-    setStatus('verifying_id'); 
+    setStatus('verifying_id');
 
     setTimeout(() => {
       if (email.toLowerCase().trim() === AUTHORIZED_EMAIL) {
@@ -59,19 +87,48 @@ const SharedFileView = () => {
   };
 
   const renderFilePreview = (isModal = false) => {
-    // Since we don't know the exact type until headers are received, 
-    // we use a generic approach. If it's a known image/pdf token, we can do better,
-    // but here we'll try to guess or use the preview endpoint directly.
-    return (
-      <div className="w-full h-full flex items-center justify-center relative group">
-        <iframe 
-          src={fileData.previewUrl} 
-          title="Secure Preview"
-          className={`${isModal ? 'w-[90vw] h-[85vh] rounded-3xl' : 'w-full h-full'} border-0 transition-opacity duration-700 bg-gray-100 dark:bg-gray-900`}
-          onLoad={(e) => e.target.style.opacity = 1}
+    if (!fileData) return null;
+    
+    // Categorize MIME types with extension fallbacks for robustness
+    const mimeType = (fileData.type || '').toLowerCase();
+    const fileName = (fileData.name || '').toLowerCase();
+    
+    const isImage = mimeType.startsWith('image/') || fileName.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+    const isPDF = mimeType === 'application/pdf' || fileName.endsWith('.pdf');
+    const isExcel = mimeType.includes('spreadsheet') || mimeType.includes('excel') || fileName.match(/\.(xls|xlsx)$/i);
+    const previewUrl = fileData.previewUrl;
+
+    if (isImage && previewUrl) {
+      return (
+        <img
+          src={previewUrl}
+          className={`${isModal ? 'max-h-[85vh] max-w-[90vw] rounded-3xl' : 'w-full h-full object-contain'} transition-all duration-500 select-none`}
+          alt="Preview"
+          onContextMenu={(e) => e.preventDefault()}
         />
-        {/* Overlay to prevent interaction if not in modal */}
-        {!isModal && <div className="absolute inset-0 z-10 bg-transparent" />}
+      );
+    }
+
+    if (isPDF && previewUrl) {
+      return (
+        <iframe
+          src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+          className={`${isModal ? 'w-[90vw] h-[85vh] rounded-3xl' : 'w-full h-full'} border-0`}
+          title="PDF Preview"
+        />
+      );
+    }
+
+    return (
+      <div className={`flex flex-col items-center justify-center p-12 text-center ${isModal ? 'scale-125' : ''}`}>
+        <div className={`rounded-[2rem] flex items-center justify-center mb-4 shadow-2xl
+          ${isModal ? 'w-40 h-40' : 'w-24 h-24'}
+          ${isPDF ? 'bg-rose-500/10 text-rose-500' : isExcel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
+          <i className={`fas ${isPDF ? 'fa-file-pdf' : isExcel ? 'fa-file-excel' : 'fa-file-lines'} ${isModal ? 'text-7xl' : 'text-4xl'}`}></i>
+        </div>
+        <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
+          {isPDF ? 'PDF Document' : isExcel ? 'Spreadsheet' : 'Secure File'}
+        </p>
       </div>
     );
   };
@@ -79,7 +136,7 @@ const SharedFileView = () => {
   // --- RENDERING STATES ---
 
   if (status === 'expired' || status === 'revoked') return <LinkStatus type={status} />;
-  
+
   if (status === 'verifying' || status === 'verifying_id') {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-6 text-center">
@@ -102,16 +159,16 @@ const SharedFileView = () => {
           <div className="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-6 shadow-lg shadow-indigo-500/20">
             <i className="fas fa-user-shield"></i>
           </div>
-          
+
           <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Identity Required</h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-8 uppercase tracking-widest leading-relaxed">
-            This asset is restricted. <br/> Enter your authorized email.
+            This asset is restricted. <br /> Enter your authorized email.
           </p>
 
           <form onSubmit={handleVerify} className="space-y-4">
             <div className="relative">
-              <input 
-                type="email" 
+              <input
+                type="email"
                 required
                 placeholder="email@company.com"
                 className={`w-full px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border ${status === 'denied' ? 'border-rose-500 animate-shake' : 'border-gray-100 dark:border-gray-700'} rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm font-medium dark:text-white text-center`}
@@ -119,10 +176,10 @@ const SharedFileView = () => {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            
+
             {status === 'denied' && (
               <div className="bg-rose-50 dark:bg-rose-900/20 py-2 px-4 rounded-lg border border-rose-100 dark:border-rose-900/30">
-                 <p className="text-[10px] font-black text-rose-500 uppercase tracking-wider">
+                <p className="text-[10px] font-black text-rose-500 uppercase tracking-wider">
                   Unauthorized Access Attempt
                 </p>
               </div>
@@ -153,8 +210,8 @@ const SharedFileView = () => {
         </div>
       )}
 
-      <div className="w-full max-w-6xl bg-white dark:bg-gray-800 rounded-[3rem] shadow-2xl overflow-hidden border border-white dark:border-gray-700 flex flex-col lg:flex-row animate-in zoom-in duration-500">
-        <div className="lg:w-2/3 bg-gray-100 dark:bg-gray-900 relative min-h-[500px] flex items-center justify-center group overflow-hidden">
+      <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-[3rem] shadow-2xl overflow-hidden border border-white dark:border-gray-700 flex flex-col lg:flex-row animate-in zoom-in duration-500">
+        <div className="lg:w-[60%] bg-gray-100 dark:bg-gray-900 relative min-h-[400px] flex items-center justify-center group overflow-hidden">
           {renderFilePreview()}
           <div className="absolute top-8 left-8">
             <div className="bg-black/40 backdrop-blur-md text-white text-[10px] font-bold px-4 py-2 rounded-full border border-white/10 uppercase tracking-widest flex items-center">
@@ -167,7 +224,7 @@ const SharedFileView = () => {
           </button>
         </div>
 
-        <div className="lg:w-1/3 p-8 md:p-12 flex flex-col justify-between bg-white dark:bg-gray-800">
+        <div className="lg:w-[40%] p-8 md:p-10 flex flex-col justify-between bg-white dark:bg-gray-800">
           <div>
             <div className="mb-10 text-center lg:text-left">
               <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] block mb-2">Secure Link Active</span>
@@ -185,7 +242,7 @@ const SharedFileView = () => {
             </div>
           </div>
           <div className="space-y-4">
-            <a 
+            <a
               href={fileData.previewUrl}
               download
               className="w-full py-5 gradient-bg text-white font-black rounded-2xl shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-3 pointer-events-auto"

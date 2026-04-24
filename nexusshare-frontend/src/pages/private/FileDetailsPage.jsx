@@ -21,6 +21,7 @@ const FileDetailsPage = () => {
   const [isEnlarged, setIsEnlarged] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [shareRefreshKey, setShareRefreshKey] = useState(0);
 
   const [fileData, setFileData] = useState(null);
 
@@ -294,11 +295,20 @@ const FileDetailsPage = () => {
         </div>
 
         <div className="w-full xl:w-96">
-          <FileSpecCard file={fileData} onShare={() => setIsShareModalOpen(true)} />
+          <FileSpecCard 
+            file={fileData} 
+            onShare={() => setIsShareModalOpen(true)} 
+            refreshTrigger={shareRefreshKey}
+          />
         </div>
       </div>
 
-      <ShareModal isOpen={isShareModalOpen} file={fileData} onClose={() => setIsShareModalOpen(false)} />
+      <ShareModal 
+        isOpen={isShareModalOpen} 
+        file={fileData} 
+        onClose={() => setIsShareModalOpen(false)} 
+        onSuccess={() => setShareRefreshKey(prev => prev + 1)}
+      />
       <DeleteModal
         isOpen={isDeleteModalOpen}
         fileName={fileData.name}
