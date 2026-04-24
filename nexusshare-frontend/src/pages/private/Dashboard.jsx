@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import UploadConfirmModal from '../../components/modals/UploadConfirmModel';
-import { fetchFiles, uploadFiles } from '../../services/fileService';
+import { fetchFiles, uploadFiles, } from '../../services/fileService';
 import { useToast } from '../../components/common/ToastContent';
+import { fetchSharedLinks } from '../../services/shareService';
 
 const Dashboard = () => {
   const { showToast } = useToast();
@@ -11,6 +12,7 @@ const Dashboard = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [files, setFiles] = useState([]);
   const [totalFiles, setTotalFiles] = useState(0);
+  const [totalSharedFiles, setTotalSharedFiles] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const hiddenInputRef = useRef(null);
 
@@ -27,6 +29,23 @@ const Dashboard = () => {
       setTotalFiles(data.count || 0);
     } catch (error) {
       console.error('Failed to load files:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    loadShared();
+  }, []);
+
+  const loadShared = async () =>{
+    setIsLoading(true);
+    try{
+      const data= await fetchSharedLinks(1,'','active','');
+      
+      setTotalSharedFiles(data.count || 0);
+    } catch (error){
+      console.error('Failed to load Files;',error);
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +143,7 @@ const Dashboard = () => {
               <span className="text-[10px] font-bold text-purple-500 bg-purple-50 dark:bg-purple-500/10 px-2 py-1 rounded-lg">Active</span>
             </div>
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold">Active Shared Assets</p>
-            <h3 className="text-2xl font-black text-gray-800 dark:text-white mt-1">42</h3>
+            <h3 className="text-2xl font-black text-gray-800 dark:text-white mt-1">{isLoading ? '...' : totalSharedFiles.toLocaleString()}</h3>
           </div>
         </Link>
       </div>

@@ -79,9 +79,9 @@ const UploadHistory = () => {
                 </Link>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                {/* Calendar Card - RESTORED TO FULL SIZE */}
-                <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-700 shadow-sm">
+            <div className="flex flex-col lg:flex-row gap-4 items-start">
+                {/* Calendar Card */}
+                <div className="w-full max-w-2xl shrink-0 bg-white dark:bg-gray-800 rounded-[2.5rem] p-7 border border-gray-100 dark:border-gray-700 shadow-sm">
                     <div className="flex justify-between items-center mb-8">
                         <h2 className="text-xl font-black text-gray-800 dark:text-white">{monthName} {year}</h2>
                         <div className="flex space-x-2">
@@ -145,11 +145,11 @@ const UploadHistory = () => {
                     </div>
                 </div>
 
-                <div className="space-y-6">
-                    <div className="bg-indigo-600 rounded-[2rem] p-8 text-white">
-                        <h3 className="font-bold text-lg mb-2">Activity Summary</h3>
-                        <p className="text-indigo-100 text-sm mb-6 uppercase tracking-tight font-medium">Monthly Performance</p>
-                        <div className="space-y-6">
+                <div className="flex-1 space-y-3 min-w-0">
+                    <div className="bg-indigo-600 rounded-[2rem] p-5 text-white">
+                        <h3 className="font-bold text-base mb-1">Activity Summary</h3>
+                        <p className="text-indigo-100 text-xs mb-3 uppercase tracking-tight font-medium">Monthly Performance</p>
+                        <div className="space-y-3">
                             <div className="flex justify-between items-end">
                                 <div>
                                     <p className="text-[10px] text-indigo-200 uppercase font-black tracking-widest mb-1">Uploads</p>
@@ -161,7 +161,7 @@ const UploadHistory = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-3 pt-2">
+                            <div className="space-y-2 pt-1">
                                 <div className="flex justify-between items-center text-[11px] font-bold">
                                     <span className="flex items-center"><div className="w-2 h-2 bg-white rounded-full mr-2"></div> Uploads ({monthName})</span>
                                     <span>{monthStats.upload_count}</span>
@@ -179,7 +179,7 @@ const UploadHistory = () => {
                     </div>
 
                     {/* Day Details */}
-                    <div className="bg-white dark:bg-gray-800 rounded-[2rem] p-6 border border-gray-100 dark:border-gray-700 shadow-sm h-[280px] flex flex-col">
+                    <div className="bg-white dark:bg-gray-800 rounded-[2rem] p-4 border border-gray-100 dark:border-gray-700 shadow-sm h-[200px] flex flex-col">
                         {selectedDay ? (
                             <>
                                 <div className="flex justify-between items-center mb-4">
@@ -233,7 +233,7 @@ const UploadHistory = () => {
                                         ))
                                     ) : (
                                         <div className="h-full flex flex-col items-center justify-center opacity-40">
-                                            <p className="text-[9px] font-bold uppercase tracking-widest text-center text-gray-500">Silence...</p>
+                                            <p className="text-[9px] font-bold uppercase tracking-widest text-center text-gray-500">No Upload or Shares found..</p>
                                         </div>
                                     )}
                                 </div>
@@ -246,19 +246,19 @@ const UploadHistory = () => {
                         )}
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-[2rem] p-8 border border-gray-100 dark:border-gray-700">
-                        <h3 className="font-bold text-gray-800 dark:text-white mb-4 text-sm uppercase tracking-wider">Quick Legend</h3>
-                        <div className="flex items-center space-x-3 mb-3">
-                            <div className="w-4 h-4 rounded border-2 border-green-400"></div>
-                            <span className="text-xs text-gray-500 font-bold">Today</span>
+                    <div className="bg-white dark:bg-gray-800 rounded-[2rem] p-4 border border-gray-100 dark:border-gray-700">
+                        <h3 className="font-bold text-gray-800 dark:text-white mb-2 text-xs uppercase tracking-wider">Quick Legend</h3>
+                        <div className="flex items-center space-x-2 mb-2">
+                            <div className="w-3 h-3 rounded border-2 border-green-400"></div>
+                            <span className="text-[11px] text-gray-500 font-bold">Today</span>
                         </div>
-                        <div className="flex items-center space-x-3 mb-3">
-                            <div className="w-4 h-4 rounded-full bg-indigo-500"></div>
-                            <span className="text-xs text-gray-500 font-bold">Upload Event</span>
+                        <div className="flex items-center space-x-2 mb-2">
+                            <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                            <span className="text-[11px] text-gray-500 font-bold">Upload Event</span>
                         </div>
-                        <div className="flex items-center space-x-3 mb-3">
-                            <div className="w-4 h-4 rounded-full bg-amber-500"></div>
-                            <span className="text-xs text-gray-500 font-bold">Share Event</span>
+                        <div className="flex items-center space-x-2 mb-2">
+                            <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                            <span className="text-[11px] text-gray-500 font-bold">Share Event</span>
                         </div>
                     </div>
                 </div>

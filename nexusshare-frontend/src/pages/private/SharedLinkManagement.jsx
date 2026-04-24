@@ -116,7 +116,7 @@ const SharedLinksManagement = () => {
                 <th className="px-8 py-5">Engagement</th>
                 <th className="px-8 py-5">Shared at</th>
                 <th className="px-8 py-5">Expires at</th>
-                <th className="px-8 py-5">Permission</th>
+                <th className="px-8 py-5">Status</th>
                 <th className="px-8 py-5 text-right">Actions</th>
               </tr>
             </thead>
@@ -174,9 +174,19 @@ const SharedLinksManagement = () => {
                   </td>
 
                   <td className="px-8 py-5">
-                    <span className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-blue-100 text-blue-600 dark:bg-blue-900/20`}>
-                      {share.is_expired ? 'No Access' : 'View Only'}
-                    </span>
+                    {share.is_expired ? (
+                      <span className="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-600 dark:bg-amber-900/20">
+                        Expired
+                      </span>
+                    ) : share.is_accessed ? (
+                      <span className="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20">
+                        Accessed
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-600 dark:bg-indigo-900/20">
+                        Sent
+                      </span>
+                    )}
                   </td>
 
                   <td className="px-8 py-5 text-right space-x-2">
