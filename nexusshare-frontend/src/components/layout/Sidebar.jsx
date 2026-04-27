@@ -32,7 +32,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState([]);
 
-  // 1. When files are selected from the button
+
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     if (files.length > 0) {
@@ -42,17 +42,17 @@ const Sidebar = ({ isOpen, onClose }) => {
     event.target.value = null;
   };
 
-  // 2. Remove file from the Modal list
+
   const removeStagedFile = (index) => {
     const updated = stagedFiles.filter((_, i) => i !== index);
     setStagedFiles(updated);
     if (updated.length === 0) setIsModalOpen(false);
   };
 
-  // 3. User clicks "Confirm & Secure" in the Modal
+
   const handleConfirmUpload = async (filesToUpload, descriptions) => {
     setIsUploading(true);
-    
+
     // Create temporary "uploading" visual items
     const newUploads = filesToUpload.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
@@ -73,34 +73,27 @@ const Sidebar = ({ isOpen, onClose }) => {
       });
 
       const { successes, failures } = await uploadFiles(filesToUpload, descriptions);
-      
-      // Stop simulations
       intervals.forEach(clearInterval);
 
       if (successes.length > 0) {
         showToast(`${successes.length} file(s) uploaded successfully!`, 'success');
-        // Complete progress bars
         setUploadingFiles(prev => prev.map(f => ({ ...f, progress: 100 })));
-        
-        // Notify other components (like FileBrowser) to refresh
         window.dispatchEvent(new CustomEvent('file-uploaded'));
-        
-        // Redirect to My Files page
         navigate('/files');
       }
-      
+
       if (failures.length > 0) {
         showToast(`${failures.length} file(s) failed to upload.`, 'error');
       }
 
       setIsModalOpen(false);
       setStagedFiles([]);
-      
+
       // Clear uploading items after 2 seconds
       setTimeout(() => {
         setUploadingFiles(prev => prev.filter(f => !newUploads.some(nu => nu.id === f.id)));
       }, 2000);
-      
+
     } catch (error) {
       showToast('Upload failed. Please try again.', 'error');
       setUploadingFiles(prev => prev.filter(f => !newUploads.some(nu => nu.id === f.id)));
@@ -111,7 +104,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   return (
     <>
-      <aside 
+      <aside
         className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col transition-transform duration-300 transform 
           ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
           lg:translate-x-0 lg:static lg:h-[calc(100vh-73px)] lg:w-64`}
@@ -124,7 +117,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <i className="fas fa-times text-xl"></i>
             </button>
           </div>
-          
+
           <button
             onClick={() => {
               fileInputRef.current.click();
@@ -172,7 +165,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <SidebarLink to="/recents" icon="fa-history" label="Recent" />
               </div>
               <div onClick={() => window.innerWidth < 1024 && onClose()}>
-                <SidebarLink to="/history" icon="fa-calendar-days" label="Log" />             
+                <SidebarLink to="/history" icon="fa-calendar-days" label="Log" />
               </div>
             </div>
             <div className="pt-6">
@@ -211,8 +204,8 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         {/* Storage Stats Indicator */}
         <div className="p-6 border-t border-gray-50 dark:border-gray-800/50">
-          <Link 
-            to="/storage" 
+          <Link
+            to="/storage"
             onClick={() => window.innerWidth < 1024 && onClose()}
             className="block"
           >

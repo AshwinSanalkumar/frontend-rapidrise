@@ -51,9 +51,6 @@ const FileBrowser = ({
       setIsLoading(true);
       try {
         const data = await fetchFiles(currentPage, searchTerm, showFavoritesOnly); 
-        
-        // We still apply initialFilter locally just in case there are custom rules
-        // but it's no longer a dependency for the fetch effect.
         setFiles(data.files.filter(initialFilter));
         setTotalFiles(data.count);
       } catch (error) {
@@ -101,11 +98,7 @@ const FileBrowser = ({
   // Handle local favorite toggle to keep UI in sync
   const handleToggleFavorite = (fileId, isFavorite) => {
     setFiles(prev => {
-      const updated = prev.map(f => f.id === fileId ? { ...f, isFavorite } : f);
-      // If we are in the Favorites view, we might want to remove it from the list immediately
-      // or keep it until refresh. Let's keep it for a better UX (undo-able) but if the base filter 
-      // is for favorites, the user might expect it to vanish.
-      // For now, let's keep it to avoid "jumping" UI, but re-filtering on next load.
+      const updated = prev.map(f => f.id === fileId ? { ...f, isFavorite } : f)
       return updated;
     });
   };
