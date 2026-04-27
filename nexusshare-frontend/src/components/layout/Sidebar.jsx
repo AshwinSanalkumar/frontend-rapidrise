@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useToast } from '../common/ToastContent';
 import UploadConfirmModal from '../modals/UploadConfirmModel';
@@ -23,6 +23,7 @@ const SidebarLink = ({ to, icon, label }) => (
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
   // States to handle the modal and staging
@@ -80,6 +81,12 @@ const Sidebar = ({ isOpen, onClose }) => {
         showToast(`${successes.length} file(s) uploaded successfully!`, 'success');
         // Complete progress bars
         setUploadingFiles(prev => prev.map(f => ({ ...f, progress: 100 })));
+        
+        // Notify other components (like FileBrowser) to refresh
+        window.dispatchEvent(new CustomEvent('file-uploaded'));
+        
+        // Redirect to My Files page
+        navigate('/files');
       }
       
       if (failures.length > 0) {

@@ -25,6 +25,11 @@ const Recents = () => {
       }
     };
     loadRecentFiles();
+
+    // Listen for global upload events to refresh the recent files list
+    const handleUploadEvent = () => loadRecentFiles();
+    window.addEventListener('file-uploaded', handleUploadEvent);
+    return () => window.removeEventListener('file-uploaded', handleUploadEvent);
   }, []);
 
   // Helper to determine the timeframe group

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import UploadConfirmModal from '../../components/modals/UploadConfirmModel';
 import { fetchFiles, uploadFiles, } from '../../services/fileService';
 import { useToast } from '../../components/common/ToastContent';
@@ -7,6 +7,7 @@ import { fetchSharedLinks } from '../../services/shareService';
 
 const Dashboard = () => {
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [stagedFiles, setStagedFiles] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -19,6 +20,13 @@ const Dashboard = () => {
   // Fetch files from API
   useEffect(() => {
     loadFiles();
+  }, []);
+
+  useEffect(() => {
+    // Listen for global upload events to refresh the dashboard stats/activity
+    const handleUploadEvent = () => loadFiles();
+    window.addEventListener('file-uploaded', handleUploadEvent);
+    return () => window.removeEventListener('file-uploaded', handleUploadEvent);
   }, []);
 
   const loadFiles = async () => {
@@ -75,6 +83,8 @@ const Dashboard = () => {
       
       if (successes.length > 0) {
         showToast(`${successes.length} file(s) uploaded successfully!`, 'success');
+        window.dispatchEvent(new CustomEvent('file-uploaded'));
+        navigate('/files');
       }
       if (failures.length > 0) {
         showToast(`${failures.length} file(s) failed to upload.`, 'error');

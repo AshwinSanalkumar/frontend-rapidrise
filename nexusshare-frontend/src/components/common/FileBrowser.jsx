@@ -45,7 +45,7 @@ const FileBrowser = ({
   const queryParams = new URLSearchParams(location.search);
   const searchTerm = queryParams.get('search') || '';
 
-  // Fetch files from API when page or searchTerm changes
+  // Fetch files from API when page, searchTerm, or a upload event happens
   useEffect(() => {
     const loadFiles = async () => {
       setIsLoading(true);
@@ -63,14 +63,20 @@ const FileBrowser = ({
       }
     };
     loadFiles();
-    // initialFilter is excluded from dependencies to prevent infinite loops
-    // since it is often passed as an unstable inline function.
+
+    // Listen for global upload events to refresh the list
+    const handleUploadEvent = () => loadFiles();
+    window.addEventListener('file-uploaded', handleUploadEvent);
+
+    return () => {
+      window.removeEventListener('file-uploaded', handleUploadEvent);
+    };
+
   }, [currentPage, searchTerm, showFavoritesOnly]);
 
   useEffect(() => {
     if (searchTerm) {
       setCurrentPage(1);
-      // Update URL to remove page param if searching, or keep it consistent
       const newParams = new URLSearchParams(searchParams);
       newParams.delete('page');
       setSearchParams(newParams, { replace: true });

@@ -60,7 +60,7 @@ export const fetchFiles = async (page = 1, search = '', favorites = false) => {
 
 export const fetchDeletedFiles = async (page = 1) => {
   const response = await apiClient.get('trash/', {
-    params: { page }
+    params: { page, page_size: 100 }   // fetch all trash in one call (max 100)
   });
   
   if (response.data.results) {
