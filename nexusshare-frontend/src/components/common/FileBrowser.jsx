@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate, Link, useSearchParams } from 'react-router-dom';
+import GlobalFileDrop from './GlobalFileDrop';
 import { fetchFiles } from '../../services/fileService';
 import FileCard from '../elements/FIleCard';
 import ShareModal from '../modals/ShareModal';
@@ -116,7 +117,8 @@ const FileBrowser = ({
   };
 
   return (
-    <main className="flex-1 p-4 sm:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <GlobalFileDrop>
+      <main className="flex-1 p-4 sm:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header Section */}
       <div className="flex items-center space-x-4 mb-8">
         <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
@@ -213,7 +215,8 @@ const FileBrowser = ({
         file={selectedFile}
         onClose={() => setIsModalOpen(false)}
       />
-    </main>
+      </main>
+    </GlobalFileDrop>
   );
 };
 
