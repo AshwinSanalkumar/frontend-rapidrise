@@ -5,6 +5,7 @@ import DeleteModal from '../../components/modals/DeleteModal';
 import { useToast } from '../../components/common/ToastContent';
 import NexusShareSelector from '../../components/modals/NexusShareSelector';
 import { fetchFolderDetails, uploadFilesToFolder, importFilesToFolder, removeFileFromFolder } from '../../services/folderService';
+import GlobalFileDrop from '../../components/common/GlobalFileDrop';
 
 
 const FolderDetail = () => {
@@ -124,6 +125,7 @@ const FolderDetail = () => {
   }
 
   return (
+        <GlobalFileDrop>
     <main className="flex-1 p-4 sm:p-8 lg:p-12 relative">
       <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
       
@@ -258,6 +260,7 @@ const FolderDetail = () => {
         icon="fas fa-folder-minus"
       />
     </main>
+    </GlobalFileDrop>
   );
 };
 

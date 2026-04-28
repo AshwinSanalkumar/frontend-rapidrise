@@ -4,6 +4,7 @@ import ViewToggle from '../../components/common/ViewToggle';
 import { useToast } from '../../components/common/ToastContent';
 import { fetchFolders, createFolder, renameFolder, deleteFolder } from '../../services/folderService';
 
+
 const FileExplorer = () => {
   const { showToast } = useToast();
   const [view, setView] = useState('grid');

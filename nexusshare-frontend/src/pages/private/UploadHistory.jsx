@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchUploadHistory } from '../../services/fileService';
+import ShareAuditModal from '../../components/modals/ShareAuditModal';
 
 const UploadHistory = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -10,6 +11,7 @@ const UploadHistory = () => {
     const [globalStats, setGlobalStats] = useState({ total_uploads: 0 });
     const [isLoading, setIsLoading] = useState(true);
     const [typeFilter, setTypeFilter] = useState('all'); // 'all', 'upload', 'share'
+    const [viewShare, setViewShare] = useState(null);
 
     const formatSize = (bytes) => {
         if (bytes === 0) return '0 Bytes';
@@ -219,15 +221,24 @@ const UploadHistory = () => {
                                                     <i className={`fas ${event.type === 'upload' ? 'fa-cloud-upload-alt' : 'fa-share-nodes'} text-[10px]`}></i>
                                                 </div>
                                                 <div className="flex-1 overflow-hidden">
-                                                    <p className="text-[10px] font-bold text-gray-700 dark:text-gray-200 truncate">{event.name}</p>
+                                                    <p className="text-[10px] font-bold text-gray-700 dark:text-gray-200 truncate">{event.file_name || event.name}</p>
                                                     <p className="text-[8px] text-gray-400 uppercase font-medium">
-                                                        {event.type === 'upload' ? `Uploaded ${event.time} • ${formatSize(event.size)}` : `Shared with ${event.recipient} at ${event.time}`}
+                                                        {event.type === 'upload' ? `Uploaded ${event.time} • ${formatSize(event.size)}` : `Shared with ${event.recipient_email} at ${event.time}`}
                                                     </p>
                                                 </div>
                                                 {event.type === 'upload' && (
+                                                    
                                                     <Link to={`/files/details/${event.id}`} className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <i className="fas fa-external-link-alt text-gray-400 hover:text-indigo-600 text-[10px]"></i>
                                                     </Link>
+                                                )}
+                                                {event.type === 'share' && (
+                                                   <div className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"> 
+                                                        <i onClick={() => setViewShare({ 
+                                                            ...event, file_size: formatSize(event.file_size_bytes) })} 
+                                                            className="fas fa-eye text-gray-400 hover:text-indigo-600 text-[10px]">
+                                                        </i>
+                                                    </div>
                                                 )}
                                             </div>
                                         ))
@@ -263,7 +274,13 @@ const UploadHistory = () => {
                     </div>
                 </div>
             </div>
+            <ShareAuditModal 
+        isOpen={!!viewShare}
+        onClose={() => setViewShare(null)}
+        share={viewShare}
+      />
         </main>
+        
     );
 };
 

@@ -75,7 +75,7 @@ const SharedLinksManagement = () => {
       <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Access Control</h1>
-          <p className="text-gray-500 dark:text-gray-400 font-medium">Tracking engagement for {allShares.length} shared assets.</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">Tracking engagement for {totalCount} shared assets.</p>
         </div>
 
         <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
