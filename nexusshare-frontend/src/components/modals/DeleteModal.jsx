@@ -8,7 +8,8 @@ const DeleteModal = ({
   message = "This action cannot be undone. Are you sure you want to remove this permanently?",
   confirmText = "Delete",
   icon = "fas fa-exclamation-triangle",
-  variant = "danger" // danger (red) or warning (indigo/amber)
+  variant = "danger", // danger (red) or warning (indigo/amber)
+  isLoading = false
 }) => {
   if (!isOpen) return null;
 
@@ -35,16 +36,23 @@ const DeleteModal = ({
 
           <div className="flex space-x-3">
             <button 
-              onClick={onClose} 
-              className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 font-bold rounded-xl transition hover:bg-gray-200 dark:hover:bg-gray-600"
+              onClick={onClose}
+              disabled={isLoading}
+              className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200 font-bold rounded-xl transition hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button 
-              onClick={onDelete} 
-              className={`flex-1 px-4 py-3 text-white font-bold rounded-xl shadow-lg transition active:scale-95 ${btnClasses}`}
+              onClick={onDelete}
+              disabled={isLoading}
+              className={`flex-1 px-4 py-3 text-white font-bold rounded-xl shadow-lg transition active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${btnClasses}`}
             >
-              {confirmText}
+              {isLoading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
+                  <span>Processing...</span>
+                </>
+              ) : confirmText}
             </button>
           </div>
         </div>

@@ -9,6 +9,7 @@ const Bin = () => {
   const [deletedItems, setDeletedItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isEmptying, setIsEmptying] = useState(false);
 
   useEffect(() => {
     const loadDeletedItems = async () => {
@@ -57,18 +58,19 @@ const Bin = () => {
         await deleteFilePermanently(item.id);
         setDeletedItems(prev => prev.filter(i => i.id !== item.id));
         showToast("Item purged from vault.", "success");
+        setDeleteTarget(null);
       } else if (deleteTarget.type === 'all') {
-        setIsLoading(true);
+        setIsEmptying(true);
         await emptyTrash();
         setDeletedItems([]);
         showToast("Vault trash emptied.", "success");
+        setDeleteTarget(null);
       }
     } catch (error) {
       console.error('Operation failed:', error);
       showToast(error.response?.data?.error || "Operation failed", "error");
     } finally {
-      setIsLoading(false);
-      setDeleteTarget(null);
+      setIsEmptying(false);
     }
   };
 
@@ -166,6 +168,7 @@ const Bin = () => {
         confirmText={deleteTarget?.type === 'all' ? "Empty Bin" : "Delete"}
         variant="danger"
         icon="fas fa-trash-alt"
+        isLoading={deleteTarget?.type === 'all' ? isEmptying : false}
       />
     </main>
   );

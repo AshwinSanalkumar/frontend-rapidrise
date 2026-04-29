@@ -29,6 +29,7 @@ import ExternalFilePreview from "./pages/private/FilePreview";
 import ReceivedRequests from "./pages/private/ReceivedRequests";
 import UploadHistory from "./pages/private/UploadHistory";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import PublicOnlyRoute from "./components/auth/PublicOnlyRoute";
 
 function App() {
   return (
@@ -36,12 +37,16 @@ function App() {
       <Routes>
         {/* PUBLIC */}
         <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
         <Route path="/404-not-found" element={<NotFoundPage/>} />
         <Route path="/public/:shareId" element={<SharedFileView />} />
-        <Route path="/forgot-password" element={<ForgotPassword/>}/>
-        <Route path="/reset-password" element={<ResetPasswordLink/>}/>
+
+        {/* AUTH-ONLY (redirect to /dashboard if already logged in) */}
+        <Route element={<PublicOnlyRoute />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword/>}/>
+          <Route path="/reset-password" element={<ResetPasswordLink/>}/>
+        </Route>
 
 
         <Route element={<ProtectedRoute />}>
