@@ -34,6 +34,7 @@ const Recents = () => {
 
   // Helper to determine the timeframe group
   const getTimeframe = (dateString) => {
+    if (!dateString) return "Previously Accessed";
     const date = new Date(dateString);
     const today = new Date();
     const yesterday = new Date();
@@ -55,10 +56,30 @@ const Recents = () => {
     return "Earlier this Month";
   };
 
-  // Grouping logic for the UI
+  // Format a timestamp as a readable "last accessed" string
+  const formatLastAccessed = (dateString) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const isSameDay = (d1, d2) =>
+      d1.getDate() === d2.getDate() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getFullYear() === d2.getFullYear();
+
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+    if (isSameDay(date, today)) return `Today at ${timeStr}`;
+    if (isSameDay(date, yesterday)) return `Yesterday at ${timeStr}`;
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ` at ${timeStr}`;
+  };
+
+  // Grouping logic — group by last accessed time
   const groupedFiles = useMemo(() => {
     return recentFiles.reduce((groups, file) => {
-      const timeframe = getTimeframe(file.uploadedAt);
+      const timeframe = getTimeframe(file.lastAccessedAt);
       if (!groups[timeframe]) groups[timeframe] = [];
       groups[timeframe].push(file);
       return groups;
@@ -123,12 +144,20 @@ const Recents = () => {
                 <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
                   {files.map(file => {
                     const config = getFileConfig(file.type);
+                    const lastAccessed = formatLastAccessed(file.lastAccessedAt);
                     return (
                       <FileRow 
                         key={file.id} 
                         id={file.id}
                         name={file.name}
-                        subtitle={file.type.toUpperCase()}
+                        subtitle={
+                          lastAccessed
+                            ? <span className="flex items-center gap-1 text-indigo-400 dark:text-indigo-300">
+                                <i className="fas fa-clock text-[9px]"></i>
+                                {lastAccessed}
+                              </span>
+                            : file.type.toUpperCase()
+                        }
                         modified={file.date}
                         size={file.size}
                         iconClass={`fas ${config.icon}`}
