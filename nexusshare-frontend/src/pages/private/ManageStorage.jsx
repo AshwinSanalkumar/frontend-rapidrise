@@ -1,10 +1,42 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../components/common/ToastContent';
+import { fetchDuplicates } from '../../services/fileService';
+import { useEffect } from 'react';
 
 const ManageStorage = () => {
   const { showToast } = useToast();
   const [activeCategory, setActiveCategory] = useState('All');
+  const [duplicateSummary, setDuplicateSummary] = useState({ totalWaste: '0 MB', count: 0 });
+
+  useEffect(() => {
+    loadDuplicateInsights();
+  }, []);
+
+  const loadDuplicateInsights = async () => {
+    try {
+      const data = await fetchDuplicates();
+      const wasteBytes = data.reduce((acc, group) => {
+        const extraInstances = group.instances.filter(i => !i.isOriginal);
+        return acc + extraInstances.reduce((sum, i) => sum + i.size_bytes, 0);
+      }, 0);
+      
+      const totalCount = data.reduce((acc, group) => {
+        return acc + group.instances.filter(i => !i.isOriginal).length;
+      }, 0);
+
+      let wasteDisplay = '';
+      if (wasteBytes > 1024 * 1024 * 1024) {
+        wasteDisplay = `${(wasteBytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+      } else {
+        wasteDisplay = `${(wasteBytes / (1024 * 1024)).toFixed(2)} MB`;
+      }
+
+      setDuplicateSummary({ totalWaste: wasteDisplay, count: totalCount });
+    } catch (error) {
+      console.error("Failed to load insights:", error);
+    }
+  };
 
   // Mock storage data
   const [storageData] = useState({
@@ -188,10 +220,10 @@ const ManageStorage = () => {
   <div className="space-y-4">
     <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10">
       <p className="text-xs text-white/60 mb-1 font-bold uppercase tracking-wider">Potential Savings</p>
-      <p className="text-2xl font-black">2.4 GB</p>
+      <p className="text-2xl font-black">{duplicateSummary.totalWaste}</p>
     </div>
     <p className="text-sm text-indigo-100 leading-relaxed font-medium">
-      NexusShare found <span className="font-bold text-white">14 duplicate assets</span> taking up unnecessary space in your vault.
+      NexusShare found <span className="font-bold text-white">{duplicateSummary.count} duplicate assets</span> taking up unnecessary space in your vault.
     </p>
     <Link 
       to="/storage/duplicates"

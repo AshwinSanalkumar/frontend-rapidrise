@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useToast } from '../common/ToastContent';
+import { fetchMe } from '../../services/authService';
+import { useEffect } from 'react';
 import UploadConfirmModal from '../modals/UploadConfirmModel';
 
 import { uploadFiles } from '../../services/fileService';
@@ -31,6 +33,32 @@ const Sidebar = ({ isOpen, onClose }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState([]);
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    loadUserData();
+    
+    // Refresh storage stats when a file is uploaded
+    const handleRefresh = () => loadUserData();
+    window.addEventListener('file-uploaded', handleRefresh);
+    return () => window.removeEventListener('file-uploaded', handleRefresh);
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      const data = await fetchMe();
+      setUserData(data);
+    } catch (error) {
+      console.error("Failed to load storage data in Sidebar:", error);
+    }
+  };
+
+  const consumed = userData?.consumed_storage || 0;
+  const total = userData?.storage_limit_bytes || 1024 * 1024 * 1024;
+  const percentage = Math.min(100, Math.round((consumed / total) * 100));
+  
+  const consumedGB = (consumed / (1024 * 1024 * 1024)).toFixed(2);
+  const totalGB = (total / (1024 * 1024 * 1024)).toFixed(0);
 
 
   const handleFileChange = (event) => {
@@ -212,9 +240,14 @@ const Sidebar = ({ isOpen, onClose }) => {
             <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
               <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-3">Cloud Storage</p>
               <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div className="h-full gradient-bg w-[65%]"></div>
+                <div 
+                  className="h-full gradient-bg transition-all duration-1000" 
+                  style={{ width: `${percentage}%` }}
+                ></div>
               </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-3 font-medium">0.65 GB of 1 GB</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-3 font-medium">
+                {consumedGB} GB of {totalGB} GB
+              </p>
             </div>
           </Link>
         </div>
