@@ -34,6 +34,7 @@ export const mapFileFromApi = (apiFile) => {
     isDeleted: apiFile.is_deleted || false,
     isFavorite: apiFile.is_favorite || false,
     uploadedAt: apiFile.uploaded_at,
+    lastAccessedAt: apiFile.last_accessed_at || null,
   };
 };
 
@@ -173,11 +174,17 @@ export const toggleFileFavorite = async (fileId) => {
   return response.data;
 };
 /**
- * Fetches all files and returns them sorted by upload date (newest first).
+ * Fetches files the user has explicitly accessed, ordered by last access time.
+ * Uses the dedicated /files/recents/ endpoint which only returns files with
+ * a last_accessed_at timestamp (i.e. files the user has actually opened).
  */
 export const fetchRecentFiles = async () => {
-  const data = await fetchFiles(1);
-  return data.files.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+  const response = await apiClient.get('files/recents/', {
+    params: { page_size: 50 }
+  });
+
+  const results = response.data.results ?? (Array.isArray(response.data) ? response.data : []);
+  return results.map(mapFileFromApi);
 };
 
 /**
@@ -189,6 +196,24 @@ export const fetchRecentFiles = async () => {
 export const fetchUploadHistory = async (year, month) => {
   const response = await apiClient.get('files/history/', {
     params: { year, month }
+  });
+  return response.data;
+};
+
+/**
+ * Fetches duplicate groups from the storage/duplicates endpoint.
+ */
+export const fetchDuplicates = async () => {
+  const response = await apiClient.get('storage/duplicates/');
+  return response.data;
+};
+
+/**
+ * Resolves duplicates by deleting specific file IDs.
+ */
+export const deleteDuplicates = async (fileIds) => {
+  const response = await apiClient.delete('storage/duplicates/', {
+    data: { file_ids: fileIds }
   });
   return response.data;
 };

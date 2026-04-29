@@ -25,3 +25,11 @@ export const registerUser = async (userData) => {
   const response = await apiClient.post('register/', userData);
   return response.data;
 };
+
+/**
+ * Fetches the current user details.
+ */
+export const fetchMe = async () => {
+  const response = await apiClient.get('user/');
+  return response.data;
+};

@@ -4,6 +4,7 @@ import UploadConfirmModal from '../../components/modals/UploadConfirmModel';
 import { fetchFiles, uploadFiles, } from '../../services/fileService';
 import { useToast } from '../../components/common/ToastContent';
 import { fetchSharedLinks } from '../../services/shareService';
+import { fetchMe } from '../../services/authService';
 
 const Dashboard = () => {
   const { showToast } = useToast();
@@ -14,13 +15,14 @@ const Dashboard = () => {
   const [files, setFiles] = useState([]);
   const [totalFiles, setTotalFiles] = useState(0);
   const [totalSharedFiles, setTotalSharedFiles] = useState(0);
+  const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const hiddenInputRef = useRef(null);
 
   useEffect(() => { 
     const loadInitialData = async () => {
       setIsLoading(true);
-      await Promise.all([loadFiles(), loadShared()]);
+      await Promise.all([loadFiles(), loadShared(), loadUser()]);
       setIsLoading(false);
     };
     loadInitialData();
@@ -44,6 +46,13 @@ const Dashboard = () => {
     try {
       const data = await fetchSharedLinks(1, '', 'active', '');
       setTotalSharedFiles(data.count || 0);
+    } catch (error) { console.error(error); }
+  };
+
+  const loadUser = async () => {
+    try {
+      const data = await fetchMe();
+      setUserData(data);
     } catch (error) { console.error(error); }
   };
 
@@ -79,7 +88,7 @@ const Dashboard = () => {
       
       {/* Header */}
       <header className="mb-10">
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Hello, Ashwin Sanalkumar</h1>
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Hello, {userData?.full_name || '...'}</h1>
         <p className="text-gray-500 dark:text-gray-400">System Overview. Here is what's happening in your vault.</p>
       </header>
 
@@ -108,13 +117,26 @@ const Dashboard = () => {
               <div className="relative flex items-center justify-center">
                 <svg className="w-32 h-auto" viewBox="0 0 200 120">
                   <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="currentColor" strokeWidth="12" strokeLinecap="round" className="text-slate-100 dark:text-slate-900" />
-                  <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#6366f1" strokeWidth="12" strokeLinecap="round" strokeDasharray="251.2" strokeDashoffset="87.92" />
+                  <path 
+                    d="M 20 100 A 80 80 0 0 1 180 100" 
+                    fill="none" 
+                    stroke="#6366f1" 
+                    strokeWidth="12" 
+                    strokeLinecap="round" 
+                    strokeDasharray="251.2" 
+                    strokeDashoffset={251.2 - (251.2 * (Math.min(100, Math.round(((userData?.consumed_storage || 0) / (userData?.storage_limit_bytes || 1024*1024*1024)) * 100))) / 100)} 
+                    className="transition-all duration-1000 ease-out"
+                  />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center mt-4">
-                  <span className="text-xl font-black text-gray-800 dark:text-white">65%</span>
+                  <span className="text-xl font-black text-gray-800 dark:text-white">
+                    {Math.min(100, Math.round(((userData?.consumed_storage || 0) / (userData?.storage_limit_bytes || 1024*1024*1024)) * 100))}%
+                  </span>
                 </div>
               </div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">0.65 GB / 1.0 GB</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">
+                {((userData?.consumed_storage || 0) / (1024*1024)).toFixed(2)} MB / {((userData?.storage_limit_bytes || 1024*1024*1024) / (1024*1024*1024)).toFixed(0)} GB
+              </p>
             </div>
 
             <Link to="/files" className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col justify-between group">
