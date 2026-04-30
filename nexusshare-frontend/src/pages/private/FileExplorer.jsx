@@ -7,7 +7,14 @@ import { fetchFolders, createFolder, renameFolder, deleteFolder } from '../../se
 
 const FileExplorer = () => {
   const { showToast } = useToast();
-  const [view, setView] = useState('grid');
+  const [view, setView] = useState(() => {
+    return localStorage.getItem('view') || 'grid';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('view', view);
+  }, [view]);
+
   const [folders, setFolders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 

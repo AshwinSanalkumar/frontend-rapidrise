@@ -32,7 +32,14 @@ const FileBrowser = ({
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [view, setView] = useState('grid');
+  const [view, setView] = useState(() => {
+    return localStorage.getItem('view') || 'grid';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('view', view);
+  }, [view]);
+
   const [files, setFiles] = useState([]);
   const [totalFiles, setTotalFiles] = useState(0);
   const [isLoading, setIsLoading] = useState(true);

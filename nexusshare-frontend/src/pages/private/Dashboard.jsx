@@ -69,11 +69,14 @@ const Dashboard = () => {
   const handleFinalUpload = async (filesToUpload, descriptions) => {
     setIsUploading(true);
     try {
-      const { successes } = await uploadFiles(filesToUpload, descriptions);
+      const { successes, failures } = await uploadFiles(filesToUpload, descriptions);
       if (successes.length > 0) {
         showToast(`${successes.length} file(s) uploaded successfully!`, 'success');
         window.dispatchEvent(new CustomEvent('file-uploaded'));
         navigate('/files');
+      }
+       if (failures.length > 0) {
+        showToast(`${failures.length} file(s) failed to upload.`, 'error');
       }
       setIsModalOpen(false);
       setStagedFiles([]);
