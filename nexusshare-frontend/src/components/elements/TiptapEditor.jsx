@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useEditor, EditorContent, Extension } from "@tiptap/react";
+import * as Y from 'yjs';
 import StarterKit from "@tiptap/starter-kit";
 import { ySyncPlugin, yCursorPlugin, yUndoPlugin } from "y-prosemirror";
 
@@ -59,3 +60,52 @@ const TiptapEditor = ({ ydoc, provider }) => {
 };
 
 export default TiptapEditor;
+
+/**
+ * Renders a read-only snapshot of a saved version.
+ * content: the raw string stored in the DB ("yjs:base64..." or plain text)
+ */
+export const ReadOnlyEditor = ({ content }) => {
+  const ydoc = useMemo(() => {
+    const doc = new Y.Doc();
+    if (content && content.startsWith('yjs:')) {
+      try {
+        const base64 = content.replace(/^yjs:/, '');
+        const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+        Y.applyUpdate(doc, binary);
+      } catch (e) {
+        console.error('ReadOnlyEditor: failed to decode yjs state', e);
+      }
+    } else if (content) {
+      const fragment = doc.getXmlFragment('prosemirror');
+      const para = new Y.XmlElement('paragraph');
+      para.insert(0, [new Y.XmlText(content)]);
+      fragment.insert(0, [para]);
+    }
+    return doc;
+  }, [content]);
+
+  const fragment = useMemo(() => ydoc.getXmlFragment('prosemirror'), [ydoc]);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({ history: false }),
+      Extension.create({
+        name: 'readOnlySync',
+        addProseMirrorPlugins() {
+          return [ySyncPlugin(fragment)];
+        },
+      }),
+    ],
+    content: '',
+    editable: false,
+  });
+
+  if (!editor) return null;
+
+  return (
+    <div className="p-8 h-[50vh] overflow-auto custom-scrollbar opacity-90 pointer-events-none">
+      <EditorContent editor={editor} />
+    </div>
+  );
+};

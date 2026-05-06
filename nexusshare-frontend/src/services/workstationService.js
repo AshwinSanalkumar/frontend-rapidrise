@@ -95,3 +95,18 @@ export const deleteWorkstation = async (id) => {
   const response = await apiClient.delete(`workstations/${id}/`);
   return response.data;
 };
+
+export const fetchWorkstationVersions = async (id) => {
+  const response = await apiClient.get(`workstations/${id}/versions/`);
+  return response.data;
+};
+
+export const restoreWorkstationVersion = async (workstationId, versionId) => {
+  const response = await apiClient.post(`workstations/${workstationId}/versions/${versionId}/restore/`);
+  return mapWorkstationFromApi(response.data);
+};
+
+export const deleteWorkstationVersion = async (workstationId, versionId) => {
+  const response = await apiClient.delete(`workstations/${workstationId}/versions/${versionId}/delete/`);
+  return response.data; // { rolled_back: bool, workstation: {...} }
+};

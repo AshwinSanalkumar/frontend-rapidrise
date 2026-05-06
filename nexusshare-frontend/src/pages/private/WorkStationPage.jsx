@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { fetchWorkstationDetail, exportWorkstation, updateWorkstation } from '../../services/workstationService';
+import { fetchWorkstationDetail, exportWorkstation, updateWorkstation, fetchWorkstationVersions, restoreWorkstationVersion, deleteWorkstationVersion } from '../../services/workstationService';
 import { generateWorkstationPDF } from '../../utils/exportUtils';
 import { useToast } from '../../components/common/ToastContent';
 import { createYjsProvider } from '../../utils/yjsProvider';
-import TiptapEditor from '../../components/elements/TiptapEditor';
+import TiptapEditor, { ReadOnlyEditor } from '../../components/elements/TiptapEditor';
 import * as Y from 'yjs';
 
 const WorkstationPage = () => {
@@ -17,6 +17,10 @@ const WorkstationPage = () => {
   const [ loading, setLoading ] = useState(true);
   const [ isSaving, setIsSaving ] = useState(false);
   const [ isExporting, setIsExporting ] = useState(false);
+  const [ versions, setVersions ] = useState([]);
+  const [ showVersions, setShowVersions ] = useState(false);
+  const [ isRestoring, setIsRestoring ] = useState(false);
+  const [ previewVersion, setPreviewVersion ] = useState(null); // version id being previewed
   
   const ydocRef = useRef(null);
   const providerRef = useRef(null);
@@ -145,41 +149,7 @@ const WorkstationPage = () => {
     };
   }, [id]);
 
-  // Handle Auto-Save
-  useEffect(() => {
-    if (!ydocRef.current || !station) return;
-    let hasChanges = false;
 
-    const handleUpdate = () => {
-      hasChanges = true;
-    };
-
-    ydocRef.current.on('update', handleUpdate);
-
-    const autoSaveInterval = setInterval(async () => {
-      // Only the station owner attempts to save to avoid duplicate API calls
-      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const isOwner = station?.ownerEmail === currentUser.email;
-
-      if (hasChanges && isOwner && !isSaving) {
-        try {
-          hasChanges = false; // Reset early to prevent double saves
-          const stateUpdate = Y.encodeStateAsUpdate(ydocRef.current);
-          const binaryString = Array.from(stateUpdate).map(b => String.fromCharCode(b)).join('');
-          const base64State = "yjs:" + btoa(binaryString);
-          await updateWorkstation(id, { content: base64State });
-        } catch (error) {
-          console.error("Auto-save failed implicitly.", error);
-          hasChanges = true; // Retry next tick
-        }
-      }
-    }, 10000);
-
-    return () => {
-      ydocRef.current?.off('update', handleUpdate);
-      clearInterval(autoSaveInterval);
-    };
-  }, [id, station]);
 
   const handleManualSave = async () => {
     try {
@@ -194,6 +164,49 @@ const WorkstationPage = () => {
       showToast("Failed to save workstation");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const loadVersions = async () => {
+    if (!showVersions) {
+      try {
+        const v = await fetchWorkstationVersions(id);
+        setVersions(v);
+        setShowVersions(true);
+      } catch (error) {
+        showToast("Failed to load versions");
+      }
+    } else {
+      setShowVersions(false);
+    }
+  };
+
+  const handleRestore = async (versionId) => {
+    try {
+      setIsRestoring(true);
+      const updated = await restoreWorkstationVersion(id, versionId);
+      showToast("Version restored. Reloading editor...");
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (error) {
+      showToast("Failed to restore version");
+      setIsRestoring(false);
+    }
+  };
+
+  const handleDeleteVersion = async (versionId) => {
+    try {
+      const result = await deleteWorkstationVersion(id, versionId);
+      setVersions(prev => prev.filter(v => v.id !== versionId));
+      if (previewVersion === versionId) setPreviewVersion(null);
+
+      if (result?.rolled_back) {
+        showToast("Latest version deleted — rolled back to previous version. Reloading...");
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        showToast("Version deleted");
+      }
+    } catch (error) {
+      showToast(error?.response?.data?.error || "Failed to delete version");
     }
   };
 
@@ -338,14 +351,83 @@ const WorkstationPage = () => {
         {/* MAIN WORKSPACE */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3">
-            <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] shadow-xl shadow-indigo-500/5 border border-gray-100 dark:border-gray-800 overflow-hidden">
-              {ydocRef.current && (
-                <TiptapEditor 
-                  ydoc={ydocRef.current} 
-                  provider={providerRef.current} 
-                />
-              )}
-            </div>
+            {showVersions ? (
+               <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden p-8 h-[65vh] overflow-y-auto custom-scrollbar">
+                 <h2 className="text-xl font-black text-gray-800 dark:text-white mb-6">Version History</h2>
+                 {versions.length === 0 ? <p className="text-gray-500 font-medium text-sm">No versions saved yet. Click save to create the first version snapshot.</p> : (
+                   <div className="space-y-3">
+                     {versions.map((ver, idx) => {
+                       const isPreviewing = previewVersion === ver.id;
+                       const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+                       const canDelete =
+                         station?.ownerEmail === currentUser.email ||
+                         ver.saved_by_email === currentUser.email;
+                       return (
+                         <div key={ver.id} className="rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                           {/* Row header */}
+                           <div className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-gray-50 dark:bg-gray-900 gap-4">
+                             <div>
+                               <p className="text-sm font-bold text-gray-800 dark:text-gray-200">
+                                 {new Date(ver.created_at).toLocaleString(undefined, {
+                                   weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                 })}
+                               </p>
+                               <p className="text-xs text-gray-500 mt-1 font-medium">Saved by {ver.saved_by_name}</p>
+                               {idx === 0 && <span className="inline-block mt-2 px-2 py-1 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 text-[9px] font-black uppercase tracking-widest rounded-md">Current / Latest</span>}
+                             </div>
+                             <div className="flex items-center gap-2 flex-shrink-0">
+                               <button
+                                 onClick={() => setPreviewVersion(isPreviewing ? null : ver.id)}
+                                 className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400 rounded-xl text-[10px] uppercase tracking-widest font-black transition-all whitespace-nowrap shadow-sm"
+                               >
+                                 <i className={`fas ${isPreviewing ? 'fa-eye-slash' : 'fa-eye'} mr-1.5`}></i>
+                                 {isPreviewing ? 'Close' : 'Preview'}
+                               </button>
+                               <button
+                                 onClick={() => handleRestore(ver.id)}
+                                 disabled={isRestoring || idx === 0}
+                                 className={`px-4 py-2 ${idx === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600' : 'bg-indigo-500 hover:bg-indigo-600 text-white shadow-md shadow-indigo-500/20'} rounded-xl text-[10px] uppercase tracking-widest font-black transition-all whitespace-nowrap`}
+                               >
+                                 <i className="fas fa-rotate-left mr-1.5"></i>
+                                 {isRestoring ? 'Restoring...' : 'Restore'}
+                               </button>
+                               {canDelete && (
+                                 <button
+                                   onClick={() => handleDeleteVersion(ver.id)}
+                                   title="Delete this version"
+                                   className="w-9 h-9 flex items-center justify-center rounded-xl border border-red-200 dark:border-red-500/30 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition-all flex-shrink-0"
+                                 >
+                                   <i className="fas fa-trash-alt text-[11px]"></i>
+                                 </button>
+                               )}
+                             </div>
+                           </div>
+                           {/* Inline preview panel */}
+                           {isPreviewing && (
+                             <div className="border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950">
+                               <div className="px-6 pt-3 pb-1 flex items-center gap-2">
+                                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                                 <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Read-only preview</span>
+                               </div>
+                               <ReadOnlyEditor content={ver.content} />
+                             </div>
+                           )}
+                         </div>
+                       );
+                     })}
+                   </div>
+                 )}
+               </div>
+            ) : (
+              <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] shadow-xl shadow-indigo-500/5 border border-gray-100 dark:border-gray-800 overflow-hidden">
+                {ydocRef.current && (
+                  <TiptapEditor 
+                    ydoc={ydocRef.current} 
+                    provider={providerRef.current} 
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -366,6 +448,11 @@ const WorkstationPage = () => {
               </div>
               <button className="w-full mt-8 py-4 bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all">
                 Project Settings
+              </button>
+              <button 
+                onClick={loadVersions}
+                className="w-full mt-3 py-4 bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all">
+                {showVersions ? "Close Version History" : "Version History"}
               </button>
             </div>
           </div>
