@@ -14,7 +14,21 @@ const Collaboration = Extension.create({
   addProseMirrorPlugins() {
     return [
       ySyncPlugin(this.options.ydoc.getXmlFragment("prosemirror")),
-      yCursorPlugin(this.options.provider.awareness),
+      yCursorPlugin(this.options.provider.awareness, {
+        cursorBuilder: (user) => {
+          const cursor = document.createElement('span');
+          cursor.classList.add('ProseMirror-yjs-cursor');
+          cursor.setAttribute('style', `border-left-color: ${user.color || '#000000'}; border-left-width: 2px; border-left-style: solid; position: absolute; word-break: normal; pointer-events: none; margin-left: -1px;`);
+          
+          const userDiv = document.createElement('div');
+          userDiv.setAttribute('style', `background-color: ${user.color || '#000000'}; position: absolute; top: -1.25em; left: -1px; font-size: 11px; font-weight: bold; font-family: ui-sans-serif, system-ui, sans-serif; color: white; border-radius: 4px; border-bottom-left-radius: 0; padding: 2px 6px; white-space: nowrap; user-select: none; pointer-events: none; z-index: 10;`);
+          
+          userDiv.appendChild(document.createTextNode(user.name || 'Anonymous'));
+          cursor.appendChild(userDiv);
+          
+          return cursor;
+        }
+      }),
       yUndoPlugin(),
     ];
   },
@@ -40,13 +54,6 @@ const TiptapEditor = ({ ydoc, provider }) => {
   return (
     <div className="p-10 h-[65vh] overflow-auto custom-scrollbar workstation-editor">
       <EditorContent editor={editor} />
-      <style>
-        {`
-          .workstation-editor .ProseMirror-yjs-cursor > div {
-            display: none !important;
-          }
-        `}
-      </style>
     </div>
   );
 };

@@ -116,6 +116,7 @@ const WorkstationPage = () => {
           usersByEmail.set(state.user.email, {
             email: state.user.email,
             name: state.user.name || state.user.email,
+            color: state.user.color || '#4299e1',
           });
         }
       });
@@ -124,9 +125,14 @@ const WorkstationPage = () => {
 
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     if (currentUser.email) {
+      const colors = ['#f56565', '#ed8936', '#ecc94b', '#48bb78', '#38b2ac', '#4299e1', '#667eea', '#9f7aea', '#ed64a6'];
+      const colorIndex = currentUser.email.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+      const userColor = colors[colorIndex];
+
       provider.awareness.setLocalStateField('user', {
         email: currentUser.email,
-        name: `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email
+        name: `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email,
+        color: userColor
       });
     }
 
@@ -135,6 +141,7 @@ const WorkstationPage = () => {
       provider.off('sync', handleSync);
       provider.destroy();
       ydoc.destroy();
+      hasInitializedRef.current = false;
     };
   }, [id]);
 
@@ -316,7 +323,8 @@ const WorkstationPage = () => {
                 activeUsers.map((user) => (
                   <div
                     key={user.email}
-                    className="w-6 h-6 rounded-full border-2 border-blue-500 ring-2 ring-blue-200 dark:ring-blue-900 bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold"
+                    className="w-6 h-6 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center text-[8px] text-white font-bold"
+                    style={{ backgroundColor: user.color }}
                     title={user.name}
                   >
                     {user.name.charAt(0).toUpperCase()}
