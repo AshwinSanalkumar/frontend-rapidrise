@@ -138,6 +138,42 @@ const WorkstationPage = () => {
     };
   }, [id]);
 
+  // Handle Auto-Save
+  useEffect(() => {
+    if (!ydocRef.current || !station) return;
+    let hasChanges = false;
+
+    const handleUpdate = () => {
+      hasChanges = true;
+    };
+
+    ydocRef.current.on('update', handleUpdate);
+
+    const autoSaveInterval = setInterval(async () => {
+      // Only the station owner attempts to save to avoid duplicate API calls
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const isOwner = station?.ownerEmail === currentUser.email;
+
+      if (hasChanges && isOwner && !isSaving) {
+        try {
+          hasChanges = false; // Reset early to prevent double saves
+          const stateUpdate = Y.encodeStateAsUpdate(ydocRef.current);
+          const binaryString = Array.from(stateUpdate).map(b => String.fromCharCode(b)).join('');
+          const base64State = "yjs:" + btoa(binaryString);
+          await updateWorkstation(id, { content: base64State });
+        } catch (error) {
+          console.error("Auto-save failed implicitly.", error);
+          hasChanges = true; // Retry next tick
+        }
+      }
+    }, 10000);
+
+    return () => {
+      ydocRef.current?.off('update', handleUpdate);
+      clearInterval(autoSaveInterval);
+    };
+  }, [id, station]);
+
   const handleManualSave = async () => {
     try {
       setIsSaving(true);
