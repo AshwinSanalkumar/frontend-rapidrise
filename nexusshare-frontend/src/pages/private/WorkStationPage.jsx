@@ -3,100 +3,149 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { fetchWorkstationDetail, exportWorkstation, updateWorkstation } from '../../services/workstationService';
 import { generateWorkstationPDF } from '../../utils/exportUtils';
 import { useToast } from '../../components/common/ToastContent';
+import { createYjsProvider } from '../../utils/yjsProvider';
+import TiptapEditor from '../../components/elements/TiptapEditor';
+import * as Y from 'yjs';
 
 const WorkstationPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { showToast } = useToast();
   
-  const [station, setStation] = useState(null);
-  const [content, setContent] = useState("");
-  const [activeUsers, setActiveUsers] = useState([]);
-  const [activeEditor, setActiveEditor] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-
-  const socketRef = useRef(null);
-  const saveTimeoutRef = useRef(null);
+  const [ station, setStation ] = useState(null);
+  const [ activeUsers, setActiveUsers ] = useState([]);
+  const [ loading, setLoading ] = useState(true);
+  const [ isSaving, setIsSaving ] = useState(false);
+  const [ isExporting, setIsExporting ] = useState(false);
+  
+  const ydocRef = useRef(null);
+  const providerRef = useRef(null);
+  const hasInitializedRef = useRef(false);
+  const dbContentRef = useRef("");
+  
+  // Track sync status in a ref for the async loadData function to check immediately
+  const isSyncedRef = useRef(false);
 
   useEffect(() => {
-    loadWorkstation();
-    connectWebSocket();
+    // 1. Initialize Yjs
+    const { ydoc, provider } = createYjsProvider(id);
+    providerRef.current = provider;
+    ydocRef.current = ydoc;
+
+    const isYjsSnapshot = (content) => typeof content === 'string' && content.startsWith('yjs:');
+
+    const tryInit = (content) => {
+      if (hasInitializedRef.current || !content) return;
+      const fragment = ydoc.getXmlFragment("prosemirror");
+
+      // If remote/collab state already exists, never seed from DB again.
+      if (fragment.length > 0) {
+        hasInitializedRef.current = true;
+        return;
+      }
+
+      if (content.startsWith('yjs:')) {
+        try {
+          const base64State = content.replace(/^yjs:/, '');
+          const binaryString = atob(base64State);
+          const update = Uint8Array.from(binaryString, (char) => char.charCodeAt(0));
+          Y.applyUpdate(ydoc, update);
+          hasInitializedRef.current = true;
+        } catch (error) {
+          console.error('Failed to restore Yjs content from DB:', error);
+        }
+        return;
+      }
+
+      const paragraph = new Y.XmlElement("paragraph");
+      paragraph.insert(0, [new Y.XmlText(content)]);
+      fragment.insert(0, [paragraph]);
+      hasInitializedRef.current = true;
+    };
+
+    // 2. Fetch DB content
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchWorkstationDetail(id);
+        setStation(data);
+        dbContentRef.current = data.content;
+
+        // Fast path: Yjs snapshots are safe to apply immediately and are idempotent.
+        if (isYjsSnapshot(data.content)) {
+          tryInit(data.content);
+        }
+      } catch (error) {
+        showToast("Failed to load workstation");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+
+    // 3. Sync Handler: Coordination point
+    const handleSync = (isSynced) => {
+      if (!isSynced) return;
+      isSyncedRef.current = true;
+      if (dbContentRef.current) {
+        tryInit(dbContentRef.current);
+      }
+    };
+
+    provider.on('sync', handleSync);
+
+    // Fallback: only seed plain text when realtime is unavailable.
+    const initTimeout = setTimeout(() => {
+      const isRealtimeUnavailable = !provider.wsconnected && !provider.synced;
+      if (
+        !hasInitializedRef.current &&
+        dbContentRef.current &&
+        !isYjsSnapshot(dbContentRef.current) &&
+        isRealtimeUnavailable
+      ) {
+        tryInit(dbContentRef.current);
+      }
+    }, 2000);
+
+    // Presence Awareness
+    provider.awareness.on('change', () => {
+      const states = provider.awareness.getStates();
+      const usersByEmail = new Map();
+      states.forEach((state) => {
+        if (state.user?.email) {
+          usersByEmail.set(state.user.email, {
+            email: state.user.email,
+            name: state.user.name || state.user.email,
+          });
+        }
+      });
+      setActiveUsers(Array.from(usersByEmail.values()));
+    });
+
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (currentUser.email) {
+      provider.awareness.setLocalStateField('user', {
+        email: currentUser.email,
+        name: `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email
+      });
+    }
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.close();
-      }
+      clearTimeout(initTimeout);
+      provider.off('sync', handleSync);
+      provider.destroy();
+      ydoc.destroy();
     };
   }, [id]);
-
-  const loadWorkstation = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchWorkstationDetail(id);
-      setStation(data);
-      setContent(data.content);
-    } catch (error) {
-      showToast("Failed to load workstation data");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const connectWebSocket = () => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//localhost:8000/ws/workstation/${id}/`;
-    
-    socketRef.current = new WebSocket(wsUrl);
-
-    socketRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      
-      if (data.type === 'content_update') {
-        setContent(data.content);
-        setActiveEditor(data.sender_email || "Someone");
-        setTimeout(() => setActiveEditor(null), 2000);
-      } else if (data.type === 'presence_update') {
-        if (data.action === 'join') {
-          setActiveUsers(prev => [...new Set([...prev, data.user])]);
-        } else if (data.action === 'leave') {
-          setActiveUsers(prev => prev.filter(u => u !== data.user));
-        }
-      }
-    };
-
-    socketRef.current.onclose = (e) => {
-      if (e.code === 4003) {
-        console.error('WebSocket connection rejected: Permission Denied');
-        showToast("You don't have permission to access this workstation.");
-        return; // Don't retry if rejected due to permissions
-      }
-      console.log('WebSocket disconnected. Attempting reconnect...');
-      setTimeout(connectWebSocket, 3000);
-    };
-  };
-
-  const handleContentChange = (e) => {
-    const newContent = e.target.value;
-    setContent(newContent);
-
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    
-    saveTimeoutRef.current = setTimeout(() => {
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-        socketRef.current.send(JSON.stringify({
-          type: 'content_update',
-          content: newContent
-        }));
-      }
-    }, 500); 
-  };
 
   const handleManualSave = async () => {
     try {
       setIsSaving(true);
-      await updateWorkstation(id, { content });
+      if (!ydocRef.current) return;
+      const stateUpdate = Y.encodeStateAsUpdate(ydocRef.current);
+      const binaryString = Array.from(stateUpdate).map(b => String.fromCharCode(b)).join('');
+      const base64State = "yjs:" + btoa(binaryString);
+      await updateWorkstation(id, { content: base64State });
       showToast("Workstation saved successfully");
     } catch (error) {
       showToast("Failed to save workstation");
@@ -105,17 +154,43 @@ const WorkstationPage = () => {
     }
   };
 
+  const getPlainTextFromYDoc = () => {
+    if (!ydocRef.current) return '';
+
+    const fragment = ydocRef.current.getXmlFragment('prosemirror');
+
+    const readNode = (node) => {
+      if (!node) return '';
+
+      if (node instanceof Y.XmlText) {
+        return node.toString();
+      }
+
+      if (node instanceof Y.XmlElement || node instanceof Y.XmlFragment) {
+        const childrenText = node.toArray().map(readNode).join('');
+        const nodeName = node.nodeName || '';
+        if (nodeName === 'paragraph' || nodeName === 'heading' || nodeName === 'blockquote' || nodeName === 'listItem') {
+          return `${childrenText}\n`;
+        }
+        return childrenText;
+      }
+
+      return '';
+    };
+
+    return readNode(fragment).replace(/\n{3,}/g, '\n\n').trim();
+  };
+
   const handleExport = async (format) => {
     try {
       setIsExporting(true);
       showToast(`Generating ${format.toUpperCase()}...`);
-      
       if (format === 'pdf') {
-        generateWorkstationPDF(station, content);
+        const contentForPdf = getPlainTextFromYDoc() || dbContentRef.current || '';
+        generateWorkstationPDF(station, contentForPdf);
       } else {
         await exportWorkstation(id, format);
       }
-      
       showToast("Export completed");
     } catch (error) {
       showToast(`Failed to export as ${format.toUpperCase()}`);
@@ -136,7 +211,7 @@ const WorkstationPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 lg:p-10">
       <div className="max-w-6xl mx-auto">
         
-        {/* BREADCRUMB & BACK BUTTON */}
+        {/* HEADER */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <button 
@@ -178,7 +253,7 @@ const WorkstationPage = () => {
           </div>
         </div>
         
-        {/* TOP BAR: Presence Indicator */}
+        {/* TOP BAR */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
@@ -196,50 +271,39 @@ const WorkstationPage = () => {
           </div>
 
           <div className="bg-white dark:bg-gray-800 px-6 py-3 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-4">
-            <div className="flex -space-x-2">
-              
-              {activeUsers.map(u => (
-                <div key={u} className="w-7 h-7 rounded-full border-2 border-white dark:border-gray-900 bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold" title={u}>
-                  {u.charAt(0).toUpperCase()}
-                </div>
-              ))}
-            </div>
-            {activeEditor && (
-              <>
-                <div className="h-4 w-[1px] bg-gray-200 dark:bg-gray-700"></div>
-                <p className="text-[10px] font-bold text-gray-600 dark:text-gray-300">
-                  <span className="text-indigo-500">{activeEditor}</span> is editing...
+            <div className="flex items-center -space-x-2">
+              {activeUsers.length === 0 ? (
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                  No one is editing
                 </p>
-              </>
-            )}
+              ) : (
+                activeUsers.map((user) => (
+                  <div
+                    key={user.email}
+                    className="w-6 h-6 rounded-full border-2 border-blue-500 ring-2 ring-blue-200 dark:ring-blue-900 bg-emerald-500 flex items-center justify-center text-[8px] text-white font-bold"
+                    title={user.name}
+                  >
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
         {/* MAIN WORKSPACE */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          
-          {/* EDITOR SECTION */}
           <div className="lg:col-span-3">
             <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] shadow-xl shadow-indigo-500/5 border border-gray-100 dark:border-gray-800 overflow-hidden">
-              {/* Editor Toolbar */}
-              <div className="px-8 py-4 border-b border-gray-50 dark:border-gray-800 flex items-center gap-6">
-                <button className="text-gray-400 hover:text-indigo-500 transition"><i className="fas fa-bold"></i></button>
-                <button className="text-gray-400 hover:text-indigo-500 transition"><i className="fas fa-italic"></i></button>
-                <button className="text-gray-400 hover:text-indigo-500 transition"><i className="fas fa-link"></i></button>
-                <div className="h-4 w-[1px] bg-gray-100 dark:bg-gray-800"></div>
-                <button className="text-gray-400 hover:text-indigo-500 transition"><i className="fas fa-list"></i></button>
-              </div>
-
-              <textarea
-                className="w-full h-[65vh] p-10 bg-transparent text-gray-800 dark:text-gray-200 focus:outline-none resize-none text-lg leading-relaxed placeholder-gray-300 custom-scrollbar"
-                placeholder="Start typing your ideas here..."
-                value={content}
-                onChange={handleContentChange}
-              />
+              {ydocRef.current && (
+                <TiptapEditor 
+                  ydoc={ydocRef.current} 
+                  provider={providerRef.current} 
+                />
+              )}
             </div>
           </div>
 
-          {/* SIDEBAR */}
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 border border-gray-900 dark:border-gray-800">
               <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">
@@ -252,17 +316,15 @@ const WorkstationPage = () => {
                     name={member.name} 
                     role={member.role} 
                     color={member.role === 'OWNER' ? 'indigo' : 'gray'} 
-                    isOnline={activeUsers.includes(member.email) || member.email === station.ownerEmail}
+                    isOnline={activeUsers.some((user) => user.email === member.email) || member.email === station.ownerEmail}
                   />
                 ))}
               </div>
-              
               <button className="w-full mt-8 py-4 bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all">
                 Project Settings
               </button>
             </div>
           </div>
-
         </div>
       </div>
     </div>
