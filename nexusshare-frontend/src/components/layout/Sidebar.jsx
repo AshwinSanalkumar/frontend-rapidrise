@@ -182,18 +182,21 @@ const Sidebar = ({ isOpen, onClose }) => {
             <div onClick={() => window.innerWidth < 1024 && onClose()}>
               <SidebarLink to="/send-request" icon="fa-paper-plane" label="Request Files" />
             </div>
+            <div onClick={() => window.innerWidth < 1024 && onClose()}>
+              <SidebarLink to="/workstation" icon="fa-laptop" label="Work Station" />
+            </div>
             <div className="pt-6">
               <p className="px-4 text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-2">Storage</p>
               <div className="border-b border-gray-100 dark:border-gray-800 mx-3 mb-2"></div>
 
               <div onClick={() => window.innerWidth < 1024 && onClose()}>
-                <SidebarLink to="/assets" icon="fa-compass" label="Explorer" />
+                <SidebarLink to="/assets" icon="fa-folder-open" label="File Explorer" />
               </div>
               <div onClick={() => window.innerWidth < 1024 && onClose()}>
                 <SidebarLink to="/recents" icon="fa-history" label="Recent" />
               </div>
               <div onClick={() => window.innerWidth < 1024 && onClose()}>
-                <SidebarLink to="/history" icon="fa-calendar-days" label="Log" />
+                <SidebarLink to="/history" icon="fa-calendar-days" label="History" />
               </div>
             </div>
             <div className="pt-6">

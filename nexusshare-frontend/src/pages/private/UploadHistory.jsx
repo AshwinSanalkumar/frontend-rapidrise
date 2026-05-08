@@ -154,11 +154,11 @@ const UploadHistory = () => {
                         <div className="space-y-3">
                             <div className="flex justify-between items-end">
                                 <div>
-                                    <p className="text-[10px] text-indigo-200 uppercase font-black tracking-widest mb-1">Uploads</p>
+                                    <p className="text-[10px] text-indigo-200 uppercase font-black tracking-widest mb-1">File Uploads</p>
                                     <span className="text-2xl font-black">{globalStats.total_uploads}</span>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[10px] text-indigo-200 uppercase font-black tracking-widest mb-1">Shares</p>
+                                    <p className="text-[10px] text-indigo-200 uppercase font-black tracking-widest mb-1">Total Shares</p>
                                     <span className="text-2xl font-black">{globalStats.total_shares || 0}</span>
                                 </div>
                             </div>

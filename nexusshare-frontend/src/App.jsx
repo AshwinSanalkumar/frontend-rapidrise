@@ -30,6 +30,8 @@ import ReceivedRequests from "./pages/private/ReceivedRequests";
 import UploadHistory from "./pages/private/UploadHistory";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import PublicOnlyRoute from "./components/auth/PublicOnlyRoute";
+import WorkstationDashboard from "./pages/private/WorkStationDashboard";
+import Workstation from "./pages/private/WorkStationPage";
 
 function App() {
   return (
@@ -76,7 +78,9 @@ function App() {
             <Route path="/send-request" element={<FileRequestPage/>}/>
             <Route path="/received-request" element={<ReceivedRequests/>}/>           
             <Route path="/history" element={<UploadHistory/>}/> 
-            <Route path="/public/file/preview" element={<ExternalFilePreview/>}/>                     
+            <Route path="/public/file/preview" element={<ExternalFilePreview/>}/>   
+            <Route path="/workstation" element={<WorkstationDashboard/>}/>
+            <Route path="/workstation/:id" element={<Workstation/>}/>
 
           </Route>
         </Route>
