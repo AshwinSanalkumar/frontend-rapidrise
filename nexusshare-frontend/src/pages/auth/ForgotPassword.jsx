@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../components/common/ToastContent';
+import { forgotPassword } from '../../services/authService';
 
 const ForgotPassword = () => {
   const { showToast } = useToast();
@@ -9,17 +10,38 @@ const ForgotPassword = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
 
-  const handleRecovery = (e) => {
+  const handleRecovery = async(e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API Call
-    setTimeout(() => {
-      setIsLoading(false);
-      setIsSubmitted(true);
-      showToast("Recovery link sent to your email!", "success");
-    }, 1500);
+      // Simulate API Call
+  try {
+
+    await forgotPassword(email);
+
+    setIsSubmitted(true);
+
+    showToast(
+      "Recovery link sent to your email!",
+      "success"
+    );
+
+  } catch (error) {
+
+    showToast(
+      error?.response?.data?.error ||
+      "Something went wrong",
+      "error"
+    );
+
+  } finally {
+
+    setIsLoading(false);
+
+  }
   };
+
+  
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col items-center justify-center p-6 font-['Plus_Jakarta_Sans'] transition-colors duration-300">

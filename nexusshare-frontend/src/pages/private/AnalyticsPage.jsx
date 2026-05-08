@@ -1,26 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchStorageStats, fetchUploadHistory, fetchStorageTrends } from '../../services/fileService';
 
 const AnalyticsPage = () => {
   const [view, setView] = useState('daily');
+  const [loading, setLoading] = useState(true);
+  const [storageData, setStorageData] = useState({
+    total: 0,
+    used: 0,
+    trash_size: '0 MB',
+    categories: []
+  });
+  const [trendData, setTrendData] = useState({ monthly: [], daily: [], weekly: [] });
+  const [globalStats, setGlobalStats] = useState({
+    total_uploads: 0,
+    total_shares: 0,
+    active_links: 0
+  });
 
   // Dates logic for the demo
   const today = new Date();
   const lastUpdated = today.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  const dataSets = {
-    daily: [
-      { label: 'Mar 07', value: 65 }, { label: 'Mar 08', value: 40 }, { label: 'Mar 09', value: 85 }, 
-      { label: 'Mar 10', value: 50 }, { label: 'Mar 11', value: 95 }, { label: 'Mar 12', value: 30 }, { label: 'Mar 13', value: 70 }
-    ],
-    weekly: [
-      { label: 'Feb 16 - 22', value: 45 }, { label: 'Feb 23 - 01', value: 75 }, 
-      { label: 'Mar 02 - 08', value: 60 }, { label: 'Mar 09 - 15', value: 90 }
-    ],
-    monthly: [
-      { label: 'Oct 2025', value: 80 }, { label: 'Nov 2025', value: 55 }, { label: 'Dec 2025', value: 95 }, 
-      { label: 'Jan 2026', value: 40 }, { label: 'Feb 2026', value: 65 }, { label: 'Mar 2026', value: 85 }
-    ]
+  useEffect(() => {
+    loadAnalytics();
+  }, []);
+
+  const loadAnalytics = async () => {
+    try {
+      setLoading(true);
+      const [stats, history, trends] = await Promise.all([
+        fetchStorageStats(),
+        fetchUploadHistory(today.getFullYear(), today.getMonth() + 1),
+        fetchStorageTrends()
+      ]);
+      setStorageData(stats);
+      setTrendData(trends);
+      setGlobalStats({
+        total_uploads: history.global_stats?.total_uploads || 0,
+        total_shares: history.global_stats?.total_shares || 0,
+        active_links: history.global_stats?.active_links || 0
+      });
+    } catch (error) {
+      console.error("Failed to load analytics:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const usedPercentage = storageData.total ? (storageData.used / storageData.total) * 100 : 0;
 
   return (
     <div className="flex-1 p-8 bg-gray-50 dark:bg-slate-900 min-h-screen transition-all">
@@ -50,18 +77,18 @@ const AnalyticsPage = () => {
               </p>
             </div>
           </div>
-          <button className="px-5 py-2.5 gradient-bg text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all">
-            <i className="fas fa-sync-alt mr-2 text-[10px]"></i> Refresh
+          <button onClick={loadAnalytics} disabled={loading} className="px-5 py-2.5 gradient-bg text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all disabled:opacity-50">
+            <i className={`fas fa-sync-alt mr-2 text-[10px] ${loading ? 'animate-spin' : ''}`}></i> {loading ? 'Syncing...' : 'Refresh'}
           </button>
         </div>
 
         {/* 2. TOP METRIC CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
-            { label: 'Total Bandwidth', val: '2.4 TB', icon: 'fa-bolt', color: 'text-amber-500' },
-            { label: 'Files Shared', val: '12,840', icon: 'fa-share-nodes', color: 'text-indigo-500' },
-            { label: 'Active Links', val: '142', icon: 'fa-link', color: 'text-emerald-500' },
-            { label: 'Storage Used', val: '84%', icon: 'fa-database', color: 'text-rose-500' },
+            { label: 'Vault Capacity', val: `${storageData.total} GB`, icon: 'fa-database', color: 'text-indigo-500' },
+            { label: 'Total Files', val: globalStats.total_uploads.toLocaleString(), icon: 'fa-file-lines', color: 'text-amber-500' },
+            { label: 'Active Links', val: globalStats.active_links.toLocaleString(), icon: 'fa-link', color: 'text-emerald-500' },
+            { label: 'Storage Used', val: `${usedPercentage.toFixed(1)}%`, icon: 'fa-chart-pie', color: 'text-rose-500' },
           ].map((stat, idx) => (
             <div key={idx} className="bg-white dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
               <div className="flex justify-between items-start">
@@ -83,7 +110,24 @@ const AnalyticsPage = () => {
           {/* 3. CHART DESIGN WITH DATES */}
           <div className="lg:col-span-2 bg-white dark:bg-gray-800/50 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
             <div className="flex justify-between items-center mb-12">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Transfer Activity</h3>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {view === 'daily' ? 'Upload Volume' : view === 'weekly' ? 'Batch Activity' : 'Storage History'}
+                </h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">
+                    {view === 'monthly' ? 'Percent of vault capacity used' : 'Volume of data synchronized'}
+                  </p>
+                  <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
+                  <p className="text-[10px] text-indigo-500 font-black uppercase tracking-widest">
+                    {(() => {
+                      const data = trendData[view] || [];
+                      if (data.length === 0) return '';
+                      return `${data[0].label} - ${data[data.length - 1].label}`;
+                    })()}
+                  </p>
+                </div>
+              </div>
               <div className="flex bg-gray-100 dark:bg-gray-900/80 p-1 rounded-xl border border-gray-200 dark:border-gray-700">
                 {['daily', 'weekly', 'monthly'].map((type) => (
                   <button key={type} onClick={() => setView(type)}
@@ -97,51 +141,69 @@ const AnalyticsPage = () => {
             {/* Grid Background Area */}
             <div className="relative h-64 w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]">
               <div className="absolute inset-0 flex items-end justify-around px-4">
-                {dataSets[view].map((item, i) => (
-                  <div key={i} className="flex flex-col items-center group h-full justify-end w-full">
-                    <div 
-                      className="w-2 md:w-3 gradient-bg rounded-full relative group-hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] transition-all duration-500"
-                      style={{ height: `${item.value}%` }}
-                    >
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 glass px-2 py-1 rounded text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
-                        {item.value} GB
+                {(trendData[view] || []).map((item, i) => {
+                  // Normalize height: For MB/Files we need a scale. For storage (%) it's 0-100.
+                  const maxVal = Math.max(...trendData[view].map(d => d.value), 10);
+                  const displayHeight = view === 'monthly' ? item.value : (item.value / maxVal * 80);
+
+                  return (
+                    <div key={i} className="flex flex-col items-center group h-full justify-end w-full relative">
+                      <div 
+                        className={`w-3 md:w-5 rounded-t-lg relative transition-all duration-700 bg-gradient-to-t ${view === 'monthly' ? 'from-indigo-600 to-purple-500' : 'from-emerald-500 to-teal-400'} group-hover:brightness-110 group-hover:shadow-[0_0_20px_rgba(99,102,241,0.3)]`}
+                        style={{ height: `${Math.max(displayHeight, 5)}%` }}
+                      >
+                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-30">
+                          <div className="bg-gray-900 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-xl flex flex-col items-center whitespace-nowrap">
+                            <span>{item.value.toFixed(view === 'weekly' ? 0 : 1)} {item.unit || '%'}</span>
+                            <div className="w-2 h-2 bg-gray-900 rotate-45 -mb-2 mt-1"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-8 flex items-center">
+                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                          {item.label}
+                        </span>
                       </div>
                     </div>
-                    <span className="text-[9px] font-black text-gray-400 mt-4 uppercase tracking-tighter whitespace-nowrap">{item.label}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
 
           {/* 4. DEVICE BREAKDOWN */}
           <div className="bg-white dark:bg-gray-800/50 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Traffic Sources</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Content Mix</h3>
             <div className="space-y-6 flex-1">
-              {[
-                { name: 'Desktop App', pct: 65, color: 'bg-indigo-500' },
-                { name: 'Mobile Web', pct: 25, color: 'bg-purple-500' },
-                { name: 'External API', pct: 10, color: 'bg-slate-400' },
-              ].map((item, i) => (
-                <div key={i}>
-                  <div className="flex justify-between text-[10px] font-black mb-2 uppercase tracking-widest">
-                    <span className="text-gray-500">{item.name}</span>
-                    <span className="dark:text-white">{item.pct}%</span>
+              {storageData.categories.length > 0 ? (
+                storageData.categories.map((item, i) => (
+                  <div key={i}>
+                    <div className="flex justify-between text-[10px] font-black mb-2 uppercase tracking-widest">
+                      <span className="text-gray-500">{item.name}</span>
+                      <span className="dark:text-white">{item.percentage.toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div className={`h-full ${item.color} rounded-full transition-all duration-1000`} style={{ width: `${item.percentage}%` }}></div>
+                    </div>
                   </div>
-                  <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.pct}%` }}></div>
-                  </div>
+                ))
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                   <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-gray-900/50 flex items-center justify-center text-gray-300 mb-2">
+                     <i className="fas fa-box-open"></i>
+                   </div>
+                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">No Content Found</p>
                 </div>
-              ))}
+              )}
             </div>
 
-            {/* 5. STORAGE ALERT */}
-            <div className="mt-8 p-4 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20">
+            {/* 5. RECLAIMABLE SPACE */}
+            <div className="mt-8 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20">
               <div className="flex gap-3">
-                <i className="fas fa-circle-exclamation text-rose-500 mt-1"></i>
+                <i className="fas fa-broom text-indigo-500 mt-1"></i>
                 <div>
-                  <p className="text-[10px] font-black text-rose-700 dark:text-rose-400 uppercase tracking-widest">Storage Warning</p>
-                  <p className="text-[10px] text-rose-600 dark:text-rose-300/80 mt-1 font-medium leading-tight">Approaching 1GB Limit. Please upgrade soon.</p>
+                  <p className="text-[10px] font-black text-indigo-700 dark:text-indigo-400 uppercase tracking-widest">Reclaimable Space</p>
+                  <p className="text-[10px] text-indigo-600 dark:text-indigo-300/80 mt-1 font-medium leading-tight">You can free up <span className="font-bold text-indigo-600 dark:text-indigo-400">{storageData.trash_size}</span> by emptying your trash.</p>
                 </div>
               </div>
             </div>

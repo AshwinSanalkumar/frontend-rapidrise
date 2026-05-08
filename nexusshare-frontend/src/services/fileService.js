@@ -217,3 +217,50 @@ export const deleteDuplicates = async (fileIds) => {
   });
   return response.data;
 };
+/**
+ * Fetches storage distribution statistics.
+ */
+export const fetchStorageStats = async () => {
+  const response = await apiClient.get('storage/stats/');
+  return response.data;
+};
+
+/**
+ * Fetches large files for discovery, optionally filtered by category.
+ */
+export const fetchLargeFiles = async (category = '', page = 1) => {
+  const response = await apiClient.get('storage/large-files/', {
+    params: { 
+      category: category !== 'All' ? category : '',
+      page 
+    }
+  });
+  
+  if (response.data.results) {
+    return {
+      files: response.data.results.map(mapFileFromApi),
+      count: response.data.count,
+      next: response.data.next,
+      previous: response.data.previous
+    };
+  }
+
+  const files = Array.isArray(response.data) ? response.data : [];
+  return { files: files.map(mapFileFromApi), count: files.length };
+};
+/**
+ * Removes all duplicate file instances, keeping originals.
+ */
+export const fetchStorageTrends = async () => {
+    try {
+        const response = await apiClient.get('storage/trends/');
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const cleanupDuplicates = async () => {
+  const response = await apiClient.post('storage/cleanup-duplicates/');
+  return response.data;
+};

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchSharedLinks } from '../../services/shareService';
 import ShareAuditModal from '../modals/ShareAuditModal';
+import { formatDate } from '../../utils/dateUtils';
 
 const FileSpecCard = ({ file, onShare, refreshTrigger }) => {
   const [shares, setShares] = useState([]);
@@ -47,9 +48,9 @@ const FileSpecCard = ({ file, onShare, refreshTrigger }) => {
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-400 text-xs">Status</span>
-            <span className={`px-2 py-0.5 ${file.is_deleted ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-500' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500'} text-[9px] font-bold rounded-md`}>
-              {file.is_deleted ? 'In Trash' : 'Active'}
+            <span className="text-gray-400 text-xs">Added On</span>
+            <span className="text-gray-800 dark:text-white font-bold text-xs">
+              {formatDate(file.uploadedAt)}
             </span>
           </div>
         </div>

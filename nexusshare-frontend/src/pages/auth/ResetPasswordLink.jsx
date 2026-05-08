@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../../components/common/ToastContent';
+import { useParams } from 'react-router-dom';
+import {resetPassword} from '../../services/authService';
 
 const ResetPasswordLink = () => {
   const { showToast } = useToast();
@@ -11,22 +13,74 @@ const ResetPasswordLink = () => {
   const [showConfirm, setShowConfirm] = useState(false); // Added back state for confirm eye
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [isExpired] = useState(false); 
+const [isExpired, setIsExpired] = useState(false); 
+  const { uid, token } = useParams();
 
 
-  const handleReset = (e) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      showToast("Passwords do not match!", "error");
-      return;
+const handleReset = async (e) => {
+
+  e.preventDefault();
+
+  if (formData.password !== formData.confirmPassword) {
+
+    showToast(
+      "Passwords do not match!",
+      "error"
+    );
+
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+
+    await resetPassword(
+      uid,
+      token,
+      formData.password
+    );
+
+    setIsSuccess(true);
+
+    showToast(
+      "Vault credentials updated!",
+      "success"
+    );
+
+  } catch (error) {
+
+    const errorMessage =
+      error?.response?.data?.error;
+
+    if (
+  errorMessage ===
+  "Token expired or invalid"
+) {
+
+  setIsExpired(true);
+
+  showToast(
+    "Reset link expired",
+    "error"
+  );
+
+}else {
+
+      showToast(
+        errorMessage ||
+        "Something went wrong",
+        "error"
+      );
+
     }
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setIsSuccess(true);
-      showToast("Vault credentials updated!", "success");
-    }, 1500);
-  };
+
+  } finally {
+
+    setIsLoading(false);
+
+  }
+};
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col items-center justify-center p-6 transition-colors duration-300 font-['Plus_Jakarta_Sans']">
