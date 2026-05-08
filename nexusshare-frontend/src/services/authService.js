@@ -33,3 +33,23 @@ export const fetchMe = async () => {
   const response = await apiClient.get('user/');
   return response.data;
 };
+
+/**
+ * Sends password reset email.
+ * @param {string} email
+ */
+export const forgotPassword = async (email) => {
+  const response = await apiClient.post('forgot-password/', { email });
+  return response.data;
+};
+
+/**
+ * Resets password using uid + token.
+ * @param {string} uid
+ * @param {string} token
+ * @param {string} password
+ */
+export const resetPassword = async (uid, token, password) => {
+  const response = await apiClient.post(`reset-password/${uid}/${token}/`, { password });
+  return response.data;
+};

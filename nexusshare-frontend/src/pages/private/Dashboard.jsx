@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UploadConfirmModal from '../../components/modals/UploadConfirmModel';
-import { fetchFiles, uploadFiles, } from '../../services/fileService';
+import { fetchFiles, uploadFiles, fetchStorageStats } from '../../services/fileService';
 import { useToast } from '../../components/common/ToastContent';
 import { fetchSharedLinks } from '../../services/shareService';
 import { fetchMe } from '../../services/authService';
@@ -16,13 +16,14 @@ const Dashboard = () => {
   const [totalFiles, setTotalFiles] = useState(0);
   const [totalSharedFiles, setTotalSharedFiles] = useState(0);
   const [userData, setUserData] = useState(null);
+  const [storageStats, setStorageStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const hiddenInputRef = useRef(null);
 
   useEffect(() => { 
     const loadInitialData = async () => {
       setIsLoading(true);
-      await Promise.all([loadFiles(), loadShared(), loadUser()]);
+      await Promise.all([loadFiles(), loadShared(), loadUser(), loadStats()]);
       setIsLoading(false);
     };
     loadInitialData();
@@ -53,6 +54,13 @@ const Dashboard = () => {
     try {
       const data = await fetchMe();
       setUserData(data);
+    } catch (error) { console.error(error); }
+  };
+
+  const loadStats = async () => {
+    try {
+      const data = await fetchStorageStats();
+      setStorageStats(data);
     } catch (error) { console.error(error); }
   };
 
@@ -169,19 +177,25 @@ const Dashboard = () => {
           <div className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm">
             <p className="text-[10px] uppercase tracking-widest text-gray-400 font-extrabold mb-4">Content Mix</p>
             <div className="h-1.5 w-full flex rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 mb-6">
-              <div className="h-full bg-indigo-500" style={{ width: '45%' }}></div>
-              <div className="h-full bg-purple-500" style={{ width: '30%' }}></div>
-              <div className="h-full bg-emerald-500" style={{ width: '25%' }}></div>
+              {storageStats?.categories.map((cat, i) => (
+                <div 
+                  key={cat.name} 
+                  className={`h-full ${cat.color}`} 
+                  style={{ width: `${cat.percentage}%` }}
+                ></div>
+              ))}
             </div>
             <div className="space-y-3">
-              {['Docs', 'Images', 'Media'].map((type, i) => (
-                <div key={type} className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-tight">
+              {storageStats?.categories.map((cat, i) => (
+                <div key={cat.name} className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-tight">
                   <div className="flex items-center">
-                    <span className={`w-1.5 h-1.5 rounded-full mr-2 ${['bg-indigo-500', 'bg-purple-500', 'bg-emerald-500'][i]}`}></span>{type}
+                    <span className={`w-1.5 h-1.5 rounded-full mr-2 ${cat.color}`}></span>
+                    {cat.name === 'Documents' ? 'Docs' : cat.name}
                   </div>
-                  <span className="text-gray-900 dark:text-white">{[45, 30, 25][i]}%</span>
+                  <span className="text-gray-900 dark:text-white">{Math.round(cat.percentage)}%</span>
                 </div>
               ))}
+              {!storageStats && <p className="text-[10px] text-gray-400 italic">Calculating mix...</p>}
             </div>
           </div>
 

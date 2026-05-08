@@ -35,7 +35,6 @@ const FileDetailsPage = () => {
           ...data,
           description: data.description || '',
           time: new Date(data.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
-          status: data.status || 'PRIVATE',
         });
       } catch (err) {
         setError('Could not load file. It may have been deleted or you may not have access.');
@@ -108,7 +107,6 @@ const FileDetailsPage = () => {
         ...data,
         description: data.description || '',
         time: new Date(data.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
-        status: data.status || 'PRIVATE',
       });
 
       setIsEditing(false);
