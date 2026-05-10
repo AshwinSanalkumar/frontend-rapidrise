@@ -26,11 +26,34 @@ export const fetchReceivedRequests = async () => {
 };
 
 /**
- * Approves or declines a received request.
+ * Declines a received request.
  * @param {number|string} requestId
- * @param {string} action - 'approve' | 'decline'
  */
-export const respondToRequest = async (requestId, action) => {
-  const response = await apiClient.post(`requests/${requestId}/respond/`, { action });
+export const declineRequest = async (requestId) => {
+  const response = await apiClient.post(`requests/${requestId}/decline/`);
+  return response.data;
+};
+
+/**
+ * Fulfills a received request with a file upload.
+ * @param {number|string} requestId
+ * @param {FormData} formData
+ */
+export const fulfillRequest = async (requestId, formData) => {
+  const response = await apiClient.post(`requests/${requestId}/fulfill/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+/**
+ * Imports a file from a fulfilled request into the sender's own cloud.
+ * @param {number|string} requestId
+ * @param {string} fileId
+ */
+export const importRequestFile = async (requestId, fileId) => {
+  const response = await apiClient.post(`requests/${requestId}/import/`, { file_id: fileId });
   return response.data;
 };
