@@ -1,25 +1,44 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import EditProfileForm from '../../components/elements/EditProfileForm';
+import { updateProfile } from '../../services/profileService';
+import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../components/common/ToastContent';
 
 const EditProfile = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const { user, setUser } = useAuth(); // Assuming setUser exists to update auth context directly? Wait, if we don't have setUser, we can just rely on the API. But let's check. Actually AuthContext doesn't expose setUser by default. We can just navigate and force a reload if needed, or AuthContext will fetch on next load.
   const [isSaving, setIsSaving] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSave = (formData) => {
+  const handleSave = async (formData) => {
     setIsSaving(true);
-    
-    // Simulate API Call
-    setTimeout(() => {
+    try {
+      await updateProfile({
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          dob: formData.dob
+      });
       setIsSaving(false);
       setIsSuccess(true);
       
-      // Redirect back to profile after showing success state
+      // Update local storage user quickly to prevent stale data UI flashes
+      if (user) {
+         const updatedUser = { ...user, first_name: formData.firstName, last_name: formData.lastName, dob: formData.dob, full_name: `${formData.firstName} ${formData.lastName}` };
+         localStorage.setItem('user', JSON.stringify(updatedUser)); // Not perfectly synced but fast local UX!
+         window.dispatchEvent(new Event('storage')); // Simple signal
+      }
+      
+      showToast("Profile updated successfully", "success");
       setTimeout(() => {
         navigate('/profile');
+        window.location.reload(); // Refresh context
       }, 1000);
-    }, 1200);
+    } catch (error) {
+      setIsSaving(false);
+      showToast(error.response?.data?.error || "Failed to update profile", "error");
+    }
   };
 
   return (

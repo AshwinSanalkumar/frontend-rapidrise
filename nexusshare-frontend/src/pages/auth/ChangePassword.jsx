@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { changePassword } from '../../services/profileService';
+import { useToast } from '../../components/common/ToastContent';
 
 /**
  * Internal Sub-component: PasswordField
@@ -37,6 +39,7 @@ const PasswordField = ({ label, value, onChange, showToggle = true }) => {
 
 const ChangePassword = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   
@@ -46,25 +49,38 @@ const ChangePassword = () => {
     confirmPass: ''
   });
 
-  const handleUpdate = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
     
     // Validation Logic
     if (form.newPass !== form.confirmPass) {
-      alert("New passwords do not match!");
+      showToast("New passwords do not match!", "error");
+      return;
+    }
+
+    if (form.newPass.length < 8) {
+      showToast("Password must be at least 8 characters.", "error");
       return;
     }
 
     setIsUpdating(true);
 
-    // Simulate API Call & Encryption
-    setTimeout(() => {
+    try {
+      await changePassword({
+          currentPass: form.currentPass,
+          newPass: form.newPass
+      });
       setIsUpdating(false);
       setIsSuccess(true);
+      showToast("Password updated successfully!", "success");
       
       // Auto-redirect back to profile
-      setTimeout(() => navigate('/profile'), 1000);
-    }, 1200);
+      setTimeout(() => navigate('/profile'), 1500);
+    } catch (error) {
+      setIsUpdating(false);
+      const msg = error.response?.data?.error || "Failed to update password";
+      showToast(msg, "error");
+    }
   };
 
   return (
