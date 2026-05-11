@@ -141,7 +141,11 @@ const Dashboard = () => {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center mt-4">
                   <span className="text-xl font-black text-gray-800 dark:text-white">
-                    {Math.min(100, Math.round(((userData?.consumed_storage || 0) / (userData?.storage_limit_bytes || 1024*1024*1024)) * 100))}%
+{(
+  ((userData?.consumed_storage || 0) /
+    (userData?.storage_limit_bytes || 1024 * 1024 * 1024)) *
+  100
+).toFixed(1)}%
                   </span>
                 </div>
               </div>
