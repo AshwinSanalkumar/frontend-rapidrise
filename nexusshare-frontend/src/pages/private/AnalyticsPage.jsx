@@ -47,7 +47,7 @@ const AnalyticsPage = () => {
     }
   };
 
-  const usedPercentage = storageData.total ? (storageData.used / storageData.total) * 100 : 0;
+  const usedPercentage = storageData.total ? (storageData.used / (storageData.total*1024)) * 100 : 0;
 
   return (
     <div className="flex-1 p-8 bg-gray-50 dark:bg-slate-900 min-h-screen transition-all">
