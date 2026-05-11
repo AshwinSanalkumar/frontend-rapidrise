@@ -1,13 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const EditProfileForm = ({ onSave, isSaving, isSuccess }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
-    firstName: 'Ashwin',
-    lastName: '',
-    email: 'ashwin@example.com'
+    firstName: user?.first_name || '',
+    lastName: user?.last_name || '',
+    email: user?.email || '',
+    dob: user?.dob || ''
   });
+
+  useEffect(() => {
+    if (user) {
+        setFormData({
+            firstName: user.first_name || '',
+            lastName: user.last_name || '',
+            email: user.email || '',
+            dob: user.dob || ''
+        });
+    }
+  }, [user]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -37,19 +51,33 @@ const EditProfileForm = ({ onSave, isSaving, isSuccess }) => {
             placeholder="Enter last name"
             value={formData.lastName}
             onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+            required
+            className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-2xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-gray-700 outline-none transition-all"
+          />
+        </div>
+
+        {/* DOB */}
+        <div className="space-y-2">
+          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Date of Birth</label>
+          <input 
+            type="date" 
+            value={formData.dob}
+            onChange={(e) => setFormData({...formData, dob: e.target.value})}
+            required
             className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-2xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-gray-700 outline-none transition-all"
           />
         </div>
 
         {/* Email */}
-        <div className="space-y-2 md:col-span-2">
+        <div className="space-y-2 md:col-span-1">
           <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
           <input 
             type="email" 
+            disabled
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
             required
-            className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-2xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-gray-700 outline-none transition-all"
+            className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-2xl text-sm font-bold dark:text-gray-500 cursor-not-allowed outline-none transition-all"
           />
         </div>
       </div>
