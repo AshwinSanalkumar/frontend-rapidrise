@@ -14,6 +14,7 @@ const WorkstationPage = () => {
   
   const [ station, setStation ] = useState(null);
   const [ activeUsers, setActiveUsers ] = useState([]);
+  const [ otherCursors, setOtherCursors ] = useState({});
   const [ loading, setLoading ] = useState(true);
   const [ isSaving, setIsSaving ] = useState(false);
   const [ isExporting, setIsExporting ] = useState(false);
@@ -24,6 +25,7 @@ const WorkstationPage = () => {
   
   const ydocRef = useRef(null);
   const providerRef = useRef(null);
+  const editorContainerRef = useRef(null);
   const hasInitializedRef = useRef(false);
   const dbContentRef = useRef("");
   
@@ -140,9 +142,61 @@ const WorkstationPage = () => {
       });
     }
 
+    // Cursor Movement Logic
+    const handleMessage = (event) => {
+      try {
+        if (typeof event.data === 'string') {
+          const data = JSON.parse(event.data);
+          if (data.type === 'cursor_update') {
+            setOtherCursors(prev => ({
+              ...prev,
+              [data.sender_email]: { x: data.x, y: data.y }
+            }));
+          }
+        }
+      } catch (e) {
+        // Safe to ignore non-JSON or Yjs internal messages
+      }
+    };
+
+    let lastSent = 0;
+    const handleMouseMove = (e) => {
+      const now = Date.now();
+      if (now - lastSent < 40) return; // ~25 FPS
+      
+      if (editorContainerRef.current && providerRef.current?.ws && providerRef.current.wsconnected) {
+        const rect = editorContainerRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+        // Only send if mouse is over the editor area
+        if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
+          lastSent = now;
+          providerRef.current.ws.send(JSON.stringify({
+            type: 'cursor_update',
+            x, y
+          }));
+        }
+      }
+    };
+
+    const setupWSListener = ({ status }) => {
+      if (status === 'connected' && providerRef.current?.ws) {
+        providerRef.current.ws.addEventListener('message', handleMessage);
+      }
+    };
+
+    provider.on('status', setupWSListener);
+    window.addEventListener('mousemove', handleMouseMove);
+
     return () => {
       clearTimeout(initTimeout);
       provider.off('sync', handleSync);
+      provider.off('status', setupWSListener);
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (providerRef.current?.ws) {
+        providerRef.current.ws.removeEventListener('message', handleMessage);
+      }
       provider.destroy();
       ydoc.destroy();
       hasInitializedRef.current = false;
@@ -419,7 +473,42 @@ const WorkstationPage = () => {
                  )}
                </div>
             ) : (
-              <div className="bg-white dark:bg-gray-950 rounded-[2.5rem] shadow-xl shadow-indigo-500/5 border border-gray-100 dark:border-gray-800 overflow-hidden">
+              <div 
+                ref={editorContainerRef}
+                className="bg-white dark:bg-gray-950 rounded-[2.5rem] shadow-xl shadow-indigo-500/5 border border-gray-100 dark:border-gray-800 overflow-hidden relative"
+              >
+                {/* Real-time Presence Cursors */}
+                {Object.entries(otherCursors).map(([email, pos]) => {
+                  const user = activeUsers.find(u => u.email === email);
+                  if (!user) return null;
+                  return (
+                    <div 
+                      key={email}
+                      className="absolute pointer-events-none z-50 transition-all duration-100 ease-out"
+                      style={{ 
+                        left: `${pos.x}%`, 
+                        top: `${pos.y}%`,
+                        transform: 'translate(-2px, -2px)'
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ color: user.color }}>
+                        <path 
+                          d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19841L11.7841 12.3673H5.65376Z" 
+                          fill="currentColor" 
+                          stroke="white" 
+                          strokeWidth="1.5"
+                        />
+                      </svg>
+                      <div 
+                        className="ml-2 px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase tracking-tighter text-white whitespace-nowrap shadow-sm border border-white/20"
+                        style={{ backgroundColor: user.color }}
+                      >
+                        {user.name}
+                      </div>
+                    </div>
+                  );
+                })}
+
                 {ydocRef.current && (
                   <TiptapEditor 
                     ydoc={ydocRef.current} 

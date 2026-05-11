@@ -57,7 +57,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const total = userData?.storage_limit_bytes || 1024 * 1024 * 1024;
   const percentage = Math.min(100, Math.round((consumed / total) * 100));
   
-  const consumedGB = (consumed / (1024 * 1024 * 1024)).toFixed(2);
+  const consumedGB = (consumed / (1024 * 1024 )).toFixed(2);
   const totalGB = (total / (1024 * 1024 * 1024)).toFixed(0);
 
 

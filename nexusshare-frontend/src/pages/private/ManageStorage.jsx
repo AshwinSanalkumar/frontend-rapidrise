@@ -98,7 +98,7 @@ const ManageStorage = () => {
 
   const usedPercentage = useMemo(() => {
     if (!storageData.total) return 0;
-    return (storageData.used / storageData.total) * 100;
+    return (storageData.used /( storageData.total*1024)) * 100;
   }, [storageData]);
 
   const handleDeleteLargeFile = async (id, name) => {
