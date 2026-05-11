@@ -3,17 +3,14 @@ import { useTheme } from '../../context/ThemeContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { fetchFiles } from '../../services/fileService';
+import { fetchReceivedRequests } from '../../services/requestService';
 
 const Navbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
-  const requests = [
-    { id: 1, status: 'pending' }, 
-    { id: 2, status: 'approved' }
-  ];
-
-  // 2. Logic to check for any pending items
+  
+  const [requests, setRequests] = useState([]);
   const hasPending = requests.some(req => req.status === 'pending');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,17 +21,30 @@ const Navbar = ({ onToggleSidebar }) => {
   const dropdownRef = useRef(null);
   const searchRef = useRef(null);
 
-  // Fetch files for search suggestions
+  // Fetch files and requests for navbar
   useEffect(() => {
-    const loadFiles = async () => {
+    const loadData = async () => {
       try {
         const data = await fetchFiles();
         setFiles(data.files || []);
       } catch (error) {
         console.error('Failed to load files for navbar:', error);
       }
+      
+      try {
+        const reqData = await fetchReceivedRequests();
+        setRequests(reqData || []);
+      } catch (error) {
+          console.error("Failed to load requests for navbar:", error);
+      }
     };
-    if (user) loadFiles();
+    if (user) loadData();
+
+    // Listen for custom event triggered by other components when a request is fulfilled/declined
+    window.addEventListener('requestsUpdated', loadData);
+    return () => {
+      window.removeEventListener('requestsUpdated', loadData);
+    };
   }, [user]);
 
 

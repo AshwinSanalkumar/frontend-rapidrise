@@ -1,34 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../components/common/ToastContent';
 import SendFileModal from '../../components/modals/SendFileModal';
+import { fetchReceivedRequests, declineRequest } from '../../services/requestService';
 
 const ReceivedRequests = () => {
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('pending');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // NEW: Added states for the modal
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
 
-  // Dummy data
-  const [requests, setRequests] = useState([
-    { id: 1, sender: "alex.design@gmail.com", type: "Internal", date: "Mar 22, 2026", status: "pending", message: "Need branding assets" },
-    { id: 2, sender: "Guest_8829", type: "Public", date: "Mar 21, 2026", status: "pending", message: "Project review access" },
-    { id: 3, sender: "sarah.manager@nexus.com", type: "Internal", date: "Mar 19, 2026", status: "approved", message: "Final Q1 Reports" },
-  ]);
+  const [requests, setRequests] = useState([]);
 
-  const handleAction = (id, action) => {
-    setRequests(prev => prev.map(req => 
-      req.id === id ? { ...req, status: action === 'approve' ? 'approved' : 'declined' } : req
-    ));
-    showToast(`Request ${action === 'approve' ? 'Approved' : 'Declined'}`);
+  useEffect(() => {
+    loadRequests();
+  }, []);
+
+  const loadRequests = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchReceivedRequests();
+      setRequests(data);
+    } catch (error) {
+      showToast("Failed to load inbound requests", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // NEW: Function to trigger modal
+  const handleDecline = async (id) => {
+    try {
+      await declineRequest(id);
+      showToast("Request Declined", "success");
+      setRequests(prev => prev.map(req => 
+        req.id === id ? { ...req, status: 'declined' } : req
+      ));
+      // Notify navbar to refresh dot
+      window.dispatchEvent(new Event('requestsUpdated'));
+    } catch (error) {
+      showToast("Failed to decline request", "error");
+    }
+  };
+
+  // Function to trigger modal
   const openSendModal = (req) => {
     setSelectedRequest(req);
     setIsSendModalOpen(true);
+  };
+  
+  const handleFulfillSuccess = () => {
+    setRequests(prev => prev.map(req => 
+        req.id === selectedRequest.id ? { ...req, status: 'fulfilled' } : req
+    ));
+    // Notify navbar to refresh dot
+    window.dispatchEvent(new Event('requestsUpdated'));
   };
 
   const filteredRequests = requests.filter(req => 
@@ -67,14 +94,18 @@ const ReceivedRequests = () => {
 
       {/* TABLE SECTION */}
       <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
-        {filteredRequests.length > 0 ? (
+        {isLoading ? (
+            <div className="py-24 flex justify-center">
+               <i className="fas fa-circle-notch fa-spin text-indigo-500 text-3xl"></i>
+            </div>
+        ) : filteredRequests.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-50 dark:border-gray-700/50">
                   <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Sender</th>
-                  <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Type</th>
                   <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Message</th>
+                  <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
                   <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
               </thead>
@@ -87,31 +118,28 @@ const ReceivedRequests = () => {
                           <i className="fas fa-user"></i>
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-900 dark:text-white">{req.sender}</p>
-                          <p className="text-[10px] text-gray-400 font-medium">{req.date}</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white">{req.sender_name}</p>
+                          <p className="text-[10px] text-gray-400 font-medium">{req.sender_email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                      <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${req.type === 'Internal' ? 'bg-indigo-50 text-indigo-500 border-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800' : 'bg-blue-50 text-blue-500 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800'}`}>
-                        {req.type}
-                      </span>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[250px] italic">"{req.note || 'No note provided'}"</p>
                     </td>
                     <td className="px-8 py-5">
-                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px] italic">"{req.message}"</p>
+                        <p className="text-xs text-gray-500">{new Date(req.created_at).toLocaleDateString()}</p>
                     </td>
                     <td className="px-8 py-5 text-right">
                       {req.status === 'pending' ? (
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleAction(req.id, 'decline')} className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"><i className="fas fa-times"></i></button>
+                          <button onClick={() => handleDecline(req.id)} className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"><i className="fas fa-times"></i></button>
                           
-                          {/* CHANGED: Now calls openSendModal instead of handleAction directly */}
                           <button onClick={() => openSendModal(req)} className="w-9 h-9 rounded-xl flex items-center justify-center bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all">
                             <i className="fas fa-check"></i>
                           </button>
                         </div>
                       ) : (
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${req.status === 'approved' ? 'text-emerald-500' : 'text-gray-400'}`}>
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${req.status === 'fulfilled' ? 'text-emerald-500' : 'text-rose-400'}`}>
                           {req.status}
                         </span>
                       )}
@@ -136,12 +164,11 @@ const ReceivedRequests = () => {
         )}
       </div>
 
-      {/* NEW: Modal Component added at bottom */}
       <SendFileModal 
         isOpen={isSendModalOpen} 
         onClose={() => setIsSendModalOpen(false)} 
         requestData={selectedRequest}
-        onConfirm={() => handleAction(selectedRequest.id, 'approve')}
+        onConfirm={handleFulfillSuccess}
       />
     </main>
   );
