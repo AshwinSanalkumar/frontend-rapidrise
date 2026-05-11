@@ -288,19 +288,20 @@ const WorkstationPage = () => {
       return '';
     };
 
-    return readNode(fragment).replace(/\n{3,}/g, '\n\n').trim();
+    return readNode(fragment).replace(/<[^>]*>?/gm, '').replace(/\n{3,}/g, '\n\n').trim();
   };
+
 
   const handleExport = async (format) => {
     try {
       setIsExporting(true);
       showToast(`Generating ${format.toUpperCase()}...`);
       if (format === 'pdf') {
-        const contentForPdf = getPlainTextFromYDoc() || dbContentRef.current || '';
-        generateWorkstationPDF(station, contentForPdf);
+        await generateWorkstationPDF(station, editorContainerRef.current);
       } else {
         await exportWorkstation(id, format);
       }
+
       showToast("Export completed");
     } catch (error) {
       showToast(`Failed to export as ${format.toUpperCase()}`);
