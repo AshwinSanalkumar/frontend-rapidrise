@@ -5,6 +5,7 @@ import { generateWorkstationPDF } from '../../utils/exportUtils';
 import { useToast } from '../../components/common/ToastContent';
 import { createYjsProvider } from '../../utils/yjsProvider';
 import TiptapEditor, { ReadOnlyEditor } from '../../components/elements/TiptapEditor';
+import ProjectSettingsModal from '../../components/modals/ProjectSettingsModal';
 import * as Y from 'yjs';
 
 const WorkstationPage = () => {
@@ -22,6 +23,7 @@ const WorkstationPage = () => {
   const [ showVersions, setShowVersions ] = useState(false);
   const [ isRestoring, setIsRestoring ] = useState(false);
   const [ previewVersion, setPreviewVersion ] = useState(null); // version id being previewed
+  const [ isSettingsOpen, setIsSettingsOpen ] = useState(false);
   
   const ydocRef = useRef(null);
   const providerRef = useRef(null);
@@ -254,7 +256,7 @@ const WorkstationPage = () => {
       if (previewVersion === versionId) setPreviewVersion(null);
 
       if (result?.rolled_back) {
-        showToast("Latest version deleted — rolled back to previous version. Reloading...");
+        showToast("Latest version deleted \u2014 rolled back to previous version. Reloading...");
         setTimeout(() => window.location.reload(), 1500);
       } else {
         showToast("Version deleted");
@@ -263,34 +265,6 @@ const WorkstationPage = () => {
       showToast(error?.response?.data?.error || "Failed to delete version");
     }
   };
-
-  const getPlainTextFromYDoc = () => {
-    if (!ydocRef.current) return '';
-
-    const fragment = ydocRef.current.getXmlFragment('prosemirror');
-
-    const readNode = (node) => {
-      if (!node) return '';
-
-      if (node instanceof Y.XmlText) {
-        return node.toString();
-      }
-
-      if (node instanceof Y.XmlElement || node instanceof Y.XmlFragment) {
-        const childrenText = node.toArray().map(readNode).join('');
-        const nodeName = node.nodeName || '';
-        if (nodeName === 'paragraph' || nodeName === 'heading' || nodeName === 'blockquote' || nodeName === 'listItem') {
-          return `${childrenText}\n`;
-        }
-        return childrenText;
-      }
-
-      return '';
-    };
-
-    return readNode(fragment).replace(/<[^>]*>?/gm, '').replace(/\n{3,}/g, '\n\n').trim();
-  };
-
 
   const handleExport = async (format) => {
     try {
@@ -309,6 +283,12 @@ const WorkstationPage = () => {
       setIsExporting(false);
     }
   };
+
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userMember = station?.members?.find(m => m.email === currentUser.email);
+  const userRole = station?.ownerEmail === currentUser.email ? 'OWNER' : (userMember?.role || 'VIEWER');
+  const isOwner = userRole === 'OWNER';
+  const canEdit = userRole !== 'VIEWER';
 
   if (loading) {
     return (
@@ -347,20 +327,15 @@ const WorkstationPage = () => {
             >
               <i className="fas fa-file-pdf text-red-500"></i> Export PDF
             </button>
-            {/* <button 
-              onClick={() => handleExport('docx')}
-              disabled={isExporting}
-              className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:bg-gray-50 transition flex items-center gap-2"
-            >
-              <i className="fas fa-file-word text-blue-500"></i> Export Word
-            </button> */}
-            <button 
-              onClick={handleManualSave}
-              disabled={isSaving}
-              className={`px-6 py-2 ${isSaving ? 'bg-gray-400' : 'bg-indigo-500 hover:bg-indigo-600'} text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/10 transition flex items-center gap-2`}
-            >
-              <i className={`fas ${isSaving ? 'fa-spinner fa-spin' : 'fa-save'}`}></i> {isSaving ? 'Saving...' : 'Save'}
-            </button>
+            {canEdit && (
+              <button 
+                onClick={handleManualSave}
+                disabled={isSaving}
+                className={`px-6 py-2 ${isSaving ? 'bg-gray-400' : 'bg-indigo-500 hover:bg-indigo-600'} text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/10 transition flex items-center gap-2`}
+              >
+                <i className={`fas ${isSaving ? 'fa-spinner fa-spin' : 'fa-save'}`}></i> {isSaving ? 'Saving...' : 'Save'}
+              </button>
+            )}
           </div>
         </div>
         
@@ -514,6 +489,7 @@ const WorkstationPage = () => {
                   <TiptapEditor 
                     ydoc={ydocRef.current} 
                     provider={providerRef.current} 
+                    editable={canEdit}
                   />
                 )}
               </div>
@@ -536,9 +512,14 @@ const WorkstationPage = () => {
                   />
                 ))}
               </div>
-              <button className="w-full mt-8 py-4 bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all">
-                Project Settings
-              </button>
+              {isOwner && (
+                <button 
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="w-full mt-8 py-4 bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all"
+                >
+                  Project Settings
+                </button>
+              )}
               <button 
                 onClick={loadVersions}
                 className="w-full mt-3 py-4 bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all">
@@ -548,6 +529,16 @@ const WorkstationPage = () => {
           </div>
         </div>
       </div>
+
+      <ProjectSettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)}
+        station={station}
+        onUpdate={async () => {
+          const data = await fetchWorkstationDetail(id);
+          setStation(data);
+        }}
+      />
     </div>
   );
 };

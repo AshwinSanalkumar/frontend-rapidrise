@@ -110,3 +110,13 @@ export const deleteWorkstationVersion = async (workstationId, versionId) => {
   const response = await apiClient.delete(`workstations/${workstationId}/versions/${versionId}/delete/`);
   return response.data; // { rolled_back: bool, workstation: {...} }
 };
+
+export const updateMemberRole = async (workstationId, memberId, role) => {
+  const response = await apiClient.patch(`workstations/${workstationId}/members/${memberId}/`, { role });
+  return response.data;
+};
+
+export const removeMember = async (workstationId, memberId) => {
+  const response = await apiClient.delete(`workstations/${workstationId}/members/${memberId}/`);
+  return response.data;
+};

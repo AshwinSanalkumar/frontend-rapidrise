@@ -209,7 +209,7 @@ const Collaboration = Extension.create({
   },
 });
 
-const TiptapEditor = ({ ydoc, provider }) => {
+const TiptapEditor = ({ ydoc, provider, editable = true }) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -234,19 +234,19 @@ const TiptapEditor = ({ ydoc, provider }) => {
     },
     content: "",
     autofocus: "end",
+    editable,
   });
 
   if (!editor) return null;
 
   return (
     <div className="flex flex-col h-[75vh]">
-      <MenuBar editor={editor} />
-      <div className="flex-grow p-10 overflow-auto custom-scrollbar workstation-editor prose dark:prose-invert max-w-none text-black">
+      {editable && <MenuBar editor={editor} />}
+      <div className={`flex-grow p-10 overflow-auto custom-scrollbar workstation-editor prose dark:prose-invert max-w-none text-black ${!editable ? 'opacity-90' : ''}`}>
         <EditorContent editor={editor} />
       </div>
     </div>
   );
-
 };
 
 export default TiptapEditor;
