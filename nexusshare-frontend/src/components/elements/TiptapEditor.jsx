@@ -170,7 +170,7 @@ const ToolbarButton = ({ onClick, active, icon, title, disabled }) => (
     title={title}
     className={`w-8 h-8 flex items-center justify-center rounded-md transition-all ${
       active 
-        ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400' 
+        ? 'bg-indigo-50 dark:bg-indigo text-indigo-600 dark:text-indigo-400' 
         : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
     } ${disabled ? 'opacity-30 cursor-not-allowed' : ''}`}
   >
@@ -227,6 +227,11 @@ const TiptapEditor = ({ ydoc, provider }) => {
         provider,
       }),
     ],
+    editorProps: {
+      attributes: {
+        class: 'focus:outline-none',
+      },
+    },
     content: "",
     autofocus: "end",
   });
@@ -286,6 +291,11 @@ export const ReadOnlyEditor = ({ content }) => {
         },
       }),
     ],
+    editorProps: {
+      attributes: {
+        class: 'focus:outline-none',
+      },
+    },
     content: '',
     editable: false,
   });

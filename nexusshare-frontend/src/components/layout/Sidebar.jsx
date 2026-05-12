@@ -249,7 +249,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 ></div>
               </div>
               <p className="text-xs text-gray-600 dark:text-gray-400 mt-3 font-medium">
-                {consumedGB} GB of {totalGB} GB
+                {consumedGB} MB of {totalGB} GB
               </p>
             </div>
           </Link>

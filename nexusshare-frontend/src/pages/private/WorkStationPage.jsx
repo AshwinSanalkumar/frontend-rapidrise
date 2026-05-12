@@ -347,13 +347,13 @@ const WorkstationPage = () => {
             >
               <i className="fas fa-file-pdf text-red-500"></i> Export PDF
             </button>
-            <button 
+            {/* <button 
               onClick={() => handleExport('docx')}
               disabled={isExporting}
               className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:bg-gray-50 transition flex items-center gap-2"
             >
               <i className="fas fa-file-word text-blue-500"></i> Export Word
-            </button>
+            </button> */}
             <button 
               onClick={handleManualSave}
               disabled={isSaving}
@@ -476,7 +476,7 @@ const WorkstationPage = () => {
             ) : (
               <div 
                 ref={editorContainerRef}
-                className="bg-white dark:bg-gray-950 rounded-[2.5rem] shadow-xl shadow-indigo-500/5 border border-gray-100 dark:border-gray-800 overflow-hidden relative"
+                className="bg-white rounded-[2.5rem] shadow-xl shadow-indigo-500/5 border border-gray-100 dark:border-gray-800 overflow-hidden relative"
               >
                 {/* Real-time Presence Cursors */}
                 {Object.entries(otherCursors).map(([email, pos]) => {
