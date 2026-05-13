@@ -66,6 +66,9 @@ const Bin = () => {
         showToast("Vault trash emptied.", "success");
         setDeleteTarget(null);
       }
+      
+      // Notify other components (like Sidebar storage bar) to refresh
+      window.dispatchEvent(new CustomEvent('storage-updated'));
     } catch (error) {
       console.error('Operation failed:', error);
       showToast(error.response?.data?.error || "Operation failed", "error");

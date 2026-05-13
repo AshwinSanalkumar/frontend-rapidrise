@@ -3,6 +3,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
+import GlobalUploadProgress from '../common/GlobalUploadProgress';
 
 const MainLayout = () => {
   const { isDark } = useTheme();
@@ -19,6 +20,8 @@ const MainLayout = () => {
           onToggleSidebar={toggleSidebar}
         />
       </div>
+
+      <GlobalUploadProgress />
       
       <div className="flex flex-1 overflow-hidden relative">
         {/* Mobile Backdrop Overlay */}

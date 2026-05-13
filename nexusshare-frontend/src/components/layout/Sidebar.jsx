@@ -38,10 +38,14 @@ const Sidebar = ({ isOpen, onClose }) => {
   useEffect(() => {
     loadUserData();
     
-    // Refresh storage stats when a file is uploaded
+    // Refresh storage stats when a file is uploaded or storage changes (e.g. trash emptied)
     const handleRefresh = () => loadUserData();
     window.addEventListener('file-uploaded', handleRefresh);
-    return () => window.removeEventListener('file-uploaded', handleRefresh);
+    window.addEventListener('storage-updated', handleRefresh);
+    return () => {
+      window.removeEventListener('file-uploaded', handleRefresh);
+      window.removeEventListener('storage-updated', handleRefresh);
+    };
   }, []);
 
   const loadUserData = async () => {
@@ -80,51 +84,51 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const handleConfirmUpload = async (filesToUpload, descriptions) => {
     setIsUploading(true);
+    setIsModalOpen(false); // Close immediately for non-blocking feel
 
-    // Create temporary "uploading" visual items
-    const newUploads = filesToUpload.map(file => ({
-      id: Math.random().toString(36).substr(2, 9),
-      name: file.name,
-      progress: 0
-    }));
-    setUploadingFiles(prev => [...prev, ...newUploads]);
+    const uploadId = Math.random().toString(36).substr(2, 9);
+    const fileName = filesToUpload.length === 1 ? filesToUpload[0].name : `${filesToUpload.length} files`;
+
+    const dispatchProgress = (progress, status = 'uploading') => {
+      window.dispatchEvent(new CustomEvent('upload-progress', {
+        detail: { id: uploadId, name: fileName, progress, status }
+      }));
+    };
+
+    dispatchProgress(0);
 
     try {
       // Simulate progress for UI feedback while real request happens
-      const intervals = newUploads.map(upload => {
-        let prog = 0;
-        return setInterval(() => {
-          prog += Math.floor(Math.random() * 15) + 5;
-          if (prog >= 95) prog = 95; // Wait at 95% for actual completion
-          setUploadingFiles(prev => prev.map(f => f.id === upload.id ? { ...f, progress: prog } : f));
-        }, 300);
-      });
+      let prog = 0;
+      const interval = setInterval(() => {
+        prog += Math.floor(Math.random() * 10) + 2;
+        if (prog >= 92) {
+          clearInterval(interval);
+          prog = 92;
+        }
+        dispatchProgress(prog);
+      }, 400);
 
       const { successes, failures } = await uploadFiles(filesToUpload, descriptions);
-      intervals.forEach(clearInterval);
+      clearInterval(interval);
 
       if (successes.length > 0) {
-        showToast(`${successes.length} file(s) uploaded successfully!`, 'success');
-        setUploadingFiles(prev => prev.map(f => ({ ...f, progress: 100 })));
+        dispatchProgress(100, 'completed');
         window.dispatchEvent(new CustomEvent('file-uploaded'));
-        navigate('/files');
+        // Optional: navigate('/files');
       }
 
       if (failures.length > 0) {
         showToast(`${failures.length} file(s) failed to upload.`, 'error');
+        if (successes.length === 0) {
+           dispatchProgress(0, 'removed');
+        }
       }
 
-      setIsModalOpen(false);
       setStagedFiles([]);
-
-      // Clear uploading items after 2 seconds
-      setTimeout(() => {
-        setUploadingFiles(prev => prev.filter(f => !newUploads.some(nu => nu.id === f.id)));
-      }, 2000);
-
     } catch (error) {
       showToast('Upload failed. Please try again.', 'error');
-      setUploadingFiles(prev => prev.filter(f => !newUploads.some(nu => nu.id === f.id)));
+      dispatchProgress(0, 'removed');
     } finally {
       setIsUploading(false);
     }
@@ -213,24 +217,6 @@ const Sidebar = ({ isOpen, onClose }) => {
               </div>
             </div>
           </nav>
-
-          {/* ACTIVE UPLOADS LIST (Visible after Modal Confirmation) */}
-          {uploadingFiles.length > 0 && (
-            <div className="mt-8 px-2 space-y-2">
-              <p className="px-4 text-[10px] uppercase tracking-widest text-indigo-500 font-extrabold mb-3">Uploading...</p>
-              {uploadingFiles.map(file => (
-                <div key={file.id} className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700 mx-2">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[11px] font-bold text-gray-700 dark:text-gray-200 truncate pr-2">{file.name}</span>
-                    <span className="text-[9px] text-gray-400">{file.progress}%</span>
-                  </div>
-                  <div className="h-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 transition-all duration-300" style={{ width: `${file.progress}%` }}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Storage Stats Indicator */}
@@ -249,7 +235,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 ></div>
               </div>
               <p className="text-xs text-gray-600 dark:text-gray-400 mt-3 font-medium">
-                {consumedGB} GB of {totalGB} GB
+                {consumedGB} MB of {totalGB} GB
               </p>
             </div>
           </Link>

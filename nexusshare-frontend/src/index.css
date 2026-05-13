@@ -116,3 +116,8 @@ body {
     background: #1e293b;
     color: white;
 }
+
+/* Remove Tiptap/ProseMirror focus outline */
+.ProseMirror:focus {
+    outline: none !important;
+}

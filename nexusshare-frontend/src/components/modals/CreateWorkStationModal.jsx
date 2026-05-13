@@ -7,14 +7,13 @@ const CreateWorkstationModal = ({ isOpen, onClose, onCreated }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    visibility: 'private',
-    template: 'blank'
   });
   
   const [inviteQuery, setInviteQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [invitedUsers, setInvitedUsers] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedSearchRole, setSelectedSearchRole] = useState('EDITOR');
   
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -39,9 +38,10 @@ const CreateWorkstationModal = ({ isOpen, onClose, onCreated }) => {
   if (!isOpen) return null;
 
   const handleInviteUser = (user) => {
-    setInvitedUsers([...invitedUsers, { ...user, role: 'EDITOR' }]);
+    setInvitedUsers([...invitedUsers, { ...user, role: selectedSearchRole }]);
     setInviteQuery('');
     setSearchResults([]);
+    setSelectedSearchRole('EDITOR');
   };
 
   const handleRemoveInvited = (userId) => {
@@ -141,18 +141,28 @@ const CreateWorkstationModal = ({ isOpen, onClose, onCreated }) => {
                 {searchResults.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden">
                     {searchResults.map(user => (
-                      <button
+                      <div
                         key={user.id}
-                        type="button"
+                        className="w-full px-5 py-3 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between group transition-colors cursor-pointer"
                         onClick={() => handleInviteUser(user)}
-                        className="w-full px-5 py-3 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between group transition-colors"
                       >
                         <div>
                           <p className="text-xs font-bold text-gray-800 dark:text-white">{user.full_name}</p>
                           <p className="text-[9px] text-gray-400 font-medium">{user.email}</p>
                         </div>
-                        <i className="fas fa-plus text-[10px] text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                      </button>
+                        <div className="flex items-center gap-3">
+                          <select 
+                            className="bg-transparent border-none text-[8px] font-black uppercase tracking-widest text-indigo-500 focus:ring-0 cursor-pointer"
+                            value={selectedSearchRole}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => setSelectedSearchRole(e.target.value)}
+                          >
+                            <option value="EDITOR">Editor</option>
+                            <option value="VIEWER">Viewer</option>
+                          </select>
+                          <i className="fas fa-plus text-[10px] text-indigo-500 transition-opacity"></i>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -195,49 +205,9 @@ const CreateWorkstationModal = ({ isOpen, onClose, onCreated }) => {
               )}
             </div>
 
-            {/* Privacy Configuration */}
-            <div>
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block ml-1">Privacy Configuration</label>
-              <div className="flex gap-3">
-                {['private', 'public'].map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setFormData({...formData, visibility: type})}
-                    className={`flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${
-                      formData.visibility === type 
-                      ? 'bg-indigo-500 text-white border-indigo-500 shadow-md shadow-indigo-500/10' 
-                      : 'bg-transparent text-gray-400 border-gray-100 dark:border-gray-800'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-            </div>
+            
 
-            {/* Template Grid */}
-            <div>
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block ml-1">Base Template</label>
-              <div className="grid grid-cols-3 gap-3">
-                {['Blank', 'Docs', 'Technical'].map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setFormData({...formData, template: t.toLowerCase()})}
-                    className={`p-4 rounded-2xl border-2 transition-all text-left ${
-                      formData.template === t.toLowerCase() 
-                      ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20' 
-                      : 'border-gray-50 dark:border-gray-800'
-                    }`}
-                  >
-                    <p className={`text-[10px] font-black uppercase tracking-tighter ${
-                      formData.template === t.toLowerCase() ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400'
-                    }`}>{t}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
+      
 
             {/* Action Footer */}
             <div className="flex items-center gap-3 pt-4">

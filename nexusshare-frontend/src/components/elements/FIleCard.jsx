@@ -23,6 +23,7 @@ const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage }) => {
       excel: { icon: 'fa-file-excel', color: 'text-emerald-500', bg: 'bg-emerald-50' },
       word: { icon: 'fa-file-word', color: 'text-indigo-500', bg: 'bg-indigo-50' },
       zip: { icon: 'fa-file-archive', color: 'text-amber-500', bg: 'bg-amber-50' },
+      pptx: { icon: 'fa-file-powerpoint', color: 'text-orange-500', bg: 'bg-orange-50' },
       default: { icon: 'fa-file', color: 'text-gray-400', bg: 'bg-gray-50' }
     };
     return configs[type] || configs.default;

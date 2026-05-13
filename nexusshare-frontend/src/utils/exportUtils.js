@@ -1,34 +1,97 @@
-import jsPDF from 'jspdf';
+import html2pdf from 'html2pdf.js';
 
-/**
- * Generates a PDF on the client side from workstation data.
- */
-export const generateWorkstationPDF = (station, content) => {
-  const doc = new jsPDF();
-  
-  // Title
-  doc.setFontSize(22);
-  doc.setTextColor(79, 70, 229); // indigo-600
-  doc.text(station.title, 20, 30);
-  
-  // Meta info
-  doc.setFontSize(10);
-  doc.setTextColor(156, 163, 175); // gray-400
-  const dateStr = new Date(station.createdAt).toLocaleDateString();
-  doc.text(`Created: ${dateStr} | Owner: ${station.ownerName}`, 20, 40);
-  
-  // Divider
-  doc.setDrawColor(229, 231, 235); // gray-200
-  doc.line(20, 45, 190, 45);
-  
-  // Content
-  doc.setFontSize(12);
-  doc.setTextColor(31, 41, 55); // gray-800
-  
-  // Split text to fit page width
-  const splitContent = doc.splitTextToSize(content, 170);
-  doc.text(splitContent, 20, 60);
-  
-  // Save
-  doc.save(`${station.title.replace(/\s+/g, '_')}.pdf`);
+export const generateWorkstationPDF = async (station, element) => {
+  if (!element) return;
+
+  const editorContent = element.querySelector('.workstation-editor');
+
+  if (!editorContent) {
+    console.error('Editor content not found');
+    return;
+  }
+
+  try {
+    // Clone editor
+    const clonedEditor = editorContent.cloneNode(true);
+
+    // Remove collaborative cursors
+    clonedEditor.querySelectorAll('.collaboration-cursor').forEach(el => el.remove());
+
+    // Create export container
+    const exportContainer = document.createElement('div');
+
+    exportContainer.style.background = '#ffffff';
+    exportContainer.style.padding = '50px 60px 35px 35px';
+    exportContainer.style.width = '800px';
+    exportContainer.style.color = '#111827';
+    exportContainer.style.fontFamily = 'Arial, sans-serif';
+
+    // Header
+    const header = document.createElement('div');
+
+    header.style.marginBottom = '30px';
+    header.style.borderBottom = '1px solid #e5e7eb';
+    header.style.paddingBottom = '15px';
+
+    header.innerHTML = `
+      <h1 style="font-size:24px;font-weight:bold;margin:0;">
+        ${station.title}
+      </h1>
+
+      <p style="font-size:12px;color:#6b7280;margin-top:8px;">
+        NexusShare Workstation • ${new Date().toLocaleString()}
+      </p>
+    `;
+
+    exportContainer.appendChild(header);
+    exportContainer.appendChild(clonedEditor);
+
+    // Important styles for export
+    clonedEditor.style.height = 'auto';
+    clonedEditor.style.maxHeight = 'none';
+    clonedEditor.style.overflow = 'visible';
+
+    // Add temporarily to DOM
+    document.body.appendChild(exportContainer);
+
+    // PDF options
+    const options = {
+      margin: [-10, -2, 5, 5],
+      filename: `${station.title.replace(/\s+/g, '_')}.pdf`,
+
+      image: {
+        type: 'jpeg',
+        quality: 0.98,
+      },
+
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      },
+
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait',
+      },
+
+      pagebreak: {
+        mode: ['avoid-all', 'css', 'legacy'],
+      },
+    };
+
+    // Generate PDF
+    await html2pdf()
+      .set(options)
+      .from(exportContainer)
+      .save();
+
+    // Cleanup
+    document.body.removeChild(exportContainer);
+
+  } catch (error) {
+    console.error('PDF Export failed:', error);
+  }
 };

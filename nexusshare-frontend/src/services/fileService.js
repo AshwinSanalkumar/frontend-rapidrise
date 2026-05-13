@@ -13,6 +13,8 @@ export const mapFileFromApi = (apiFile) => {
     'application/vnd.ms-excel': 'excel',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'word',
     'application/msword': 'word',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'pptx',
+    'application/vnd.ms-powerpoint': 'pptx',
     'application/zip': 'zip',
     'application/x-zip-compressed': 'zip',
   };
@@ -94,6 +96,7 @@ export const restoreAllFiles = async () => {
 
 export const emptyTrash = async () => {
   const response = await apiClient.delete('trash/empty/');
+  window.dispatchEvent(new CustomEvent('storage-updated'));
   return response.data;
 };
 
