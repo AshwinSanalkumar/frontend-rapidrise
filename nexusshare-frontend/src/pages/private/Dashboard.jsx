@@ -76,20 +76,51 @@ const Dashboard = () => {
 
   const handleFinalUpload = async (filesToUpload, descriptions) => {
     setIsUploading(true);
+    setIsModalOpen(false); // Close immediately for non-blocking feel
+
+    const uploadId = Math.random().toString(36).substr(2, 9);
+    const fileName = filesToUpload.length === 1 ? filesToUpload[0].name : `${filesToUpload.length} files`;
+
+    const dispatchProgress = (progress, status = 'uploading') => {
+      window.dispatchEvent(new CustomEvent('upload-progress', {
+        detail: { id: uploadId, name: fileName, progress, status }
+      }));
+    };
+
+    dispatchProgress(0);
+
     try {
+      // Simulate progress for UI feedback while real request happens
+      let prog = 0;
+      const interval = setInterval(() => {
+        prog += Math.floor(Math.random() * 10) + 2;
+        if (prog >= 92) {
+          clearInterval(interval);
+          prog = 92;
+        }
+        dispatchProgress(prog);
+      }, 400);
+
       const { successes, failures } = await uploadFiles(filesToUpload, descriptions);
+      clearInterval(interval);
+
       if (successes.length > 0) {
-        showToast(`${successes.length} file(s) uploaded successfully!`, 'success');
+        dispatchProgress(100, 'completed');
         window.dispatchEvent(new CustomEvent('file-uploaded'));
         navigate('/files');
       }
-       if (failures.length > 0) {
+
+      if (failures.length > 0) {
         showToast(`${failures.length} file(s) failed to upload.`, 'error');
+        if (successes.length === 0) {
+           dispatchProgress(0, 'removed');
+        }
       }
-      setIsModalOpen(false);
+
       setStagedFiles([]);
     } catch (error) { 
         showToast(`Upload failed. Please try again.`, 'error');
+        dispatchProgress(0, 'removed');
     } 
     finally { setIsUploading(false); }
   };
