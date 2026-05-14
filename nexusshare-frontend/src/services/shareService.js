@@ -11,6 +11,15 @@ export const createShareLink = async (fileId, options = {}) => {
 };
 
 /**
+ * Creates a shareable link for multiple files.
+ * @param {Object} options - { file_ids, emails, message, duration_minutes }
+ */
+export const createBulkShareLink = async (options = {}) => {
+  const response = await apiClient.post(`files/bulk-share/`, options);
+  return response.data;
+};
+
+/**
  * Fetches all active shared links for the current user.
  */
 export const fetchSharedLinks = async (page = 1, search = '', status = '', fileId = '') => {

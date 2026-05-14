@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '../common/ToastContent'; // Using your custom toast hook
 import { toggleFileFavorite } from '../../services/fileService';
 
-const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage }) => {
+const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage, enableMultiSelect, isSelected, onRowSelect }) => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const isList = view === 'list';
@@ -79,6 +79,19 @@ const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage }) => {
           ? 'flex flex-row items-center !py-3 !px-4 md:!py-4 md:!px-6 !rounded-2xl md:!rounded-[1.25rem]'
           : 'flex flex-col rounded-[2.5rem]'}`}
     >
+      {/* Selection Button - Top Left */}
+      {enableMultiSelect && !isList && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onRowSelect(); }}
+          className={`absolute top-6 left-6 z-20 w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 backdrop-blur-md 
+            ${isSelected
+              ? 'bg-indigo-500 text-white border-transparent shadow-lg shadow-indigo-500/40'
+              : 'bg-white/10 text-gray-400 hover:text-indigo-500 hover:bg-white border-white'}`}
+        >
+          <i className={`fas fa-check text-xs dark:text-white text-black  ${isSelected ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`}></i>
+        </button>
+      )}
+
       {/* Favorite Button - Top Right Overlay for Grid View */}
       {!isList && (
         <button
@@ -86,9 +99,9 @@ const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage }) => {
           className={`absolute top-6 right-6 z-20 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-md 
             ${isFavorite
               ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30'
-              : 'bg-white/50 text-gray-400 hover:text-rose-500 hover:bg-white'}`}
+              : 'bg-white/10 text-gray-400 hover:text-rose-500 hover:bg-white'}`}
         >
-          <i className={`${isFavorite ? 'fas' : 'far'} fa-heart text-xs`}></i>
+          <i className={`${isFavorite ? ' fas' : 'dark:text-white text-black far'} fa-heart text-xs  `}></i>
         </button>
       )}
 
@@ -114,6 +127,19 @@ const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage }) => {
 
       {/* File Details */}
       <div className={`${isList ? 'flex flex-1 items-center' : ''}`}>
+        
+        {enableMultiSelect && isList && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onRowSelect(); }}
+              className={`mr-4 w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-300
+                ${isSelected
+                  ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+            >
+              <i className={`fas fa-check text-[10px] ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 hover:opacity-50'}`}></i>
+            </button>
+        )}
+
         <div className={`${isList ? 'mr-auto flex flex-col' : ''}`}>
           <h3 className={`font-bold text-gray-800 dark:text-gray-100 truncate px-1 ${isList ? 'text-base' : 'text-sm'}`}>
             {file.name}
