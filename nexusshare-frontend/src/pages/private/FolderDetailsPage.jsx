@@ -146,45 +146,12 @@ const FolderDetail = () => {
           <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">{folder.name}</h1>
         </div>
         
-        <div className="relative">
           <button 
-            onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+            onClick={() => setIsNexusModalOpen(true)}
             className="w-full sm:w-auto gradient-bg text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center"
           >
             <i className="fas fa-plus-circle mr-3"></i> Add Files
-            <i className={`fas fa-chevron-down ml-4 text-[10px] transition-transform ${isOptionsOpen ? 'rotate-180' : ''}`}></i>
           </button>
-
-          {isOptionsOpen && (
-            <div className="absolute right-0 mt-3 w-60 bg-white dark:bg-gray-800 rounded-[1.5rem] shadow-2xl border border-gray-100 dark:border-gray-700 py-2 z-50 animate-in fade-in slide-in-from-top-2">
-              <button 
-                onClick={() => { setIsOptionsOpen(false); fileInputRef.current.click(); }}
-                className="w-full flex items-center px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition text-left group"
-              >
-                <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center mr-4 group-hover:scale-110 transition">
-                  <i className="fas fa-desktop text-sm"></i>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-tight">Local Storage</p>
-                  <p className="text-[10px] text-gray-400">Upload from device</p>
-                </div>
-              </button>
-
-              <button 
-                onClick={() => { setIsOptionsOpen(false); setIsNexusModalOpen(true); }}
-                className="w-full flex items-center px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition text-left group border-t border-gray-50 dark:border-gray-700"
-              >
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 flex items-center justify-center mr-4 group-hover:scale-110 transition">
-                  <i className="fas fa-cloud-download-alt text-sm"></i>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-tight">Nexus Share</p>
-                  <p className="text-[10px] text-gray-400">Import from cloud</p>
-                </div>
-              </button>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Files Table Section */}
