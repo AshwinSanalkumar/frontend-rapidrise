@@ -191,6 +191,14 @@ export const fetchRecentFiles = async () => {
 };
 
 /**
+ * Clears the user's recent file history.
+ */
+export const clearRecentFiles = async () => {
+  const response = await apiClient.delete('files/recents/clear/');
+  return response.data;
+};
+
+/**
  * Fetches upload history and stats for a specific month and year.
  * Returns { history, month_stats, global_stats }
  * @param {number} year 
