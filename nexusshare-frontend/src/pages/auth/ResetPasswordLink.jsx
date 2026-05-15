@@ -16,10 +16,33 @@ const ResetPasswordLink = () => {
 const [isExpired, setIsExpired] = useState(false); 
   const { uid, token } = useParams();
 
+  const validations = {
+    lowercase: /[a-z]/.test(formData.password),
+    uppercase: /[A-Z]/.test(formData.password),
+    number: /[0-9]/.test(formData.password),
+    special: /[!@#$%^&*()]/.test(formData.password),
+    length: formData.password.length >= 8
+  };
+
+  const isPasswordValid = Object.values(validations).every(Boolean);
+
+  const validationMessage = (() => {
+    if (!validations.lowercase) return 'Requires lowercase (a-z)';
+    if (!validations.uppercase) return 'Requires uppercase (A-Z)';
+    if (!validations.number) return 'Requires number (0-9)';
+    if (!validations.special) return 'Requires special (!@#)';
+    if (!validations.length) return 'Requires 8+ chars';
+    return 'Password is secure';
+  })();
 
 const handleReset = async (e) => {
 
   e.preventDefault();
+
+  if (!isPasswordValid) {
+    showToast("Please meet all password requirements!", "error");
+    return;
+  }
 
   if (formData.password !== formData.confirmPassword) {
 
@@ -126,6 +149,15 @@ const handleReset = async (e) => {
                       <i className={`fas ${showPass ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                     </button>
                   </div>
+                  {formData.password && (
+                    <div className={`mt-1 text-[8.5px] font-bold uppercase tracking-wider ${!isPasswordValid ? 'text-amber-500' : 'text-emerald-500'}`}>
+                      {!isPasswordValid ? (
+                         <><i className="fas fa-exclamation-triangle mr-1"></i> {validationMessage}</>
+                      ) : (
+                         <><i className="fas fa-check-circle mr-1"></i> {validationMessage}</>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Confirm New Password - Eye Restored */}

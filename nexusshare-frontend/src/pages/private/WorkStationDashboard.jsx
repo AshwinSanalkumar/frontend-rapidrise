@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CreateWorkstationModal from '../../components/modals/CreateWorkStationModal';
+import DeleteModal from '../../components/modals/DeleteModal';
 import { fetchWorkstations, fetchInvites, respondToInvite, deleteWorkstation } from '../../services/workstationService';
 import { Link } from 'react-router-dom';
 import { fetchMe } from '../../services/authService';
 import { useToast } from '../../components/common/ToastContent';
+import Pagination from '../../components/common/Pagination';
 
 const WorkstationDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -13,13 +15,19 @@ const WorkstationDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState('active'); // 'active' or 'invites'
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [stationToDelete, setStationToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
 
   useEffect(() => {
-    loadData();
+    loadData(currentPage);
     fetchCurrentUser();
-  }, []);
+  }, [currentPage]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -30,17 +38,26 @@ const WorkstationDashboard = () => {
     }
   };
 
-  const loadData = async () => {
+  const loadData = async (page = 1) => {
     try {
       setLoading(true);
       const [stationsData, invitesData] = await Promise.all([
-        fetchWorkstations(),
+        fetchWorkstations(page),
         fetchInvites()
       ]);
-      setStations(stationsData);
+      
+      if (stationsData.results) {
+        setStations(stationsData.results);
+        setTotalCount(stationsData.count);
+        setTotalPages(Math.ceil(stationsData.count / 5));
+      } else {
+        setStations(stationsData);
+        setTotalCount(stationsData.length);
+      }
+      
       setInvites(invitesData);
     } catch (error) {
-      showToast("Failed to load workstations");
+      showToast("Failed to load workstations", "error");
     } finally {
       setLoading(false);
     }
@@ -56,18 +73,26 @@ const WorkstationDashboard = () => {
     }
   };
 
-  const handleDelete = async (e, stationId) => {
-    e.stopPropagation(); // Don't navigate to the workstation page
-    if (!window.confirm("Are you sure you want to delete this workstation? This action cannot be undone.")) {
-      return;
-    }
+  const handleDelete = (e, stationId) => {
+    e.stopPropagation(); 
+    setStationToDelete(stationId);
+    setIsDeleteModalOpen(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!stationToDelete) return;
+    
+    setIsDeleting(true);
     try {
-      await deleteWorkstation(stationId);
-      showToast("Workstation deleted successfully");
-      setStations(stations.filter(s => s.id !== stationId));
+      await deleteWorkstation(stationToDelete);
+      showToast("Workstation deleted successfully", "success");
+      setStations(stations.filter(s => s.id !== stationToDelete));
+      setIsDeleteModalOpen(false);
+      setStationToDelete(null);
     } catch (error) {
-      showToast("Failed to delete workstation");
+      showToast("Failed to delete workstation", "error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -96,8 +121,19 @@ const WorkstationDashboard = () => {
         </div>
 
         <button 
-          onClick={() => setIsModalOpen(true)}
-          className="px-6 py-3 bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:bg-indigo-600 transition-all flex items-center gap-2"
+          onClick={() => {
+            const ownedCount = stations.filter(s => s.owner === currentUser?.id).length;
+            if (ownedCount >= 10) {
+              showToast("You have reached the limit of 10 workstations. Please delete one to create a new one.", "error");
+              return;
+            }
+            setIsModalOpen(true);
+          }}
+          className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all flex items-center gap-2 ${
+            stations.filter(s => s.owner === currentUser?.id).length >= 10 
+            ? 'bg-gray-400 text-white cursor-not-allowed opacity-70' 
+            : 'bg-indigo-500 text-white shadow-indigo-500/20 hover:bg-indigo-600'
+          }`}
         >
           <i className="fas fa-plus text-[8px]"></i>
           Create Work Station
@@ -220,12 +256,31 @@ const WorkstationDashboard = () => {
             )}
 
             <button 
-              onClick={() => setIsModalOpen(true)}
-              className="w-full py-6 rounded-3xl border-2 border-dashed border-gray-100 dark:border-white/5 flex items-center justify-center gap-3 text-gray-400 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all group"
+              onClick={() => {
+                const ownedCount = stations.filter(s => s.owner === currentUser?.id).length;
+                if (ownedCount >= 10) {
+                  showToast("Maximum of 10 workstations reached.", "error");
+                  return;
+                }
+                setIsModalOpen(true);
+              }}
+              className={`w-full py-6 rounded-3xl border-2 border-dashed flex items-center justify-center gap-3 transition-all group ${
+                stations.filter(s => s.owner === currentUser?.id).length >= 10
+                ? 'border-gray-200 dark:border-gray-800 text-gray-300 cursor-not-allowed'
+                : 'border-gray-100 dark:border-white/5 text-gray-400 hover:border-indigo-500/50 hover:bg-indigo-500/5'
+              }`}
             >
               <i className="fas fa-plus text-[10px] group-hover:scale-125 transition-transform"></i>
               <span className="text-[10px] font-black uppercase tracking-[0.2em]">Deploy New Environment</span>
             </button>
+
+            {/* PAGINATION CONTROLS */}
+            <Pagination 
+              currentPage={currentPage}
+              totalFiles={totalCount}
+              filesPerPage={8}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
           </div>
         ) : (
           /* INVITES TAB */
@@ -277,6 +332,15 @@ const WorkstationDashboard = () => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         onCreated={loadData}
+      />
+
+      <DeleteModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDelete={confirmDelete}
+        isLoading={isDeleting}
+        title="Delete Workstation?"
+        message="This will permanently delete this workstation and all its version history. This action cannot be undone."
       />
     </main>
   );

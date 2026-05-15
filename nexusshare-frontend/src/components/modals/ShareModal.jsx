@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '../common/ToastContent';
 import { createShareLink } from '../../services/shareService';
+import { createBulkShareLink } from '../../services/shareService';
 
 const ShareModal = ({ isOpen, onClose, file, onSuccess }) => {
   const { showToast } = useToast();
@@ -9,8 +10,7 @@ const ShareModal = ({ isOpen, onClose, file, onSuccess }) => {
   const [emails, setEmails] = useState([]);
   const [currentInput, setCurrentInput] = useState("");
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
+
   const [expiry, setExpiry] = useState("5m");
   const [customDuration, setCustomDuration] = useState(60);
   
@@ -25,7 +25,8 @@ const ShareModal = ({ isOpen, onClose, file, onSuccess }) => {
     return 'fa-file-alt text-indigo-500';
   };
 
-  const fileName = file?.name || "unnamed_file";
+  const isBulk = Array.isArray(file);
+  const fileName = isBulk ? `${file.length} Files Selected` : (file?.name || "unnamed_file");
 
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
@@ -82,43 +83,66 @@ const ShareModal = ({ isOpen, onClose, file, onSuccess }) => {
       return;
     }
 
-    if (!file?.id) {
+    if (!isBulk && !file?.id) {
       showToast("File data is incomplete", "error");
       return;
     }
-
-    setLoading(true);
-    try {
-      // Map expiry to minutes
-      let duration_minutes = 60;
-      if (expiry === "5m") duration_minutes = 5;
-      else if (expiry === "1h") duration_minutes = 60;
-      else if (expiry === "24h") duration_minutes = 1440;
-      else if (expiry === "custom") duration_minutes = parseInt(customDuration) || 60;
-
-      await createShareLink(file.id, {
-        emails: finalEmails,
-        message,
-        duration_minutes: duration_minutes
-      });
-
-      setLoading(false);
-      setSent(true);
-      showToast(`Shared ${fileName} successfully!`, 'success');
-      
-      setTimeout(() => {
-        setSent(false);
-        onClose();
-        setEmails([]);
-        setMessage("");
-        setCurrentInput("");
-      }, 1500);
-      if (onSuccess) onSuccess();
-    } catch (error) {
-      setLoading(false);
-      console.error('Share failed:', error);
-      showToast(error.response?.data?.error || "Failed to generate shared link", "error");
+    if (isBulk && file.length === 0) {
+      showToast("No files selected", "error");
+      return;
     }
+
+    const shareId = `share-${Date.now()}`;
+    
+    // Dispatch initial progress state
+    window.dispatchEvent(new CustomEvent('upload-progress', {
+      detail: { id: shareId, name: `Sharing ${fileName}...`, progress: 45, status: 'uploading' }
+    }));
+
+    const executeShare = async () => {
+      try {
+        let duration_minutes = 60;
+        if (expiry === "5m") duration_minutes = 5;
+        else if (expiry === "1h") duration_minutes = 60;
+        else if (expiry === "24h") duration_minutes = 1440;
+        else if (expiry === "custom") duration_minutes = parseInt(customDuration) || 60;
+
+        if (isBulk) {
+          await createBulkShareLink({
+            file_ids: file.map(f => f.id),
+            emails: finalEmails,
+            message,
+            duration_minutes: duration_minutes
+          });
+        } else {
+          await createShareLink(file.id, {
+            emails: finalEmails,
+            message,
+            duration_minutes: duration_minutes
+          });
+        }
+
+        window.dispatchEvent(new CustomEvent('upload-progress', {
+          detail: { id: shareId, name: `Shared ${fileName}`, progress: 100, status: 'completed' }
+        }));
+        showToast(`Shared ${fileName} successfully!`, 'success');
+        
+      } catch (error) {
+        console.error('Share failed:', error);
+        window.dispatchEvent(new CustomEvent('upload-progress', {
+          detail: { id: shareId, name: `Failed to share`, progress: 0, status: 'removed' }
+        }));
+        showToast(error.response?.data?.error || "Failed to generate shared link", "error");
+      }
+    };
+
+    executeShare();
+    
+    onClose();
+    if (onSuccess) onSuccess();
+    setEmails([]);
+    setMessage("");
+    setCurrentInput("");
   };
 
   return (
@@ -219,16 +243,9 @@ const ShareModal = ({ isOpen, onClose, file, onSuccess }) => {
 
           <button 
             onClick={handleGenerate}
-            disabled={loading || sent}
-            className={`w-full mt-8 py-4 rounded-2xl shadow-lg transition flex items-center justify-center font-bold text-white active:scale-[0.98] ${sent ? 'bg-emerald-500' : 'gradient-bg hover:opacity-90'}`}
+            className="w-full mt-8 py-4 rounded-2xl shadow-lg transition flex items-center justify-center font-bold text-white active:scale-[0.98] gradient-bg hover:opacity-90"
           >
-            {loading ? (
-              <i className="fas fa-circle-notch fa-spin text-xl"></i>
-            ) : sent ? (
-              <><i className="fas fa-check-circle mr-2"></i> Sent Successfully!</>
-            ) : (
-              <><span>Share with {emails.length || 1} user{emails.length !== 1 ? 's' : ''}</span><i className="fas fa-paper-plane ml-2"></i></>
-            )}
+            <span>Share with {emails.length || 1} user{emails.length !== 1 ? 's' : ''}</span><i className="fas fa-paper-plane ml-2"></i>
           </button>
         </div>
       </div>

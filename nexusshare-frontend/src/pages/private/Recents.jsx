@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import FileRow from '../../components/elements/FileRow';
 import DeleteModal from '../../components/modals/DeleteModal';
 import { useToast } from '../../components/common/ToastContent';
-import { fetchRecentFiles } from '../../services/fileService';
+import { fetchRecentFiles, clearRecentFiles } from '../../services/fileService';
 
 const Recents = () => {
   const { showToast } = useToast();
@@ -123,7 +123,19 @@ const Recents = () => {
         </div>
 
         <button 
-          onClick={() => showToast("Activity history cleared", "info")}
+          onClick={async () => {
+            try {
+              setIsLoading(true);
+              await clearRecentFiles();
+              setRecentFiles([]);
+              showToast("Activity history cleared", "info");
+            } catch (e) {
+              console.error(e);
+              showToast("Failed to clear history", "error");
+            } finally {
+              setIsLoading(false);
+            }
+          }}
           className="w-full sm:w-auto px-6 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold rounded-2xl text-xs hover:text-indigo-600 transition shadow-sm active:scale-95 text-center"
         >
           Clear History

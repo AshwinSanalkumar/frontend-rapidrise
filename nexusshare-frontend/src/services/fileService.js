@@ -141,9 +141,9 @@ export const uploadFiles = async (files, descriptions = {}) => {
   for (let i = 0; i < files.length; i++) {
     try {
       const result = await uploadFile(files[i], descriptions[i] || '');
-      successes.push({ file: files[i].description, data: result });
+      successes.push({ file: files[i].name, data: result });
     } catch (error) {
-      failures.push({ file: files[i].description, error: error.response?.data || error.message });
+      failures.push({ file: files[i].name, error: error.response?.data || error.message });
     }
   }
 
@@ -188,6 +188,14 @@ export const fetchRecentFiles = async () => {
 
   const results = response.data.results ?? (Array.isArray(response.data) ? response.data : []);
   return results.map(mapFileFromApi);
+};
+
+/**
+ * Clears the user's recent file history.
+ */
+export const clearRecentFiles = async () => {
+  const response = await apiClient.delete('files/recents/clear/');
+  return response.data;
 };
 
 /**

@@ -35,6 +35,15 @@ export const declineRequest = async (requestId) => {
 };
 
 /**
+ * Deletes a request by the sender.
+ * @param {number|string} requestId
+ */
+export const deleteRequest = async (requestId) => {
+  const response = await apiClient.delete(`requests/${requestId}/delete/`);
+  return response.data;
+};
+
+/**
  * Fulfills a received request with a file upload.
  * @param {number|string} requestId
  * @param {FormData} formData

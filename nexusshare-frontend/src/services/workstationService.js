@@ -26,8 +26,19 @@ export const mapWorkstationFromApi = (apiWorkstation) => ({
   updatedAt: apiWorkstation.updated_at
 });
 
-export const fetchWorkstations = async () => {
-  const response = await apiClient.get('workstations/');
+export const fetchWorkstations = async (page = 1) => {
+  const response = await apiClient.get('workstations/', {
+    params: { page }
+  });
+  // Handle paginated response structure from DRF PageNumberPagination
+  if (response.data.results) {
+    return {
+      results: response.data.results.map(mapWorkstationFromApi),
+      count: response.data.count,
+      next: response.data.next,
+      previous: response.data.previous
+    };
+  }
   return response.data.map(mapWorkstationFromApi);
 };
 

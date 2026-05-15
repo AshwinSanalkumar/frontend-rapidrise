@@ -1,9 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link ,useNavigate} from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Profile = () => {
   const { user: authUser } = useAuth();
+  const navigate = useNavigate();
 
   if (!authUser) return null;
 
@@ -23,10 +24,23 @@ const Profile = () => {
   };
 
   return (
-    <main className="flex-1 p-8 lg:p-12 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900/50 min-h-screen">
-      <div className="max-w-5xl mx-auto">
+    <main className="flex-1 p-4 sm:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      
+
         
         {/* Header Section */}
+        <header>
+        <div className="flex items-center space-x-4 mb-8">
+                <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
+                  <i className="fas fa-arrow-left"></i>
+                </button>
+        
+                <nav className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
+
+                  <span className="text-gray-800 dark:text-gray-200">Profile</span>
+                </nav>
+              </div>
+        </header>
         <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Profile</h1>
@@ -112,7 +126,6 @@ const Profile = () => {
           </section>
         </div>
 
-      </div>
     </main>
   );
 };

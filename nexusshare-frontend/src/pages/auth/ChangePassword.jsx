@@ -7,7 +7,7 @@ import { useToast } from '../../components/common/ToastContent';
  * Internal Sub-component: PasswordField
  * Keeps the main component DRY and manages its own visibility state.
  */
-const PasswordField = ({ label, value, onChange, showToggle = true }) => {
+const PasswordField = ({ label, value, onChange, showToggle = true, extra = null }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   return (
@@ -33,6 +33,7 @@ const PasswordField = ({ label, value, onChange, showToggle = true }) => {
           </button>
         )}
       </div>
+      {extra}
     </div>
   );
 };
@@ -49,17 +50,36 @@ const ChangePassword = () => {
     confirmPass: ''
   });
 
+  const validations = {
+    lowercase: /[a-z]/.test(form.newPass),
+    uppercase: /[A-Z]/.test(form.newPass),
+    number: /[0-9]/.test(form.newPass),
+    special: /[!@#$%^&*()]/.test(form.newPass),
+    length: form.newPass.length >= 8
+  };
+
+  const isPasswordValid = Object.values(validations).every(Boolean);
+
+  const validationMessage = (() => {
+    if (!validations.lowercase) return 'Requires lowercase (a-z)';
+    if (!validations.uppercase) return 'Requires uppercase (A-Z)';
+    if (!validations.number) return 'Requires number (0-9)';
+    if (!validations.special) return 'Requires special (!@#)';
+    if (!validations.length) return 'Requires 8+ chars';
+    return 'Password is secure';
+  })();
+
   const handleUpdate = async (e) => {
     e.preventDefault();
     
     // Validation Logic
-    if (form.newPass !== form.confirmPass) {
-      showToast("New passwords do not match!", "error");
+    if (!isPasswordValid) {
+      showToast("Please meet all new password requirements!", "error");
       return;
     }
 
-    if (form.newPass.length < 8) {
-      showToast("Password must be at least 8 characters.", "error");
+    if (form.newPass !== form.confirmPass) {
+      showToast("New passwords do not match!", "error");
       return;
     }
 
@@ -121,6 +141,17 @@ const ChangePassword = () => {
                 label="New Password" 
                 value={form.newPass}
                 onChange={(val) => setForm({...form, newPass: val})}
+                extra={
+                  form.newPass && (
+                    <div className={`mt-1 text-[8.5px] font-bold uppercase tracking-wider ${!isPasswordValid ? 'text-amber-500' : 'text-emerald-500'}`}>
+                      {!isPasswordValid ? (
+                         <><i className="fas fa-exclamation-triangle mr-1"></i> {validationMessage}</>
+                      ) : (
+                         <><i className="fas fa-check-circle mr-1"></i> {validationMessage}</>
+                      )}
+                    </div>
+                  )
+                }
               />
 
               <PasswordField 

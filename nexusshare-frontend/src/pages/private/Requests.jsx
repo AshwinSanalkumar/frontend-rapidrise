@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { createFileRequest, fetchSentRequests } from '../../services/requestService';
+import { createFileRequest, fetchSentRequests, deleteRequest } from '../../services/requestService';
 import { useToast } from '../../components/common/ToastContent';
+import DeleteModal from '../../components/modals/DeleteModal';
 import ActiveDropzoneModal from '../../components/modals/ActiveDropzoneModal';
 
 const FileRequestPage = () => {
@@ -11,9 +12,13 @@ const FileRequestPage = () => {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [targetFile, setTargetFile] = useState(null);
   
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 5;
 
   useEffect(() => {
     loadRequests();
@@ -57,6 +62,30 @@ const FileRequestPage = () => {
     setSelectedRequest(req);
     setIsModalOpen(true);
   };
+
+
+
+  const handleDeleteRequest = (e, req) => {
+    e.stopPropagation();
+    setTargetFile(req);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      if (!targetFile) return;
+      await deleteRequest(targetFile.id);
+      setRequests(requests.filter(r => r.id !== targetFile.id));
+      showToast("Drop zone deleted successfully", "success");
+      setTargetFile(null);
+    } catch (error) {
+      showToast("Failed to delete drop zone", "error");
+      setTargetFile(null);
+    }
+  };
+
+
+  const totalPages = Math.ceil(requests.length / limit);
+  const currentRequests = requests.slice((currentPage - 1) * limit, currentPage * limit);
 
   return (
     <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
@@ -130,7 +159,7 @@ const FileRequestPage = () => {
                   <i className="fas fa-spinner fa-spin text-indigo-500 text-2xl"></i>
                 </div>
             ) : requests.length > 0 ? (
-              requests.map((req) => (
+              currentRequests.map((req) => (
               <div 
                 key={req.id} 
                 onClick={() => openDropzone(req)}
@@ -149,23 +178,52 @@ const FileRequestPage = () => {
                     <p className="text-xs text-gray-500 truncate max-w-[200px]">{req.note}</p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex flex-col items-end gap-2">
                   <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${
                       req.status === 'fulfilled' ? 'bg-emerald-100 text-emerald-700' : 
                       req.status === 'declined' ? 'bg-rose-100 text-rose-700' : 
                       'bg-gray-100 text-gray-500'}`}>
                     {req.status}
                   </span>
-                  <p className="text-[10px] text-gray-400 mt-2 font-medium">Click to view</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <button 
+                      onClick={(e) => handleDeleteRequest(e, req)}
+                      className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center justify-center transition-colors"
+                      title="Delete Drop Zone"
+                    >
+                      <i className="fas fa-trash-alt text-xs"></i>
+                    </button>
+                    <p className="text-[10px] text-gray-400 font-medium whitespace-nowrap">Click to view</p>
+                  </div>
                 </div>
               </div>
               ))
+
             ) : (
                 <div className="text-center py-12">
                    <p className="text-gray-400 font-medium">No drop-zones generated yet.</p>
                 </div>
             )}
           </div>
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center px-2 mt-4">
+              <button 
+                disabled={currentPage === 1} 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                className="text-xs font-bold text-gray-500 hover:text-indigo-600 disabled:opacity-50 transition-colors"
+              >
+                <i className="fas fa-chevron-left mr-1"></i> Previous
+              </button>
+              <span className="text-xs text-gray-400 font-medium whitespace-nowrap">Page {currentPage} of {totalPages}</span>
+              <button 
+                disabled={currentPage === totalPages} 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                className="text-xs font-bold text-gray-500 hover:text-indigo-600 disabled:opacity-50 transition-colors"
+              >
+                Next <i className="fas fa-chevron-right ml-1"></i>
+              </button>
+            </div>
+          )}
         </section>
       </div>
 
@@ -173,6 +231,14 @@ const FileRequestPage = () => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         requestData={selectedRequest}
+      />
+      <DeleteModal 
+        isOpen={!!targetFile}
+        onClose={() => setTargetFile(null)}
+        onDelete={confirmDelete}
+        title="Delete Drop Zone?"
+        message={`Are you sure you want to delete the drop zone generated for ${targetFile?.recipient_email}? This cannot be undone.`}
+        confirmText="Delete Drop Zone"
       />
     </main>
   );

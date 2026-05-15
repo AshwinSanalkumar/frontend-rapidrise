@@ -13,6 +13,7 @@ const MyFiles = () => {
       title="My Files" 
       subtitle="Select a file to generate a secure sharing link." 
       emptyState={MY_FILES_EMPTY_STATE}
+      enableMultiSelect={true}
     />
   );
 };

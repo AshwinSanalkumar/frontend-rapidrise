@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../components/common/ToastContent';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -9,6 +10,7 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useToast();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,6 +24,7 @@ const Login = () => {
       navigate('/dashboard'); // Redirect to dashboard
     } else {
       setError(result.message);
+      showToast(result.message, "error");
     }
   };
 
