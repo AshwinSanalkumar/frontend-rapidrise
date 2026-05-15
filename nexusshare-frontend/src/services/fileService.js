@@ -141,9 +141,9 @@ export const uploadFiles = async (files, descriptions = {}) => {
   for (let i = 0; i < files.length; i++) {
     try {
       const result = await uploadFile(files[i], descriptions[i] || '');
-      successes.push({ file: files[i].description, data: result });
+      successes.push({ file: files[i].name, data: result });
     } catch (error) {
-      failures.push({ file: files[i].description, error: error.response?.data || error.message });
+      failures.push({ file: files[i].name, error: error.response?.data || error.message });
     }
   }
 

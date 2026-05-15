@@ -30,9 +30,17 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userInfo));
       return { success: true };
     } catch (error) {
+      const data = error.response?.data;
+      let msg = data?.error || 'Login failed';
+
+      // SimpleJWT usually returns errors in the 'detail' field
+      if (data?.detail) {
+        msg = 'Invalid credentials. Please try again.';
+      }
+
       return { 
         success: false, 
-        message: error.response?.data?.error || 'Login failed' 
+        message: msg
       };
     } finally {
       setIsLoading(false);
@@ -55,9 +63,22 @@ export const AuthProvider = ({ children }) => {
       await registerUser(userData);
       return { success: true };
     } catch (error) {
+      const data = error.response?.data;
+      let msg = data?.error || 'Registration failed';
+      
+      if (data?.email && Array.isArray(data.email) && data.email[0].toLowerCase().includes('already exists')) {
+        msg = 'Account already exists. Please login.';
+      } else if (data && typeof data === 'object' && !data.error) {
+        // Fallback for other DRF field validation errors
+        const firstKey = Object.keys(data)[0];
+        if (firstKey && Array.isArray(data[firstKey])) {
+          msg = data[firstKey][0];
+        }
+      }
+
       return { 
         success: false, 
-        message: error.response?.data?.error || 'Registration failed' 
+        message: msg
       };
     } finally {
       setIsLoading(false);

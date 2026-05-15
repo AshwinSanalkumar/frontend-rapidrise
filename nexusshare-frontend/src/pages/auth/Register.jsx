@@ -9,10 +9,34 @@ const Register = () => {
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   // Visibility states for both password fields
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  // Calendar Helper States
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  const daysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+  const firstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
+
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -28,17 +52,51 @@ const Register = () => {
     if (error) setError(''); // Reset error when user types
   };
 
+  const validations = {
+    lowercase: /[a-z]/.test(formData.password),
+    uppercase: /[A-Z]/.test(formData.password),
+    number: /[0-9]/.test(formData.password),
+    special: /[!@#$%^&*()]/.test(formData.password),
+    length: formData.password.length >= 8
+  };
+
+  const isPasswordValid = Object.values(validations).every(Boolean);
+
+  const validationMessage = (() => {
+    if (!validations.lowercase) return 'Requires lowercase (a-z)';
+    if (!validations.uppercase) return 'Requires uppercase (A-Z)';
+    if (!validations.number) return 'Requires number (0-9)';
+    if (!validations.special) return 'Requires special (!@#)';
+    if (!validations.length) return 'Requires 8+ chars';
+    return 'Password is secure';
+  })();
+
   const handleRegister = async (e) => {
     e.preventDefault();
-    
-    if (formData.password !== formData.confirm_password) {
-      setError('Passwords do not match');
+
+    if (!isPasswordValid) {
+      showToast('Please meet all password requirements', 'error');
       return;
+    }
+
+    if (formData.password !== formData.confirm_password) {
+      showToast('Passwords do not match', 'error');
+      return;
+    }
+
+    if (formData.dob) {
+        if (calculateAge(formData.dob) < 15) {
+            showToast('You must be at least 15 years old to register.', 'error');
+            return;
+        }
+    } else {
+        showToast('Birth date is required.', 'error');
+        return;
     }
 
     setIsLoading(true);
     const result = await register(formData);
-    
+
     setIsLoading(false);
     if (result.success) {
       showToast('Account created successfully! Please sign in.', 'success');
@@ -52,7 +110,7 @@ const Register = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 transition-colors">
       <div className="w-full max-w-5xl grid lg:grid-cols-2 bg-white dark:bg-slate-900 shadow-2xl rounded-[2.5rem] overflow-hidden border border-slate-100 dark:border-slate-800">
-        
+
         {/* Left Side: Branding - Matching Login Design */}
         <div className="hidden lg:flex sidebar-dark p-16 flex-col justify-between relative overflow-hidden security-grid bg-[#0f172a]">
           <div className="relative z-10">
@@ -62,10 +120,10 @@ const Register = () => {
               </div>
               <span className="text-xl font-bold text-white tracking-tight">NexusShare</span>
             </Link>
-            
+
             <h1 className="text-5xl font-extrabold text-white leading-tight mb-6">
-              Share and <br /> 
-              Store files <br /> 
+              Share and <br />
+              Store files <br />
               <span className="text-indigo-400 font-mono tracking-tighter italic text-4xl">Securely.</span>
             </h1>
           </div>
@@ -100,7 +158,7 @@ const Register = () => {
               </div>
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Last Name</label>
-                <input type="text" name="last_name" required placeholder="Last name" value={formData.last_name} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                <input type="text" name="last_name"  placeholder="Last name" value={formData.last_name} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
               </div>
             </div>
 
@@ -109,9 +167,88 @@ const Register = () => {
               <input type="email" name="email" required placeholder="example@gmail.com" value={formData.email} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 relative">
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Birth Date</label>
-              <input type="date" name="dob" required value={formData.dob} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+              <div 
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white cursor-pointer flex justify-between items-center transition-all hover:border-indigo-500"
+              >
+                <span className={formData.dob ? 'text-slate-900 dark:text-white' : 'text-slate-400'}>
+                  {formData.dob ? new Date(formData.dob).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Select your birth date'}
+                </span>
+                <i className="fas fa-calendar-alt text-indigo-500 opacity-60"></i>
+              </div>
+
+              {showCalendar && (
+                <div className="absolute top-full left-0 mt-2 w-full max-w-[260px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="flex justify-between items-center mb-3">
+                    <button type="button" onClick={() => {
+                        if (currentMonth === 0) { setCurrentMonth(11); setCurrentYear(currentYear - 1); }
+                        else { setCurrentMonth(currentMonth - 1); }
+                    }} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition">
+                        <i className="fas fa-chevron-left text-[10px]"></i>
+                    </button>
+                    <div className="flex space-x-1">
+                        <select 
+                            value={currentMonth} 
+                            onChange={(e) => setCurrentMonth(parseInt(e.target.value))}
+                            className="text-[10px] font-bold bg-transparent dark:text-white focus:outline-none cursor-pointer"
+                        >
+                            {months.map((m, i) => <option key={m} value={i} className="dark:bg-slate-900">{m}</option>)}
+                        </select>
+                        <select 
+                            value={currentYear} 
+                            onChange={(e) => setCurrentYear(parseInt(e.target.value))}
+                            className="text-[10px] font-bold bg-transparent dark:text-white focus:outline-none cursor-pointer"
+                        >
+                            {Array.from({length: 100}, (_, i) => new Date().getFullYear() - i).map(y => <option key={y} value={y} className="dark:bg-slate-900">{y}</option>)}
+                        </select>
+                    </div>
+                    <button type="button" onClick={() => {
+                        if (currentMonth === 11) { setCurrentMonth(0); setCurrentYear(currentYear + 1); }
+                        else { setCurrentMonth(currentMonth + 1); }
+                    }} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition">
+                        <i className="fas fa-chevron-right text-[10px]"></i>
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-7 gap-0.5 mb-1">
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
+                        <div key={d} className="text-[9px] font-black text-slate-300 dark:text-slate-600 text-center uppercase py-0.5">{d}</div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-0.5">
+                    {Array(firstDayOfMonth(currentMonth, currentYear)).fill(null).map((_, i) => (
+                        <div key={`empty-${i}`} className="p-1"></div>
+                    ))}
+                    {Array.from({length: daysInMonth(currentMonth, currentYear)}, (_, i) => i + 1).map(day => {
+                        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        const isSelected = formData.dob === dateStr;
+                        const isToday = new Date().toISOString().split('T')[0] === dateStr;
+
+                        return (
+                            <div 
+                                key={day} 
+                                onClick={() => {
+                                    setFormData({...formData, dob: dateStr});
+                                    setShowCalendar(false);
+                                }}
+                                className={`p-1.5 text-[10px] font-bold text-center rounded-lg cursor-pointer transition-all ${
+                                    isSelected 
+                                    ? 'bg-indigo-600 text-white shadow-md' 
+                                    : isToday
+                                    ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600'
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                }`}
+                            >
+                                {day}
+                            </div>
+                        );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -123,6 +260,15 @@ const Register = () => {
                     <i className={`fas ${showPass ? 'fa-eye-slash' : 'fa-eye'} text-xs`}></i>
                   </button>
                 </div>
+                {formData.password && (
+                  <div className={`mt-1 text-[8.5px] font-bold uppercase tracking-wider ${!isPasswordValid ? 'text-amber-500' : 'text-emerald-500'}`}>
+                    {!isPasswordValid ? (
+                      <><i className="fas fa-exclamation-triangle mr-1"></i> {validationMessage}</>
+                    ) : (
+                      <><i className="fas fa-check-circle mr-1"></i> {validationMessage}</>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Confirm</label>
@@ -141,8 +287,8 @@ const Register = () => {
               </div>
             )}
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isLoading}
               className="btn-auth w-full text-white font-bold py-4 rounded-xl flex items-center justify-center group shadow-lg shadow-indigo-500/20 mt-4 active:scale-[0.98] disabled:opacity-70"
             >

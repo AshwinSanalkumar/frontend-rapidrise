@@ -119,7 +119,12 @@ const Sidebar = ({ isOpen, onClose }) => {
       }
 
       if (failures.length > 0) {
-        showToast(`${failures.length} file(s) failed to upload.`, 'error');
+        const firstError = failures[0].error;
+        const errorMessage = typeof firstError === 'string' 
+          ? firstError 
+          : (firstError.error || firstError.detail || `${failures.length} file(s) failed to upload.`);
+        
+        showToast(errorMessage, 'error');
         if (successes.length === 0) {
            dispatchProgress(0, 'removed');
         }

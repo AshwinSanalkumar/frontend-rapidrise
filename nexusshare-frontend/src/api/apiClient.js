@@ -38,8 +38,12 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    // If the error is 401 (Unauthorized) and we haven't retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Skip refresh logic for specific auth endpoints
+    const authEndpoints = ['login/', 'register/', 'refresh/', 'forgot-password/', 'reset-password/'];
+    const isAuthEndpoint = authEndpoints.some(endpoint => originalRequest.url.includes(endpoint));
+
+    // If the error is 401 (Unauthorized), we haven't retried yet, and it's NOT an auth endpoint
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
 
       // If a refresh is already in progress, queue this request
