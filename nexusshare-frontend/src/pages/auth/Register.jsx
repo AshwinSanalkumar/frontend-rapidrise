@@ -290,7 +290,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-auth w-full text-white font-bold py-4 rounded-xl flex items-center justify-center group shadow-lg shadow-indigo-500/20 mt-4 active:scale-[0.98] disabled:opacity-70"
+              className="btn-auth w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl flex items-center justify-center group shadow-lg shadow-indigo-500/20 mt-4 active:scale-[0.98] disabled:opacity-70"
             >
               {isLoading ? (
                 <i className="fas fa-circle-notch fa-spin text-lg"></i>

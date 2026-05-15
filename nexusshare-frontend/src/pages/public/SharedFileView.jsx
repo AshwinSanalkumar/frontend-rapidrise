@@ -70,15 +70,7 @@ const SharedFileView = () => {
 
     setTimeout(() => {
       if (email.toLowerCase().trim() === AUTHORIZED_EMAIL) {
-        const publicUrl = getPublicShareUrl(shareId);
-        setFileData({
-          name: 'Protected Asset',
-          size: 'Encrypted',
-          type: 'application/octet-stream', // Generic, browser will handle based on response headers 
-          owner: 'Restricted Access',
-          previewUrl: publicUrl,
-          expiresIn: 'Single Access'
-        });
+        // Keep existing fileData and just unlock
         setStatus('active');
       } else {
         setStatus('denied');
@@ -96,6 +88,8 @@ const SharedFileView = () => {
     const isImage = mimeType.startsWith('image/') || fileName.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
     const isPDF = mimeType === 'application/pdf' || fileName.endsWith('.pdf');
     const isExcel = mimeType.includes('spreadsheet') || mimeType.includes('excel') || fileName.match(/\.(xls|xlsx)$/i);
+    const isVideo = mimeType.startsWith('video/') || fileName.match(/\.(mp4|mpeg|ogg|webm|mov)$/i);
+    const isAudio = mimeType.startsWith('audio/') || fileName.match(/\.(mp3|wav|ogg|m4a)$/i);
     const previewUrl = fileData.previewUrl;
 
     if (isImage && previewUrl) {
@@ -119,6 +113,44 @@ const SharedFileView = () => {
       );
     }
 
+    if (isVideo && previewUrl) {
+      return (
+        <div className={`w-full h-full flex items-center justify-center ${!isModal ? 'aspect-video' : ''}`}>
+          <video 
+            src={previewUrl} 
+            controls 
+            playsInline
+            crossOrigin="anonymous"
+            className={`${isModal ? 'max-h-[85vh] max-w-[90vw] rounded-3xl' : 'w-full h-full'} outline-none shadow-2xl`}
+          >
+            <source src={previewUrl} type={mimeType} />
+          </video>
+        </div>
+      );
+    }
+
+    if (isAudio && previewUrl) {
+      return (
+        <div className="flex flex-col items-center justify-center p-12 w-full animate-in fade-in duration-700">
+          <div className="w-24 h-24 bg-indigo-500/10 text-indigo-500 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl">
+            <i className="fas fa-music text-4xl"></i>
+          </div>
+          <div className="text-center mb-8">
+            <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em] mb-1">Streaming Audio</p>
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{fileData.name}</p>
+          </div>
+          <audio 
+            src={previewUrl} 
+            controls 
+            crossOrigin="anonymous"
+            className="w-full max-w-md"
+          >
+            <source src={previewUrl} type={mimeType} />
+          </audio>
+        </div>
+      );
+    }
+
     return (
       <div className={`flex flex-col items-center justify-center p-12 text-center ${isModal ? 'scale-125' : ''}`}>
         <div className={`rounded-[2rem] flex items-center justify-center mb-4 shadow-2xl
@@ -127,7 +159,7 @@ const SharedFileView = () => {
           <i className={`fas ${isPDF ? 'fa-file-pdf' : isExcel ? 'fa-file-excel' : 'fa-file-lines'} ${isModal ? 'text-7xl' : 'text-4xl'}`}></i>
         </div>
         <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
-          {isPDF ? 'PDF Document' : isExcel ? 'Spreadsheet' : 'Secure File'}
+          {isPDF ? 'PDF Document' : isExcel ? 'Spreadsheet' : isVideo ? 'Video Clip' : isAudio ? 'Audio Stream' : 'Secure File'}
         </p>
       </div>
     );
@@ -211,7 +243,8 @@ const SharedFileView = () => {
       )}
 
       <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-[3rem] shadow-2xl overflow-hidden border border-white dark:border-gray-700 flex flex-col lg:flex-row animate-in zoom-in duration-500">
-        <div className="lg:w-[60%] bg-gray-100 dark:bg-gray-900 relative min-h-[400px] flex items-center justify-center group overflow-hidden">
+        <div className={`lg:w-[60%] bg-gray-100 dark:bg-gray-900 relative min-h-[400px] flex items-center justify-center group overflow-hidden
+          ${fileData?.type?.startsWith('video/') ? 'aspect-video' : ''}`}>
           {renderFilePreview()}
           <div className="absolute top-8 left-8">
             <div className="bg-black/40 backdrop-blur-md text-white text-[10px] font-bold px-4 py-2 rounded-full border border-white/10 uppercase tracking-widest flex items-center">

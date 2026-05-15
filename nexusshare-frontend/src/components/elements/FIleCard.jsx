@@ -20,6 +20,8 @@ const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage, enableMu
     const configs = {
       image: { icon: 'fa-file-image', color: 'text-blue-500', bg: 'bg-blue-50' },
       pdf: { icon: 'fa-file-pdf', color: 'text-red-500', bg: 'bg-red-50' },
+      video: { icon: 'fa-file-video', color: 'text-purple-500', bg: 'bg-purple-50' },
+      audio: { icon: 'fa-file-audio', color: 'text-indigo-500', bg: 'bg-indigo-50' },
       excel: { icon: 'fa-file-excel', color: 'text-emerald-500', bg: 'bg-emerald-50' },
       word: { icon: 'fa-file-word', color: 'text-indigo-500', bg: 'bg-indigo-50' },
       zip: { icon: 'fa-file-archive', color: 'text-amber-500', bg: 'bg-amber-50' },
@@ -110,7 +112,7 @@ const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage, enableMu
         ${isList
           ? 'w-[60px] h-[45px] rounded-lg mr-6'
           : 'h-32 w-full rounded-[1.5rem] mb-4'}
-        ${file.type === 'image' ? 'bg-gray-50 dark:bg-gray-900/50' : `dark:bg-gray-900/30 ${config.bg.replace('bg-', 'bg-opacity-20 bg-')}`} `}
+        ${(file.type === 'image' || file.type === 'video') ? 'bg-gray-50 dark:bg-gray-900/50' : `dark:bg-gray-900/30 ${config.bg.replace('bg-', 'bg-opacity-20 bg-')}`} `}
       >
         {file.type === 'image' && file.preview ? (
           <img
@@ -118,6 +120,19 @@ const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage, enableMu
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             alt={file.name}
           />
+        ) : file.type === 'video' && file.preview ? (
+          <div className="w-full h-full relative group/vid">
+             <video 
+                src={`${file.preview}#t=0.5`} 
+                preload="metadata"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 pointer-events-none"
+             />
+             <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/0 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center opacity-80 border border-white/30">
+                   <i className="fas fa-play text-white text-[8px] ml-0.5"></i>
+                </div>
+             </div>
+          </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <i className={`fas ${config.icon} ${config.color} ${isList ? 'text-xl' : 'text-3xl'} group-hover:rotate-12 transition-transform duration-300`}></i>

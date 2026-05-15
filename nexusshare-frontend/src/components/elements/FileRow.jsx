@@ -19,6 +19,13 @@ const FileRow = ({ id, name, subtitle, modified, size, iconClass, colorClass, bg
           <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 overflow-hidden group-hover:scale-105 transition-transform duration-500 flex items-center justify-center">
             {type === 'image' && imageUrl ? (
               <img src={imageUrl} alt={name} className="w-full h-full object-cover opacity-90" />
+            ) : type === 'video' && imageUrl ? (
+              <div className="w-full h-full relative">
+                <video src={`${imageUrl}#t=0.5`} preload="metadata" className="w-full h-full object-cover opacity-90 pointer-events-none" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                  <i className="fas fa-play text-white text-[6px]"></i>
+                </div>
+              </div>
             ) : (
               <div className={`w-full h-full flex items-center justify-center ${bgClass || 'bg-gray-100'} ${colorClass || 'text-gray-400'}`}>
                 <i className={`${iconClass || 'fas fa-file'} text-xl group-hover:rotate-12 transition-transform duration-300`}></i>

@@ -52,6 +52,8 @@ const FileDetailsPage = () => {
     const isImage = mimeType === 'image';
     const isPDF = mimeType === 'pdf';
     const isExcel = mimeType === 'excel';
+    const isVideo = mimeType === 'video';
+    const isAudio = mimeType === 'audio';
 
     if (isImage && fileData.preview) {
       return (
@@ -74,6 +76,31 @@ const FileDetailsPage = () => {
       );
     }
 
+    if (isVideo && fileData.preview) {
+      return (
+        <video 
+          src={fileData.preview} 
+          controls 
+          className={`${isModal ? 'max-h-[85vh] max-w-[90vw] rounded-3xl' : 'w-full h-full'} outline-none`}
+        />
+      );
+    }
+
+    if (isAudio && fileData.preview) {
+      return (
+        <div className="flex flex-col items-center justify-center p-8 w-full">
+          <div className="w-20 h-20 bg-indigo-500/10 text-indigo-500 rounded-full flex items-center justify-center mb-6 shadow-xl">
+            <i className="fas fa-volume-up text-3xl"></i>
+          </div>
+          <audio 
+            src={fileData.preview} 
+            controls 
+            className="w-full max-w-md"
+          />
+        </div>
+      );
+    }
+
     return (
       <div className={`flex flex-col items-center justify-center p-12 text-center ${isModal ? 'scale-125' : ''}`}>
         <div className={`rounded-[2rem] flex items-center justify-center mb-4 shadow-2xl
@@ -82,7 +109,7 @@ const FileDetailsPage = () => {
           <i className={`fas ${isPDF ? 'fa-file-pdf' : isExcel ? 'fa-file-excel' : 'fa-file-lines'} ${isModal ? 'text-7xl' : 'text-4xl'}`}></i>
         </div>
         <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
-          {isPDF ? 'PDF Document' : isExcel ? 'Spreadsheet' : 'Secure File'}
+          {isPDF ? 'PDF Document' : isExcel ? 'Spreadsheet' : isVideo ? 'Video Clip' : isAudio ? 'Audio Stream' : 'Secure File'}
         </p>
       </div>
     );
