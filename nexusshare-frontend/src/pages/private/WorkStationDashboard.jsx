@@ -278,7 +278,7 @@ const WorkstationDashboard = () => {
             <Pagination 
               currentPage={currentPage}
               totalFiles={totalCount}
-              filesPerPage={5}
+              filesPerPage={8}
               onPageChange={(page) => setCurrentPage(page)}
             />
           </div>
