@@ -57,7 +57,7 @@ const Profile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Panel: Identity */}
-          <section className="lg:col-span-4 bg-white dark:bg-gray-800 p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col items-center text-center">
+          <section className="lg:col-span-4 bg-white dark:bg-gray-800 p-6 sm:p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col items-center text-center">
             <div className="h-28 w-28 rounded-[2.5rem] gradient-bg flex items-center justify-center text-white text-4xl font-bold shadow-xl mb-6">
               {user.initial}
             </div>
@@ -94,17 +94,17 @@ const Profile = () => {
               </div>
 
               {/* Member Since Tile */}
-              <div className="md:col-span-2 bg-indigo-50 dark:bg-indigo-900/20 p-8 rounded-[2.5rem] border border-indigo-100 dark:border-indigo-800/50 flex justify-between items-center">
+              <div className="md:col-span-2 bg-indigo-50 dark:bg-indigo-900/20 p-6 sm:p-8 rounded-[2.5rem] border border-indigo-100 dark:border-indigo-800/50 flex justify-between items-center">
                 <div>
                   <label className="block text-[10px] font-bold text-indigo-400 dark:text-indigo-300 uppercase tracking-widest mb-1">Member Since</label>
-                  <p className="text-lg font-bold text-indigo-900 dark:text-indigo-100">{user.joined}</p>
+                  <p className="text-base sm:text-lg font-bold text-indigo-900 dark:text-indigo-100">{user.joined}</p>
                 </div>
-                <i className="fas fa-award text-3xl text-indigo-200 dark:text-indigo-800"></i>
+                <i className="fas fa-award text-2xl sm:text-3xl text-indigo-200 dark:text-indigo-800"></i>
               </div>
             </div>
 
             {/* Security Section */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm border-l-4 border-l-indigo-500">
+            <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm border-l-4 border-l-indigo-500">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center space-x-4">
                   <div className="p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl text-indigo-500">
@@ -117,7 +117,7 @@ const Profile = () => {
                 </div>
                 <Link 
                   to="/profile/update/credentials" 
-                  className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold px-8 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition active:scale-95"
+                  className="w-full md:w-auto bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold px-8 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition active:scale-95 text-center"
                 >
                   Reset Password
                 </Link>

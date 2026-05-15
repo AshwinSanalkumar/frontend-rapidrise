@@ -104,13 +104,13 @@ const Navbar = ({ onToggleSidebar }) => {
 
         <Link to="/dashboard" className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 md:w-10 md:h-10 gradient-bg rounded-lg md:rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <i className="fas fa-share-nodes text-white text-sm md:text-xl"></i>
+            <i className="fas fa-share-nodes text-white text-xs md:text-xl"></i>
           </div>
           <div className="flex flex-col">
-            <span className="text-base md:text-xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
-              NEXUS<span className="text-indigo-500">SHARE</span>
+            <span className="text-sm md:text-xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
+              NEXUS<span className="text-indigo-500 hidden xs:inline">SHARE</span>
             </span>
-            <span className="hidden xs:block text-[6px] md:text-[7px] font-black tracking-[0.2em] md:tracking-[0.3em] text-gray-400 uppercase leading-none mt-1">
+            <span className="hidden sm:block text-[6px] md:text-[7px] font-black tracking-[0.2em] md:tracking-[0.3em] text-gray-400 uppercase leading-none mt-1">
               Verified Protocol
             </span>
           </div>
@@ -118,11 +118,11 @@ const Navbar = ({ onToggleSidebar }) => {
       </div>
 
       {/* RIGHT: TOOLS & PROFILE */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3 md:gap-6">
         
         {/* SEARCH BAR SECTION */}
         <div className="relative" ref={searchRef}>
-          <div className="hidden md:flex items-center bg-gray-100 dark:bg-gray-800/50 rounded-full px-4 py-2 border border-transparent focus-within:border-indigo-500 focus-within:bg-white dark:focus-within:bg-gray-800 transition-all">
+          <div className="hidden lg:flex items-center bg-gray-100 dark:bg-gray-800/50 rounded-full px-4 py-2 border border-transparent focus-within:border-indigo-500 focus-within:bg-white dark:focus-within:bg-gray-800 transition-all">
             <i className="fas fa-search text-gray-400 mr-2"></i>
             <input 
               type="text" 
@@ -131,7 +131,7 @@ const Navbar = ({ onToggleSidebar }) => {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleSearchSubmit}
               onFocus={() => searchQuery && setShowSuggestions(true)}
-              className="bg-transparent border-none outline-none text-sm w-64 dark:text-gray-200"
+              className="bg-transparent border-none outline-none text-sm w-48 xl:w-64 dark:text-gray-200"
             />
           </div>
 
@@ -175,16 +175,15 @@ const Navbar = ({ onToggleSidebar }) => {
             </span>
           )}
         </Link>
-        {/* PROFILE SECTION */}
         <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex items-center gap-3 border-l pl-6 border-gray-200 dark:border-gray-700 hover:opacity-80 transition-all"
+            className="flex items-center gap-3 border-l pl-4 md:pl-6 border-gray-200 dark:border-gray-700 hover:opacity-80 transition-all"
           >
-              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold border-2 border-white dark:border-gray-800 shadow-sm">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xs md:text-sm font-black border-2 border-white dark:border-gray-800 shadow-sm">
               {user ? (user.first_name ? user.first_name[0] : user.email[0].toUpperCase()) : 'A'}
             </div>
-            <div className="text-left hidden sm:block">
+            <div className="text-left hidden lg:block">
               <p className="text-sm font-bold dark:text-white leading-none">{user?.first_name || 'User'}</p>
               <p className="text-[8px] text-gray-500 dark:text-gray-400 tracking-wider">{user?.email || 'email@example.com'}</p>
             </div>

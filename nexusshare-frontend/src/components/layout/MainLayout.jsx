@@ -34,8 +34,8 @@ const MainLayout = () => {
 
         <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
         
-        <main className="flex-1 h-[calc(100vh-73px)] overflow-y-auto custom-scrollbar">
-          <div className="w-full max-w-none px-0">
+        <main className="flex-1 h-[calc(100vh-73px)] lg:h-[calc(100vh-88px)] overflow-y-auto custom-scrollbar">
+          <div className="w-full max-w-none p-4 sm:p-6 lg:p-0">
             <Outlet context={{ isSidebarOpen, toggleSidebar }} />
           </div>
         </main>

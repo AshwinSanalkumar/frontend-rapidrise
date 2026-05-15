@@ -25,7 +25,7 @@ const LandingN = () => {
               </span>
             </div>
             
-            <h1 className="text-6xl md:text-8xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter">
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter">
               Disappear <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-400">Without Trace.</span>
             </h1>
@@ -128,8 +128,8 @@ const LandingN = () => {
       </section>
 
       {/* Tech Footer */}
-      <footer className="py-20 px-6 border-t border-gray-100 dark:border-white/5 relative z-10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
+      <footer className="py-12 md:py-20 px-6 border-t border-gray-100 dark:border-white/5 relative z-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10 md:gap-12 text-center md:text-left">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
               <i className="fas fa-share-nodes text-white text-xl"></i>

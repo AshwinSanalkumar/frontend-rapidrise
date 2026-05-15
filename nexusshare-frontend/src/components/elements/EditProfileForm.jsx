@@ -188,11 +188,11 @@ const EditProfileForm = ({ onSave, isSaving, isSuccess }) => {
       </div>
 
       {/* Form Actions */}
-      <div className="pt-8 border-t border-gray-50 dark:border-gray-700 flex justify-end items-center space-x-6">
+      <div className="pt-8 border-t border-gray-50 dark:border-gray-700 flex flex-col sm:flex-row justify-end items-center space-y-4 sm:space-y-0 sm:space-x-6">
         <button 
           type="button" 
           onClick={() => navigate('/profile')} 
-          className="text-sm font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
+          className="w-full sm:w-auto text-sm font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition text-center"
         >
           Cancel
         </button>
@@ -200,7 +200,7 @@ const EditProfileForm = ({ onSave, isSaving, isSuccess }) => {
         <button 
           type="submit" 
           disabled={isSaving || isSuccess}
-          className={`font-bold py-4 px-10 rounded-2xl shadow-lg transition-all transform active:scale-95 flex items-center min-w-[190px] justify-center ${
+          className={`w-full sm:w-auto font-bold py-4 px-10 rounded-2xl shadow-lg transition-all transform active:scale-95 flex items-center justify-center ${
             isSuccess ? 'bg-emerald-500 text-white shadow-emerald-200' : 'gradient-bg text-white hover:opacity-90'
           }`}
         >

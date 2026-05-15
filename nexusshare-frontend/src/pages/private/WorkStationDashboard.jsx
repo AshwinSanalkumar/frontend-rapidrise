@@ -173,7 +173,7 @@ const WorkstationDashboard = () => {
         ) : activeTab === 'active' ? (
           <div className="space-y-4">
             {/* TABLE HEADERS */}
-            <div className="hidden md:grid grid-cols-12 px-8 py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+            <div className="hidden lg:grid grid-cols-12 px-8 py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">
               <div className="col-span-4">Project Identification</div>
               <div className="col-span-2 text-center">Privacy</div>
               <div className="col-span-2 text-center">Contributors</div>
@@ -190,9 +190,9 @@ const WorkstationDashboard = () => {
                 <div 
                   key={station.id}
                   onClick={() => navigate(`/workstation/${station.id}`)}
-                  className="group grid grid-cols-1 md:grid-cols-12 items-center bg-white dark:bg-gray-800 backdrop-blur-sm px-8 py-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 cursor-pointer active:scale-[0.99]"
+                  className="group grid grid-cols-1 lg:grid-cols-12 items-center bg-white dark:bg-gray-800 backdrop-blur-sm px-6 lg:px-8 py-5 lg:py-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 cursor-pointer active:scale-[0.99] gap-4 lg:gap-0"
                 >
-                  <div className="col-span-4 flex items-center gap-5">
+                  <div className="col-span-4 flex items-center gap-4 lg:gap-5">
                     <div className="w-10 h-10 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-500">
                       <i className="fas fa-laptop text-sm"></i>
                     </div>
@@ -206,8 +206,8 @@ const WorkstationDashboard = () => {
                     </div>
                   </div>
 
-                  <div className="col-span-2 flex justify-center py-4 md:py-0">
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${
+                  <div className="col-span-2 flex lg:justify-center py-0">
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full border w-fit ${
                       station.visibility === 'public' 
                       ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-500' 
                       : 'bg-indigo-500/5 border-indigo-500/20 text-indigo-500'
@@ -216,7 +216,7 @@ const WorkstationDashboard = () => {
                     </div>
                   </div>
 
-                  <div className="col-span-2 flex justify-center">
+                  <div className="col-span-2 flex lg:justify-center">
                     <div className="flex -space-x-2">
                       {station.members.slice(0, 3).map((member, i) => (
                         <div key={member.id} className="w-7 h-7 rounded-lg border-2 border-white dark:border-gray-900 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-[8px] font-bold text-gray-400 shadow-sm" title={member.name}>
@@ -231,23 +231,23 @@ const WorkstationDashboard = () => {
                     </div>
                   </div>
 
-                  <div className="col-span-2 text-center">
+                  <div className="col-span-2 lg:text-center">
                     <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ">
                       {new Date(station.updatedAt).toLocaleDateString()}
                     </p>
                   </div>
 
-                  <div className="col-span-2 flex justify-end gap-2 pr-4">
+                  <div className="col-span-2 flex lg:justify-end items-center gap-2 lg:pr-4 pt-4 lg:pt-0 border-t lg:border-none border-gray-50 dark:border-white/5">
                     {currentUser && station.owner === currentUser.id && (
                       <button 
                         onClick={(e) => handleDelete(e, station.id)}
-                        className="w-8 h-8 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center group/btn"
+                        className="w-10 h-10 lg:w-8 lg:h-8 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center group/btn"
                         title="Delete Workstation"
                       >
                         <i className="fas fa-trash-alt text-[10px]"></i>
                       </button>
                     )}
-                    <div className="w-8 h-8 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500 flex items-center justify-center">
+                    <div className="w-10 h-10 lg:w-8 lg:h-8 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500 flex items-center justify-center ml-auto lg:ml-0">
                       <i className="fas fa-chevron-right text-[10px]"></i>
                     </div>
                   </div>

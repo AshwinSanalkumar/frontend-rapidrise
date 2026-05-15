@@ -153,7 +153,7 @@ const Dashboard = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col items-center justify-between min-h-[180px]">
               <h3 className="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest text-left">Storage</h3>
               <div className="relative flex items-center justify-center">
@@ -257,7 +257,7 @@ const Dashboard = () => {
           </Link>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {files.slice(0, 5).map(file => {
             const iconMap = {
               pdf: { icon: 'fa-file-pdf', color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
