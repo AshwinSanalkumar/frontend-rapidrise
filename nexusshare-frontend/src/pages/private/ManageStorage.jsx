@@ -4,6 +4,7 @@ import { useToast } from '../../components/common/ToastContent';
 import DeleteModal from '../../components/modals/DeleteModal';
 import { fetchDuplicates, fetchStorageStats, fetchLargeFiles, deleteFile, emptyTrash, cleanupDuplicates } from '../../services/fileService';
 import { useEffect } from 'react';
+import { getFileConfig } from '../../utils/fileUtils';
 
 const ManageStorage = () => {
   const { showToast } = useToast();
@@ -243,28 +244,31 @@ const ManageStorage = () => {
                    <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               ) : largeFiles.length > 0 ? (
-                largeFiles.map((file) => (
-                  <div key={file.id} className="px-8 py-5 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors group">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-gray-400 group-hover:text-indigo-500 transition-colors">
-                        <i className={`fas ${file.type === 'pdf' ? 'fa-file-pdf' : file.type === 'image' ? 'fa-file-image' : 'fa-file-alt'}`}></i>
+                largeFiles.map((file) => {
+                  const config = getFileConfig(file.type);
+                  return (
+                    <div key={file.id} className="px-8 py-5 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors group">
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${config.bg.replace('bg-', 'bg-opacity-40 bg-')} ${config.color}`}>
+                          <i className={`fas ${config.icon}`}></i>
+                        </div>
+                        <Link to={`/files/details/${file.id}`} className="block group/link">
+                          <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover/link:text-indigo-600 transition-colors">{file.name}</h4>
+                          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">{file.type} • Added {file.date}</p>
+                        </Link>
                       </div>
-                      <Link to={`/files/details/${file.id}`} className="block group/link">
-                        <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 group-hover/link:text-indigo-600 transition-colors">{file.name}</h4>
-                        <p className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">{file.type} • Added {file.date}</p>
-                      </Link>
+                      <div className="flex items-center space-x-6">
+                        <span className="text-sm font-black text-gray-700 dark:text-gray-300">{file.size}</span>
+                        <button
+                          onClick={() => handleDeleteLargeFile(file.id, file.name)}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
+                        >
+                          <i className="fas fa-trash-alt text-xs"></i>
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-6">
-                      <span className="text-sm font-black text-gray-700 dark:text-gray-300">{file.size}</span>
-                      <button 
-                        onClick={() => handleDeleteLargeFile(file.id, file.name)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
-                      >
-                        <i className="fas fa-trash-alt text-xs"></i>
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="py-12 text-center text-gray-400 text-sm font-medium italic">
                   {activeCategory === 'All' ? 'No large files found for discovery.' : `No ${activeCategory.toLowerCase()} assets found.`}

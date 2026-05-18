@@ -6,6 +6,7 @@ import ShareModal from '../../components/modals/ShareModal';
 import DeleteModal from '../../components/modals/DeleteModal';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { fetchFileDetail, updateFile, deleteFile } from '../../services/fileService';
+import { getFileConfig } from '../../utils/fileUtils';
 
 const FileDetailsPage = () => {
   const { id } = useParams();
@@ -101,12 +102,14 @@ const FileDetailsPage = () => {
       );
     }
 
+    const config = getFileConfig(mimeType);
+
     return (
       <div className={`flex flex-col items-center justify-center p-12 text-center ${isModal ? 'scale-125' : ''}`}>
         <div className={`rounded-[2rem] flex items-center justify-center mb-4 shadow-2xl
           ${isModal ? 'w-40 h-40' : 'w-24 h-24'}
-          ${isPDF ? 'bg-rose-500/10 text-rose-500' : isExcel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
-          <i className={`fas ${isPDF ? 'fa-file-pdf' : isExcel ? 'fa-file-excel' : 'fa-file-lines'} ${isModal ? 'text-7xl' : 'text-4xl'}`}></i>
+          ${config.bg.replace('bg-', 'bg-opacity-10 bg-')} ${config.color}`}>
+          <i className={`fas ${config.icon} ${isModal ? 'text-7xl' : 'text-4xl'}`}></i>
         </div>
         <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
           {isPDF ? 'PDF Document' : isExcel ? 'Spreadsheet' : isVideo ? 'Video Clip' : isAudio ? 'Audio Stream' : 'Secure File'}

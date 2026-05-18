@@ -5,6 +5,7 @@ import { fetchFiles, uploadFiles, fetchStorageStats } from '../../services/fileS
 import { useToast } from '../../components/common/ToastContent';
 import { fetchSharedLinks } from '../../services/shareService';
 import { fetchMe } from '../../services/authService';
+import { getFileConfig } from '../../utils/fileUtils';
 
 const Dashboard = () => {
   const { showToast } = useToast();
@@ -259,17 +260,7 @@ const Dashboard = () => {
         
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {files.slice(0, 5).map(file => {
-            const iconMap = {
-              pdf: { icon: 'fa-file-pdf', color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
-              image: { icon: 'fa-file-image', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-              video: { icon: 'fa-file-video', color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-              audio: { icon: 'fa-file-audio', color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-              excel: { icon: 'fa-file-excel', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-              word: { icon: 'fa-file-word', color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-              zip: { icon: 'fa-file-archive', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-              default: { icon: 'fa-file', color: 'text-gray-400', bg: 'bg-gray-50 dark:bg-gray-800' }
-            };
-            const config = iconMap[file.type] || iconMap.default;
+            const config = getFileConfig(file.type);
 
             return (
               <Link key={file.id} to={`/files/details/${file.id}`} className="p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/50 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/40 transition-all group flex items-center gap-4">

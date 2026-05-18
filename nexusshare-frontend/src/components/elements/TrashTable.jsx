@@ -1,17 +1,7 @@
 import React from 'react';
+import { getFileConfig } from '../../utils/fileUtils';
 
 const TrashTable = ({ items, onRestore, onDeletePermanently, isEmpty }) => {
-  const getFileConfig = (type) => {
-    const configs = {
-      image: { icon: 'fa-file-image', color: 'text-blue-500', bg: 'bg-blue-50' },
-      pdf: { icon: 'fa-file-pdf', color: 'text-red-500', bg: 'bg-red-50' },
-      excel: { icon: 'fa-file-excel', color: 'text-emerald-500', bg: 'bg-emerald-50' },
-      word: { icon: 'fa-file-word', color: 'text-indigo-500', bg: 'bg-indigo-50' },
-      zip: { icon: 'fa-file-archive', color: 'text-amber-500', bg: 'bg-amber-50' },
-      default: { icon: 'fa-file', color: 'text-gray-400', bg: 'bg-gray-50' }
-    };
-    return configs[type] || configs.default;
-  };
 
   if (isEmpty) {
     return (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchFiles } from '../../services/fileService';
+import { getFileConfig } from '../../utils/fileUtils';
 
 const NexusShareSelector = ({ onClose, onImport }) => {
   const [cloudAssets, setCloudAssets] = useState([]);
@@ -24,13 +25,16 @@ const NexusShareSelector = ({ onClose, onImport }) => {
       const response = await fetchFiles(page, searchQuery);
       const filesList = response.files || [];
       
-      const mapped = filesList.map(f => ({
-        id: f.id,
-        name: f.name,
-        size: f.size,
-        icon: f.type === 'image' ? 'fa-file-image' : 'fa-file',
-        color: f.type === 'image' ? 'text-blue-500' : 'text-indigo-500'
-      }));
+      const mapped = filesList.map(f => {
+        const config = getFileConfig(f.type);
+        return {
+          id: f.id,
+          name: f.name,
+          size: f.size,
+          icon: config.icon,
+          color: config.color
+        };
+      });
 
       setCloudAssets(prev => reset ? mapped : [...prev, ...mapped]);
       setHasMore(!!response.next);

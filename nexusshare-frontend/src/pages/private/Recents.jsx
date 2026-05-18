@@ -3,6 +3,7 @@ import FileRow from '../../components/elements/FileRow';
 import DeleteModal from '../../components/modals/DeleteModal';
 import { useToast } from '../../components/common/ToastContent';
 import { fetchRecentFiles, clearRecentFiles } from '../../services/fileService';
+import { getFileConfig } from '../../utils/fileUtils';
 
 const Recents = () => {
   const { showToast } = useToast();
@@ -86,18 +87,6 @@ const Recents = () => {
     }, {});
   }, [recentFiles]);
 
-  // Helper for file type styling
-  const getFileConfig = (type) => {
-    const iconMap = {
-      pdf: { icon: 'fa-file-pdf', color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
-      image: { icon: 'fa-file-image', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-      excel: { icon: 'fa-file-excel', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-      word: { icon: 'fa-file-word', color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-      zip: { icon: 'fa-file-archive', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-      default: { icon: 'fa-file', color: 'text-gray-400', bg: 'bg-gray-50 dark:bg-gray-800' }
-    };
-    return iconMap[type] || iconMap.default;
-  };
 
   const confirmDelete = () => {
     setRecentFiles(prev => prev.filter(f => f.id !== fileToDelete.id));

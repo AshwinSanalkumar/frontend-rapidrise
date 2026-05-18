@@ -141,149 +141,154 @@ const WorkstationDashboard = () => {
       </div>
 
       {/* DASHBOARD TABS */}
-      <div className="max-w-6xl mx-auto mb-8 flex gap-6 border-b border-gray-800 dark:border-white/5 ">
-        {[
-          { id: 'active', label: 'Active Workspaces', count: stations.length },
-          { id: 'invites', label: 'Pending Invites', count: invites.length }
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 group transition-all ${
-              activeTab === tab.id ? 'text-indigo-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
-            }`}
-          >
-            <span className="text-[10px] font-black uppercase tracking-widest">{tab.label}</span>
-            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black ${
-              activeTab === tab.id ? 'bg-indigo-500 text-white' : 'bg-gray-100 dark:bg-white/5 text-gray-400'
-            }`}>
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
+<div className="max-w-6xl mx-auto mb-8 border-b border-gray-200 dark:border-gray-800">
+  <div className="flex gap-8">
+    {[
+      { id: 'active', label: 'Active Workspaces', count: stations.length },
+      { id: 'invites', label: 'Pending Invites', count: invites.length }
+    ].map((tab) => {
+      const isActive = activeTab === tab.id;
+      
+      return (
+        <button
+          key={tab.id}
+          onClick={() => setActiveTab(tab.id)}
+          className="relative pb-4 flex items-center gap-2.5 group transition-all duration-200 ease-out outline-none"
+        >
+          {/* Label */}
+          <span className={`text-sm font-semibold tracking-wider transition-colors duration-200 ${
+            isActive 
+              ? 'text-indigo-600 dark:text-indigo-400' 
+              : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200'
+          }`}>
+            {tab.label}
+          </span>
 
-      {/* CONTENT AREA */}
-      <div className="max-w-6xl mx-auto">
-        
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : activeTab === 'active' ? (
-          <div className="space-y-4">
-            {/* TABLE HEADERS */}
-            <div className="hidden lg:grid grid-cols-12 px-8 py-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-              <div className="col-span-4">Project Identification</div>
-              <div className="col-span-2 text-center">Privacy</div>
-              <div className="col-span-2 text-center">Contributors</div>
-              <div className="col-span-2 text-center">Activity</div>
-              <div className="col-span-2 text-right px-4">Actions</div>
-            </div>
 
-            {stations.length === 0 ? (
-              <div className="py-20 text-center bg-white dark:bg-gray-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No active workstations found</p>
-              </div>
-            ) : (
-              stations.map((station) => (
-                <div 
-                  key={station.id}
-                  onClick={() => navigate(`/workstation/${station.id}`)}
-                  className="group grid grid-cols-1 lg:grid-cols-12 items-center bg-white dark:bg-gray-800 backdrop-blur-sm px-6 lg:px-8 py-5 lg:py-6 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 cursor-pointer active:scale-[0.99] gap-4 lg:gap-0"
-                >
-                  <div className="col-span-4 flex items-center gap-4 lg:gap-5">
-                    <div className="w-10 h-10 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-500">
-                      <i className="fas fa-laptop text-sm"></i>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 group-hover:text-indigo-500 transition-colors">
-                        {station.title}
-                      </h3>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight italic text-ellipsis overflow-hidden whitespace-nowrap block max-w-[200px]">
-                        {station.template} Module
-                      </span>
-                    </div>
+          {/* Active Sliding Underline Indicator */}
+          {isActive && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 rounded-full shadow-[0_1px_8px_rgba(79,70,229,0.4)]" />
+          )}
+        </button>
+      );
+    })}
+  </div>
+</div>
+<div className="max-w-6xl mx-auto">
+  {loading ? (
+    <div className="flex items-center justify-center py-20">
+      <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  ) : activeTab === 'active' ? (
+    <div className="space-y-6">
+      
+      {stations.length === 0 ? (
+        <div className="py-20 text-center bg-white dark:bg-gray-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No active workstations found</p>
+        </div>
+      ) : (
+        /* 4-COLUMN GRID WRAPPER */
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+          {stations.map((station) => (
+            <div 
+              key={station.id}
+              onClick={() => navigate(`/workstation/${station.id}`)}
+              className="group flex flex-col justify-between bg-white dark:bg-gray-800 backdrop-blur-sm p-5 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 cursor-pointer active:scale-[0.99]"
+            >
+              {/* Card Header: Icon & Identification */}
+              <div className="flex items-start justify-between gap-3 mb-5">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 shrink-0 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-500">
+                    <i className="fas fa-laptop text-sm"></i>
                   </div>
-
-                  <div className="col-span-2 flex lg:justify-center py-0">
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full border w-fit ${
-                      station.visibility === 'public' 
-                      ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-500' 
-                      : 'bg-indigo-500/5 border-indigo-500/20 text-indigo-500'
-                    }`}>
-                      <span className="text-[9px] font-black uppercase tracking-widest">{station.visibility}</span>
-                    </div>
-                  </div>
-
-                  <div className="col-span-2 flex lg:justify-center">
-                    <div className="flex -space-x-2">
-                      {station.members.slice(0, 3).map((member, i) => (
-                        <div key={member.id} className="w-7 h-7 rounded-lg border-2 border-white dark:border-gray-900 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-[8px] font-bold text-gray-400 shadow-sm" title={member.name}>
-                          {member.name.charAt(0)}
-                        </div>
-                      ))}
-                      {station.memberCount > 3 && (
-                        <div className="w-7 h-7 rounded-lg border-2 border-white dark:border-gray-900 bg-indigo-500 flex items-center justify-center text-[8px] font-bold text-white shadow-sm">
-                          +{station.memberCount - 3}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="col-span-2 lg:text-center">
-                    <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest ">
-                      {new Date(station.updatedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-
-                  <div className="col-span-2 flex lg:justify-end items-center gap-2 lg:pr-4 pt-4 lg:pt-0 border-t lg:border-none border-gray-50 dark:border-white/5">
-                    {currentUser && station.owner === currentUser.id && (
-                      <button 
-                        onClick={(e) => handleDelete(e, station.id)}
-                        className="w-10 h-10 lg:w-8 lg:h-8 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center group/btn"
-                        title="Delete Workstation"
-                      >
-                        <i className="fas fa-trash-alt text-[10px]"></i>
-                      </button>
-                    )}
-                    <div className="w-10 h-10 lg:w-8 lg:h-8 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500 flex items-center justify-center ml-auto lg:ml-0">
-                      <i className="fas fa-chevron-right text-[10px]"></i>
-                    </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 group-hover:text-indigo-500 transition-colors truncate">
+                      {station.title}
+                    </h3>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight italic block truncate mt-0.5">
+                      {station.template} Module
+                    </span>
                   </div>
                 </div>
-              ))
-            )}
 
-            <button 
-              onClick={() => {
-                const ownedCount = stations.filter(s => s.owner === currentUser?.id).length;
-                if (ownedCount >= 10) {
-                  showToast("Maximum of 10 workstations reached.", "error");
-                  return;
-                }
-                setIsModalOpen(true);
-              }}
-              className={`w-full py-6 rounded-3xl border-2 border-dashed flex items-center justify-center gap-3 transition-all group ${
-                stations.filter(s => s.owner === currentUser?.id).length >= 10
-                ? 'border-gray-200 dark:border-gray-800 text-gray-300 cursor-not-allowed'
-                : 'border-gray-100 dark:border-white/5 text-gray-400 hover:border-indigo-500/50 hover:bg-indigo-500/5'
-              }`}
-            >
-              <i className="fas fa-plus text-[10px] group-hover:scale-125 transition-transform"></i>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Deploy New Environment</span>
-            </button>
+                {/* Arrow indicator top right */}
+                <div className="w-8 h-8 shrink-0 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500 flex items-center justify-center">
+                  <i className="fas fa-chevron-right text-[10px]"></i>
+                </div>
+              </div>
 
-            {/* PAGINATION CONTROLS */}
-            <Pagination 
-              currentPage={currentPage}
-              totalFiles={totalCount}
-              filesPerPage={8}
-              onPageChange={(page) => setCurrentPage(page)}
-            />
-          </div>
-        ) : (
-          /* INVITES TAB */
+              {/* Card Footer: Contributors, Activity, and Actions */}
+              <div className="pt-4 border-t border-gray-50 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* Contributors Stack */}
+                <div className="flex -space-x-2">
+                  {station.members.slice(0, 3).map((member) => (
+                    <div 
+                      key={member.id} 
+                      className="w-7 h-7 rounded-lg border-2 border-white dark:border-gray-900 bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-[8px] font-bold text-gray-400 shadow-sm" 
+                      title={member.name}
+                    >
+                      {member.name.charAt(0)}
+                    </div>
+                  ))}
+                  {station.memberCount > 3 && (
+                    <div className="w-7 h-7 rounded-lg border-2 border-white dark:border-gray-900 bg-indigo-500 flex items-center justify-center text-[8px] font-bold text-white shadow-sm">
+                      +{station.memberCount - 3}
+                    </div>
+                  )}
+                </div>
+
+                {/* Timestamp & Danger Action Area */}
+                <div className="flex items-center justify-between sm:justify-end gap-3 self-stretch sm:self-auto">
+                  <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest tabular-nums">
+                    {new Date(station.updatedAt).toLocaleDateString()}
+                  </span>
+
+                  {currentUser && station.owner === currentUser.id && (
+                    <button 
+                      onClick={(e) => handleDelete(e, station.id)}
+                      className="w-8 h-8 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center group/btn"
+                      title="Delete Workstation"
+                    >
+                      <i className="fas fa-trash-alt text-[10px]"></i>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Deploy Button */}
+      <button 
+        onClick={() => {
+          const ownedCount = stations.filter(s => s.owner === currentUser?.id).length;
+          if (ownedCount >= 10) {
+            showToast("Maximum of 10 workstations reached.", "error");
+            return;
+          }
+          setIsModalOpen(true);
+        }}
+        className={`w-full py-6 rounded-3xl border-2 border-dashed flex items-center justify-center gap-3 transition-all group ${
+          stations.filter(s => s.owner === currentUser?.id).length >= 10
+          ? 'border-gray-200 dark:border-gray-800 text-gray-300 cursor-not-allowed'
+          : 'border-gray-100 dark:border-white/5 text-gray-400 hover:border-indigo-500/50 hover:bg-indigo-500/5'
+        }`}
+      >
+        <i className="fas fa-plus text-[10px] group-hover:scale-125 transition-transform"></i>
+        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Deploy New Environment</span>
+      </button>
+
+      {/* PAGINATION CONTROLS */}
+      <Pagination 
+        currentPage={currentPage}
+        totalFiles={totalCount}
+        filesPerPage={8}
+        onPageChange={(page) => setCurrentPage(page)}
+      />
+    </div>
+  ) : (
+    /* INVITES TAB */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {invites.length === 0 ? (
               <div className="col-span-full py-20 text-center bg-white dark:bg-gray-900/50 rounded-3xl border border-dashed border-gray-200 dark:border-gray-800">
