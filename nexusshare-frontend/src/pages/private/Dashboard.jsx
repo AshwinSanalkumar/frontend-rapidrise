@@ -91,19 +91,10 @@ const Dashboard = () => {
     dispatchProgress(0);
 
     try {
-      // Simulate progress for UI feedback while real request happens
-      let prog = 0;
-      const interval = setInterval(() => {
-        prog += Math.floor(Math.random() * 10) + 2;
-        if (prog >= 92) {
-          clearInterval(interval);
-          prog = 92;
-        }
-        dispatchProgress(prog);
-      }, 400);
-
-      const { successes, failures } = await uploadFiles(filesToUpload, descriptions);
-      clearInterval(interval);
+      const { successes, failures } = await uploadFiles(filesToUpload, { ...descriptions, id: uploadId }, (index, percent) => {
+        const aggregatePercent = Math.round(((index + (percent / 100)) / filesToUpload.length) * 100);
+        dispatchProgress(aggregatePercent);
+      });
 
       if (successes.length > 0) {
         dispatchProgress(100, 'completed');
@@ -158,28 +149,41 @@ const Dashboard = () => {
             <div className="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col items-center justify-between min-h-[180px]">
               <h3 className="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest text-left">Storage</h3>
               <div className="relative flex items-center justify-center">
-                <svg className="w-32 h-auto" viewBox="0 0 200 120">
-                  <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="currentColor" strokeWidth="12" strokeLinecap="round" className="text-slate-100 dark:text-slate-900" />
-                  <path 
-                    d="M 20 100 A 80 80 0 0 1 180 100" 
-                    fill="none" 
-                    stroke="#6366f1" 
-                    strokeWidth="12" 
-                    strokeLinecap="round" 
-                    strokeDasharray="251.2" 
-                    strokeDashoffset={251.2 - (251.2 * (Math.min(100, Math.round(((userData?.consumed_storage || 0) / (userData?.storage_limit_bytes || 1024*1024*1024)) * 100))) / 100)} 
-                    className="transition-all duration-1000 ease-out"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center mt-4">
-                  <span className="text-xl font-black text-gray-800 dark:text-white">
-{(
-  ((userData?.consumed_storage || 0) /
-    (userData?.storage_limit_bytes || 1024 * 1024 * 1024)) *
-  100
-).toFixed(1)}%
-                  </span>
-                </div>
+                {(() => {
+                  const used = (userData?.consumed_storage || 0);
+                  const limit = (userData?.storage_limit_bytes || 1024 * 1024 * 1024);
+                  const pct = Math.min(100, Math.round((used / limit) * 100));
+                  const isWarning = pct > 70;
+                  return (
+                    <>
+                      <svg className="w-32 h-auto" viewBox="0 0 200 120">
+                        <defs>
+                          <linearGradient id="storageGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#6366f1" />
+                            <stop offset="50%" stopColor="#b746ecff" />
+                            <stop offset="100%" stopColor="#f43f5e" />
+                          </linearGradient>
+                        </defs>
+                        <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="currentColor" strokeWidth="12" strokeLinecap="round" className="text-slate-100 dark:text-slate-900" />
+                        <path 
+                          d="M 20 100 A 80 80 0 0 1 180 100" 
+                          fill="none" 
+                          stroke="url(#storageGradient)" 
+                          strokeWidth="12" 
+                          strokeLinecap="round" 
+                          strokeDasharray="251.2" 
+                          strokeDashoffset={251.2 - (251.2 * pct / 100)} 
+                          className="transition-all duration-1000 ease-out"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center mt-4">
+                        <span className={`text-xl font-black transition-colors duration-500 ${isWarning ? 'text-rose-500' : 'text-gray-800 dark:text-white'}`}>
+                          {pct}%
+                        </span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">
                 {((userData?.consumed_storage || 0) / (1024*1024)).toFixed(2)} MB / {((userData?.storage_limit_bytes || 1024*1024*1024) / (1024*1024*1024)).toFixed(0)} GB

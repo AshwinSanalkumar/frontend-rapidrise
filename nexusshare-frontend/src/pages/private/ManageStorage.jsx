@@ -172,8 +172,14 @@ const ManageStorage = () => {
               Reset Filter
             </button>
           )}
-          <div className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
-             <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">Status: {usedPercentage > 90 ? 'Critical' : 'Healthy'}</span>
+          <div className={`px-4 py-2 rounded-xl border ${usedPercentage > 90 
+            ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800' 
+            : 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-800'}`}>
+             <span className={`text-xs font-bold ${usedPercentage > 90 
+               ? 'text-rose-600 dark:text-rose-400' 
+               : 'text-indigo-600 dark:text-indigo-400'}`}>
+               Status: {usedPercentage > 90 ? 'Critical' : 'Healthy'}
+             </span>
           </div>
         </div>
       </div>

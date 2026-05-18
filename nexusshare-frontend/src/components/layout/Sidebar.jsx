@@ -5,8 +5,11 @@ import { useToast } from '../common/ToastContent';
 import { fetchMe } from '../../services/authService';
 import { useEffect } from 'react';
 import UploadConfirmModal from '../modals/UploadConfirmModel';
+import PendingUploadsModal from '../modals/PendingUploadsModal';
 
 import { uploadFiles } from '../../services/fileService';
+import chunkedUploadService from '../../services/chunkedUploadService';
+import DeleteModal from '../modals/DeleteModal';
 
 const SidebarLink = ({ to, icon, label }) => (
   <NavLink
@@ -34,14 +37,23 @@ const Sidebar = ({ isOpen, onClose }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState([]);
   const [userData, setUserData] = useState(null);
+  const [activeUploads, setActiveUploads] = useState([]);
+  const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [uploadToDelete, setUploadToDelete] = useState(null);
+  const [isDiscarding, setIsDiscarding] = useState(false);
 
   useEffect(() => {
     loadUserData();
     
     // Refresh storage stats when a file is uploaded or storage changes (e.g. trash emptied)
-    const handleRefresh = () => loadUserData();
+    const handleRefresh = () => {
+      loadUserData();
+      loadActiveUploads();
+    };
     window.addEventListener('file-uploaded', handleRefresh);
     window.addEventListener('storage-updated', handleRefresh);
+    loadActiveUploads();
     return () => {
       window.removeEventListener('file-uploaded', handleRefresh);
       window.removeEventListener('storage-updated', handleRefresh);
@@ -54,6 +66,37 @@ const Sidebar = ({ isOpen, onClose }) => {
       setUserData(data);
     } catch (error) {
       console.error("Failed to load storage data in Sidebar:", error);
+    }
+  };
+
+  const loadActiveUploads = async () => {
+    try {
+      const data = await chunkedUploadService.getActiveUploads();
+      setActiveUploads(data);
+    } catch (error) {
+      console.error("Failed to load active uploads:", error);
+    }
+  };
+
+  const cancelPendingUpload = (backendId) => {
+    setUploadToDelete(backendId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDiscardPending = async () => {
+    if (!uploadToDelete) return;
+    
+    setIsDiscarding(true);
+    try {
+      await chunkedUploadService.cancelUpload(null, uploadToDelete);
+      showToast("Pending upload discarded.", "success");
+      loadActiveUploads();
+    } catch (error) {
+      showToast("Failed to discard upload.", "error");
+    } finally {
+      setIsDiscarding(false);
+      setIsDeleteModalOpen(false);
+      setUploadToDelete(null);
     }
   };
 
@@ -89,28 +132,20 @@ const Sidebar = ({ isOpen, onClose }) => {
     const uploadId = Math.random().toString(36).substr(2, 9);
     const fileName = filesToUpload.length === 1 ? filesToUpload[0].name : `${filesToUpload.length} files`;
 
-    const dispatchProgress = (progress, status = 'uploading') => {
+    const dispatchProgress = (progress, status = 'uploading', backendId = null) => {
       window.dispatchEvent(new CustomEvent('upload-progress', {
-        detail: { id: uploadId, name: fileName, progress, status }
+        detail: { id: uploadId, name: fileName, progress, status, backendId }
       }));
     };
 
     dispatchProgress(0);
 
     try {
-      // Simulate progress for UI feedback while real request happens
-      let prog = 0;
-      const interval = setInterval(() => {
-        prog += Math.floor(Math.random() * 10) + 2;
-        if (prog >= 92) {
-          clearInterval(interval);
-          prog = 92;
-        }
-        dispatchProgress(prog);
-      }, 400);
-
-      const { successes, failures } = await uploadFiles(filesToUpload, descriptions);
-      clearInterval(interval);
+      const { successes, failures } = await uploadFiles(filesToUpload, { ...descriptions, id: uploadId }, (index, percent, backendId) => {
+        // Aggregate progress for multiple files
+        const aggregatePercent = Math.round(((index + (percent / 100)) / filesToUpload.length) * 100);
+        dispatchProgress(aggregatePercent, 'uploading', backendId);
+      });
 
       if (successes.length > 0) {
         dispatchProgress(100, 'completed');
@@ -120,9 +155,13 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       if (failures.length > 0) {
         const firstError = failures[0].error;
-        const errorMessage = typeof firstError === 'string' 
+        let errorMessage = typeof firstError === 'string' 
           ? firstError 
           : (firstError.error || firstError.detail || `${failures.length} file(s) failed to upload.`);
+        
+        if (errorMessage.includes('Storage limit exceeded')) {
+          errorMessage = "Vault Storage Full! Please clear your trash or upgrade to continue.";
+        }
         
         showToast(errorMessage, 'error');
         if (successes.length === 0) {
@@ -224,6 +263,24 @@ const Sidebar = ({ isOpen, onClose }) => {
           </nav>
         </div>
 
+        {/* Pending Uploads Alert */}
+        {activeUploads.length > 0 && (
+          <div className="px-6 mb-2">
+            <div 
+              className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-xl p-3 flex items-center justify-between group cursor-pointer" 
+              onClick={() => setIsPendingModalOpen(true)}
+            >
+              <div className="flex items-center">
+                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse mr-2"></div>
+                <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest">
+                  {activeUploads.length} Pending Assets
+                </span>
+              </div>
+              <i className="fas fa-arrow-right text-[10px] text-amber-500 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </div>
+        )}
+
         {/* Storage Stats Indicator */}
         <div className="p-6 border-t border-gray-50 dark:border-gray-800/50">
           <Link
@@ -260,6 +317,30 @@ const Sidebar = ({ isOpen, onClose }) => {
         }}
         onRemove={removeStagedFile}
         onConfirm={handleConfirmUpload}
+      />
+
+      <PendingUploadsModal
+        isOpen={isPendingModalOpen}
+        onClose={() => setIsPendingModalOpen(false)}
+        uploads={activeUploads}
+        onCancelUpload={cancelPendingUpload}
+        onSelectFile={(filename) => {
+          setIsPendingModalOpen(false);
+          showToast(`Please select "${filename}" to resume.`, "info");
+          fileInputRef.current.click();
+        }}
+      />
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setUploadToDelete(null);
+        }}
+        onDelete={confirmDiscardPending}
+        title="Discard Pending Upload"
+        message="Are you sure you want to discard this incomplete upload? This will permanently remove the partial data from our servers."
+        isLoading={isDiscarding}
       />
     </>
   );
