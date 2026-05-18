@@ -35,6 +35,7 @@ export const fetchWorkstations = async (page = 1) => {
     return {
       results: response.data.results.map(mapWorkstationFromApi),
       count: response.data.count,
+      owned_count: response.data.owned_count,
       next: response.data.next,
       previous: response.data.previous
     };

@@ -18,11 +18,14 @@ const WorkstationDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [totalOwnedCount, setTotalOwnedCount] = useState(0);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [stationToDelete, setStationToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
+  
+  const isLimitReached = totalOwnedCount >= 10;
 
   useEffect(() => {
     loadData(currentPage);
@@ -49,10 +52,14 @@ const WorkstationDashboard = () => {
       if (stationsData.results) {
         setStations(stationsData.results);
         setTotalCount(stationsData.count);
-        setTotalPages(Math.ceil(stationsData.count / 5));
+        setTotalOwnedCount(stationsData.owned_count || 0);
+        setTotalPages(Math.ceil(stationsData.count / 8)); // Updated to match StandardPagination's 8
       } else {
         setStations(stationsData);
         setTotalCount(stationsData.length);
+        // If not paginated, we filter manually
+        const owned = stationsData.filter(s => s.owner === currentUser?.id).length;
+        setTotalOwnedCount(owned);
       }
       
       setInvites(invitesData);
@@ -84,11 +91,26 @@ const WorkstationDashboard = () => {
     
     setIsDeleting(true);
     try {
+      const deletedStation = stations.find(s => s.id === stationToDelete);
+      const wasOwner = deletedStation && currentUser && deletedStation.owner === currentUser.id;
+      
       await deleteWorkstation(stationToDelete);
       showToast("Workstation deleted successfully", "success");
+      
       setStations(stations.filter(s => s.id !== stationToDelete));
+      if (wasOwner) {
+        setTotalOwnedCount(prev => Math.max(0, prev - 1));
+      }
+      
       setIsDeleteModalOpen(false);
       setStationToDelete(null);
+      
+      // If we deleted the last item on a page and we're not on page 1, go back
+      if (stations.length === 1 && currentPage > 1) {
+        setCurrentPage(prev => prev - 1);
+      } else {
+        loadData(currentPage);
+      }
     } catch (error) {
       showToast("Failed to delete workstation", "error");
     } finally {
@@ -122,16 +144,15 @@ const WorkstationDashboard = () => {
 
         <button 
           onClick={() => {
-            const ownedCount = stations.filter(s => s.owner === currentUser?.id).length;
-            if (ownedCount >= 10) {
-              showToast("You have reached the limit of 10 workstations. Please delete one to create a new one.", "error");
+            if (isLimitReached) {
+              showToast("Limit reached: 10 workstations maximum. Delete one to continue.", "error");
               return;
             }
             setIsModalOpen(true);
           }}
           className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all flex items-center gap-2 ${
-            stations.filter(s => s.owner === currentUser?.id).length >= 10 
-            ? 'bg-gray-400 text-white cursor-not-allowed opacity-70' 
+            isLimitReached 
+            ? 'bg-gray-400 dark:bg-gray-700 text-white cursor-not-allowed opacity-50 grayscale' 
             : 'bg-indigo-500 text-white shadow-indigo-500/20 hover:bg-indigo-600'
           }`}
         >
@@ -262,16 +283,15 @@ const WorkstationDashboard = () => {
       {/* Deploy Button */}
       <button 
         onClick={() => {
-          const ownedCount = stations.filter(s => s.owner === currentUser?.id).length;
-          if (ownedCount >= 10) {
-            showToast("Maximum of 10 workstations reached.", "error");
+          if (isLimitReached) {
+            showToast("Limit reached: 10 workstations maximum. Delete one to continue.", "error");
             return;
           }
           setIsModalOpen(true);
         }}
         className={`w-full py-6 rounded-3xl border-2 border-dashed flex items-center justify-center gap-3 transition-all group ${
-          stations.filter(s => s.owner === currentUser?.id).length >= 10
-          ? 'border-gray-200 dark:border-gray-800 text-gray-300 cursor-not-allowed'
+          isLimitReached
+          ? 'border-gray-200 dark:border-gray-800 text-gray-300 cursor-not-allowed opacity-50 grayscale'
           : 'border-gray-100 dark:border-white/5 text-gray-400 hover:border-indigo-500/50 hover:bg-indigo-500/5'
         }`}
       >
