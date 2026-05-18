@@ -4,8 +4,10 @@ import GlobalFileDrop from './GlobalFileDrop';
 import { fetchFiles } from '../../services/fileService';
 import FileCard from '../elements/FIleCard';
 import ShareModal from '../modals/ShareModal';
+import DeleteModal from '../modals/DeleteModal';
 import Pagination from './Pagination';
 import ViewToggle from './ViewToggle';
+import BulkActionsBar from './BulkActionsBar';
 
 /**
  * A reusable file browser component used by MyFiles, Favorites, etc.
@@ -49,6 +51,8 @@ const FileBrowser = ({
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null); // Keep for single mode fallback
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const [searchParams, setSearchParams] = useSearchParams();
   const pageParam = parseInt(searchParams.get('page')) || 1;
@@ -132,20 +136,28 @@ const FileBrowser = ({
     setIsModalOpen(true);
   };
 
+  const handleSelectAll = () => {
+    if (selectedFiles.length === currentFiles.length && currentFiles.length > 0) {
+      setSelectedFiles([]);
+    } else {
+      setSelectedFiles(currentFiles);
+    }
+  };
+
   const handleBulkDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete ${selectedFiles.length} files?`)) return;
-    setIsLoading(true);
+    setIsDeleting(true);
     try {
       const { deleteFile } = await import('../../services/fileService');
       await Promise.all(selectedFiles.map(f => deleteFile(f.id)));
+      const deletedIds = selectedFiles.map(f => f.id);
       setSelectedFiles([]);
-      setFiles(prev => prev.filter(f => !selectedFiles.some(sel => sel.id === f.id)));
-      // Note: Ideal to refetch, so dispatch global limit checking just in case:
+      setFiles(prev => prev.filter(f => !deletedIds.includes(f.id)));
       window.dispatchEvent(new CustomEvent('file-uploaded'));
+      setIsDeleteModalOpen(false);
     } catch (e) {
       console.error(e);
     } finally {
-      setIsLoading(false);
+      setIsDeleting(false);
     }
   };
 
@@ -184,9 +196,20 @@ const FileBrowser = ({
               </button>
             )}
           </div>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            {searchTerm ? `Found ${totalFiles} matching items` : subtitle}
-          </p>
+          <div className="flex items-center gap-3 mt-1">
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchTerm ? `Found ${totalFiles} matching items` : subtitle}
+            </p>
+            {enableMultiSelect && currentFiles.length > 0 && (
+                <button 
+                  onClick={handleSelectAll}
+                  className="text-[10px] font-black uppercase tracking-wider text-indigo-500 hover:text-indigo-600 transition flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 rounded-full cursor-pointer"
+                >
+                  <i className={`fas ${selectedFiles.length === currentFiles.length ? 'fa-check-double' : 'fa-square'}`}></i>
+                  {selectedFiles.length === currentFiles.length ? 'Deselect All' : 'Select Page'}
+                </button>
+            )}
+          </div>
         </div>
 
         {/* Actions Container */}
@@ -249,35 +272,27 @@ const FileBrowser = ({
         </div>
       )}
 
-      {/* Floating Bulk Actions Bar */}
-      {selectedFiles.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md px-6 py-4 rounded-full shadow-2xl border border-gray-100 dark:border-gray-700 flex items-center space-x-6 animate-in slide-in-from-bottom-5">
-          <div className="flex items-center space-x-3 text-sm font-bold text-gray-800 dark:text-gray-200 border-r border-gray-200 dark:border-gray-700 pr-6">
-            <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 flex items-center justify-center text-xs">
-              {selectedFiles.length}
-            </span>
-            <span>Files Selected</span>
-          </div>
-          
-          <button onClick={() => openShareModal(selectedFiles)} className="flex items-center text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
-            <i className="fas fa-share-alt mr-2 text-indigo-500"></i> Share All
-          </button>
-          
-          <button onClick={handleBulkDelete} className="flex items-center text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 transition">
-            <i className="fas fa-trash-alt mr-2 text-rose-500"></i> Delete All
-          </button>
-          
-          <button onClick={() => setSelectedFiles([])} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition ml-2">
-            <i className="fas fa-times-circle text-lg"></i>
-          </button>
-        </div>
-      )}
+      <BulkActionsBar 
+        selectedCount={selectedFiles.length}
+        onShare={() => openShareModal(selectedFiles)}
+        onDelete={() => setIsDeleteModalOpen(true)}
+        onClear={() => setSelectedFiles([])}
+      />
 
       <ShareModal
         isOpen={isModalOpen}
         file={selectedFile}
         onClose={() => setIsModalOpen(false)}
         onSuccess={() => setSelectedFiles([])}
+      />
+
+      <DeleteModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDelete={handleBulkDelete}
+        isLoading={isDeleting}
+        title={`Delete Documents?`}
+        message={`Are you sure you want to remove ${selectedFiles.length} items permanently? This process cannot be undone.`}
       />
       </main>
     </GlobalFileDrop>

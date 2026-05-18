@@ -1,4 +1,5 @@
 import apiClient from '../api/apiClient';
+import chunkedUploadService from './chunkedUploadService';
 
 /**
  * Maps the backend file object to the frontend's UI-friendly format.
@@ -142,16 +143,30 @@ export const uploadFile = async (file, description = '') => {
  * @param {Object} descriptions - Map of index -> description string.
  * @returns {Promise<{ successes: Array, failures: Array }>}
  */
-export const uploadFiles = async (files, descriptions = {}) => {
+export const uploadFiles = async (files, descriptions = {}, onProgress = null) => {
   const successes = [];
   const failures = [];
 
   for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const isLargeFile = file.size > 10 * 1024 * 1024; // > 10MB
+    const uploadId = descriptions.id || `upload-${Date.now()}-${i}`;
+
     try {
-      const result = await uploadFile(files[i], descriptions[i] || '');
-      successes.push({ file: files[i].name, data: result });
+      let result;
+      if (isLargeFile) {
+        // Use chunked upload for large files
+        result = await chunkedUploadService.uploadFile(file, (percent, backendId) => {
+          if (onProgress) onProgress(i, percent, backendId);
+        }, uploadId);
+      } else {
+        // Use standard upload for small files
+        result = await uploadFile(file, descriptions[i] || '');
+        if (onProgress) onProgress(i, 100);
+      }
+      successes.push({ file: file.name, data: result });
     } catch (error) {
-      failures.push({ file: files[i].name, error: error.response?.data || error.message });
+      failures.push({ file: file.name, error: error.response?.data || error.message });
     }
   }
 

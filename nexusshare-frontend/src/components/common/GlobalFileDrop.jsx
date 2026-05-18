@@ -80,19 +80,10 @@ const GlobalFileDrop = ({ children }) => {
     dispatchProgress(0);
 
     try {
-      // Simulate progress for UI feedback while real request happens
-      let prog = 0;
-      const interval = setInterval(() => {
-        prog += Math.floor(Math.random() * 10) + 2;
-        if (prog >= 92) {
-          clearInterval(interval);
-          prog = 92;
-        }
-        dispatchProgress(prog);
-      }, 400);
-
-      const { successes, failures } = await uploadFiles(filesToUpload, descriptions);
-      clearInterval(interval);
+      const { successes, failures } = await uploadFiles(filesToUpload, { ...descriptions, id: uploadId }, (index, percent) => {
+        const aggregatePercent = Math.round(((index + (percent / 100)) / filesToUpload.length) * 100);
+        dispatchProgress(aggregatePercent);
+      });
 
       if (successes.length > 0) {
         dispatchProgress(100, 'completed');
@@ -102,9 +93,13 @@ const GlobalFileDrop = ({ children }) => {
 
       if (failures.length > 0) {
         const firstError = failures[0].error;
-        const errorMessage = typeof firstError === 'string' 
+        let errorMessage = typeof firstError === 'string' 
           ? firstError 
           : (firstError.error || firstError.detail || `${failures.length} file(s) failed to upload.`);
+        
+        if (errorMessage.includes('Storage limit exceeded')) {
+          errorMessage = "Vault Storage Full! Please clear your trash or remove files to continue";
+        }
         
         showToast(errorMessage, 'error');
         if (successes.length === 0) {

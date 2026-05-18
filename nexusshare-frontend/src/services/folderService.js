@@ -1,4 +1,5 @@
 import apiClient from '../api/apiClient';
+import chunkedUploadService from './chunkedUploadService';
 import { mapFileFromApi } from './fileService';
 
 /**
@@ -101,18 +102,40 @@ export const fetchFolderDetails = async (id, page = 1) => {
 /**
  * Uploads files directly into a specific folder.
  */
-export const uploadFilesToFolder = async (folderId, files) => {
-  const formData = new FormData();
-  Array.from(files).forEach((file) => {
-    formData.append('files', file);
-  });
+export const uploadFilesToFolder = async (folderId, files, onProgress = null) => {
+  const successes = [];
+  const failures = [];
 
-  const response = await apiClient.post(`assets/view/${folderId}/upload/`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response.data;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const isLargeFile = file.size > 10 * 1024 * 1024;
+
+    try {
+      let uploadedFile;
+      if (isLargeFile) {
+        uploadedFile = await chunkedUploadService.uploadFile(file, (percent) => {
+          if (onProgress) onProgress(i, percent);
+        });
+      } else {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await apiClient.post('files/upload/', formData);
+        uploadedFile = response.data;
+        if (onProgress) onProgress(i, 100);
+      }
+
+      // Link to folder
+      await apiClient.post(`assets/view/${folderId}/upload/`, {
+        file_ids: [uploadedFile.id]
+      });
+
+      successes.push(uploadedFile);
+    } catch (error) {
+      failures.push({ name: file.name, error: error.message });
+    }
+  }
+
+  return { successes, failures };
 };
 
 /**

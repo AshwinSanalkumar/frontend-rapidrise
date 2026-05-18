@@ -13,6 +13,7 @@ const FavoritesPage = () => {
       title="Favorites"
       subtitle="Access your most important secured files instantly."
       showFavoritesOnly={true}
+      enableMultiSelect={true}
       emptyState={FAVORITES_EMPTY_STATE}
     />
   );
