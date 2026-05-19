@@ -49,7 +49,7 @@ const ShareAuditModal = ({ isOpen, onClose, share, onRevoke }) => {
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Recipient</p>
-                <p className="text-sm font-bold text-gray-800 dark:text-white truncate">{share.recipient_email || 'Public Accessibility Link'}</p>
+                <p className="text-sm font-bold text-gray-800 dark:text-white truncate">{share.receipient_email|| 'Public Accessibility Link'}</p>
               </div>
             </div>
 
