@@ -153,16 +153,21 @@ const SharedLinksManagement = () => {
                   </td>
 
                   <td className="px-8 py-5">
-                    <div className="flex flex-col">
+                    <div className="flex flex-col space-y-1">
                       <div className="flex items-center space-x-2">
-                        <span className={`w-1.5 h-1.5 rounded-full ${share.is_revoked ? 'bg-rose-500' : share.is_expired ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                          {share.is_revoked ? 'Revoked' : share.is_expired ? 'Expired' : 'Active'}
+                        <i className={`fas text-[9px] ${share.is_accessed ? 'fa-check text-indigo-400' : 'fa-minus text-gray-400'}`}></i>
+                        <span className={`text-[11px] font-bold ${share.is_accessed ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400'}`}>
+                          {share.is_accessed ? 'Accessed' : 'Not Accessed'}
                         </span>
                       </div>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
-                        {share.is_accessed ? 'Accessed' : 'Not yet used'}
-                      </p>
+                      <div className="flex items-center space-x-2">
+                        <i className="fas fa-download text-[9px] text-emerald-400"></i>
+                        <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">
+                          {share.download_limit === 0
+                            ? <span className="text-rose-400 font-black uppercase text-[9px] tracking-wider">Preview Only</span>
+                            : `${share.download_count ?? 0}/${share.download_limit ?? '∞'} DL`}
+                        </span>
+                      </div>
                     </div>
                   </td>
 
