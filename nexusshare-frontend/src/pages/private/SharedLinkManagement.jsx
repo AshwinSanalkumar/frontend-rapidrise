@@ -155,9 +155,9 @@ const SharedLinksManagement = () => {
                   <td className="px-8 py-5">
                     <div className="flex flex-col space-y-1">
                       <div className="flex items-center space-x-2">
-                        <i className="fas fa-eye text-[9px] text-indigo-400"></i>
-                        <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300">
-                          {share.access_count ?? 0} view{share.access_count !== 1 ? 's' : ''}
+                        <i className={`fas text-[9px] ${share.is_accessed ? 'fa-check text-indigo-400' : 'fa-minus text-gray-400'}`}></i>
+                        <span className={`text-[11px] font-bold ${share.is_accessed ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400'}`}>
+                          {share.is_accessed ? 'Accessed' : 'Not Accessed'}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">

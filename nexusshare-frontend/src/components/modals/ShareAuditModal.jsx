@@ -66,9 +66,11 @@ const ShareAuditModal = ({ isOpen, onClose, share, onRevoke }) => {
 
             {/* Metrics Grid */}
             <div className="grid grid-cols-3 gap-2">
-              <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800/30 text-center">
-                <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">Views</p>
-                <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">{share.access_count ?? 0}</p>
+              <div className={`p-2 rounded-xl border text-center ${share.is_accessed ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-800/30' : 'bg-gray-50 dark:bg-gray-800 border-gray-100 dark:border-gray-700'}`}>
+                <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${share.is_accessed ? 'text-indigo-400' : 'text-gray-400'}`}>Accessed</p>
+                <p className={`text-lg font-black ${share.is_accessed ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400'}`}>
+                  {share.is_accessed ? <i className="fas fa-check text-sm leading-6"></i> : '-'}
+                </p>
               </div>
               <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800/30 text-center">
                 <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">Downloads</p>
