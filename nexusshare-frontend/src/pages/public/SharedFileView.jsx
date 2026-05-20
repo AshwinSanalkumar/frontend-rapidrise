@@ -155,11 +155,11 @@ const SharedFileView = () => {
     const mimeType = (fileData.type || '').toLowerCase();
     const fileName = (fileData.name || '').toLowerCase();
     
-    const isImage = mimeType.startsWith('image/') || fileName.match(/\.(jpg|jpeg|png|gif|webp|svg|m4a)$/i);
+    const isImage = mimeType.startsWith('image/') || fileName.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
     const isPDF = mimeType === 'application/pdf' || fileName.endsWith('.pdf');
     const isExcel = mimeType.includes('spreadsheet') || mimeType.includes('excel') || fileName.match(/\.(xls|xlsx)$/i);
     const isVideo = mimeType.startsWith('video/') || fileName.match(/\.(mp4|mpeg|ogg|webm|mov)$/i);
-    const isAudio = mimeType.startsWith('audio/') || fileName.match(/\.(mp3|wav|ogg)$/i);
+    const isAudio = mimeType.startsWith('audio/') || mimeType === 'audio/x-m4a' || fileName.match(/\.(mp3|wav|ogg|m4a)$/i);
     const previewUrl = fileData.previewUrl;
 
     if (isImage && previewUrl) {
@@ -363,7 +363,7 @@ const SharedFileView = () => {
               <div className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
                 <span className="font-bold text-gray-400 uppercase text-[10px]">Usage Tracked</span>
                 <span className="font-black text-gray-800 uppercase text-xs">
-                   {fileData.downloadLimit > 0 ? `${fileData.downloadCount}/${fileData.downloadLimit} DL` : 'Unlimited'}
+                   {fileData.downloadLimit > 0 ? `${fileData.downloadCount}/${fileData.downloadLimit} DL` : fileData.downloadLimit === 0 ? 'Preview Only' : 'Unlimited'}
                 </span>
               </div>
               <div className="flex justify-between items-center bg-rose-50 p-4 rounded-2xl border border-rose-100">
