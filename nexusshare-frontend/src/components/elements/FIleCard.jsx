@@ -4,7 +4,7 @@ import { useToast } from '../common/ToastContent'; // Using your custom toast ho
 import { toggleFileFavorite } from '../../services/fileService';
 import { getFileConfig } from '../../utils/fileUtils';
 
-const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage, enableMultiSelect, isSelected, onRowSelect }) => {
+const FileCard = ({ file, onShare, onDelete, view, onToggleFavorite, currentPage, enableMultiSelect, isSelected, onRowSelect }) => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const isList = view === 'list';
@@ -151,36 +151,44 @@ const FileCard = ({ file, onShare, view, onToggleFavorite, currentPage, enableMu
           </p>
         </div>
 
-        {/* Status and Action Button */}
+      {/* Status and Action Button */}
         <div className={`flex items-center 
           ${isList ? 'space-x-8' : 'justify-between mt-6 pt-4 border-t border-gray-50 dark:border-gray-700'}`}>
 
-          <span className={`text-[10px] font-extrabold px-2 py-1 rounded-md whitespace-nowrap tracking-wider
+          <span className={`text-[11px] font-extrabold px-2.5 py-1.5 rounded-md whitespace-nowrap tracking-wider
             ${file.status === 'PRIVATE'
               ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
               : 'text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'}`}>
             {file.status}
           </span>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-5">
             {/* Favorite Button for List View */}
             {isList && (
               <button
                 onClick={handleToggleFavorite}
-                className={`transition-colors duration-200 ${isFavorite ? 'text-rose-500' : 'text-gray-300 hover:text-rose-500'}`}
+                className={`text-sm transition-colors duration-200 ${isFavorite ? 'text-rose-500' : 'text-gray-300 hover:text-rose-500'}`}
               >
                 <i className={`${isFavorite ? 'fas' : 'far'} fa-heart`}></i>
               </button>
             )}
-
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onDelete) onDelete(file);
+              }}
+              className="text-sm font-bold text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition whitespace-nowrap flex items-center"
+            >
+              <i className="fas fa-trash-alt text-red-500 mr-2 text-base"></i>
+            </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onShare(file);
               }}
-              className="text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition whitespace-nowrap flex items-center"
+              className="text-sm font-bold text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition whitespace-nowrap flex items-center"
             >
-              <i className="fas fa-share-alt mr-2"></i> Share
+              <i className="fas fa-share-alt mr-2 text-base"></i> Share
             </button>
           </div>
         </div>

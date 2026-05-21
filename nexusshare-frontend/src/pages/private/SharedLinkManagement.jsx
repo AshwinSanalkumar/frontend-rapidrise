@@ -195,7 +195,7 @@ const SharedLinksManagement = () => {
                   </td>
 
                   <td className="px-8 py-5 text-right space-x-2">
-                    {!share.is_revoked && (
+                    {!share.is_revoked && !share.is_expired && (
                       <button 
                         onClick={(e) => { e.stopPropagation(); setSelectedAccess(share); }}
                         className="text-gray-300 hover:text-rose-500 transition-colors p-2"
