@@ -83,6 +83,11 @@ const ChangePassword = () => {
       return;
     }
 
+    if (form.currentPass === form.newPass) {
+      showToast("New password cannot be the same as the current password!", "error");
+      return;
+    }
+
     setIsUpdating(true);
 
     try {

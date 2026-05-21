@@ -25,3 +25,8 @@ export const changePassword = async (data) => {
   const response = await apiClient.post('user/change-password/', data);
   return response.data;
 };
+
+export const deactivateAccount = async (password) => {
+  const response = await apiClient.post('user/deactivate/', { password });
+  return response.data;
+};

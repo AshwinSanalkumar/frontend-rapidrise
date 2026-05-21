@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link ,useNavigate} from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import DeactivateAccountModal from '../../components/modals/DeactivateAccountModal';
 
 const Profile = () => {
-  const { user: authUser } = useAuth();
+  const { user: authUser, logout } = useAuth();
   const navigate = useNavigate();
+  const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
 
   if (!authUser) return null;
 
@@ -69,6 +71,21 @@ const Profile = () => {
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Account Status</span>
                 <span className="text-xs font-bold text-green-500 bg-green-50 dark:bg-green-900/20 px-3 py-1 rounded-full">Active</span>
               </div>
+              <div className="bg-red-50 dark:bg-red-900/10 p-5 rounded-[2rem] border border-red-100 dark:border-red-900/30 shadow-sm mt-6 flex flex-col items-center">
+                <div className="w-10 h-4 bg-red-100 dark:bg-red-900/30 rounded-2xl text-red-600 flex items-center justify-center mb-3">
+                  <i className="fas fa-user-slash text-lg"></i>
+                </div>
+                <h3 className="font-bold text-red-600 dark:text-red-400">Danger Zone</h3>
+                <p className="text-xs text-red-500/80 dark:text-red-400/80 font-medium tracking-tight text-center mt-1 mb-5 leading-relaxed">
+                  Deactivate and delete your account and all associated data.
+                </p>
+                <button 
+                  onClick={() => setIsDeactivateModalOpen(true)}
+                  className="w-full bg-white dark:bg-gray-800 text-red-600 font-bold px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 shadow-sm border border-red-100 dark:border-red-900/30 transition active:scale-95 text-xs text-center tracking-wide"
+                >
+                  Confirm Deletion
+                </button>
+              </div>
             </div>
           </section>
 
@@ -123,9 +140,21 @@ const Profile = () => {
                 </Link>
               </div>
             </div>
+
+            {/* Danger Zone */}
+           
           </section>
         </div>
 
+      <DeactivateAccountModal 
+        isOpen={isDeactivateModalOpen}
+        onClose={() => setIsDeactivateModalOpen(false)}
+        onSuccess={() => {
+          setIsDeactivateModalOpen(false);
+          logout();
+          navigate('/login');
+        }}
+      />
     </main>
   );
 };

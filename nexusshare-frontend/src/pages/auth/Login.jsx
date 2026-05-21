@@ -21,7 +21,9 @@ const Login = () => {
     
     setIsLoading(false);
     if (result.success) {
-      navigate('/dashboard'); // Redirect to dashboard
+      navigate('/dashboard');
+    } else if (result.code === 'requires_reactivation') {
+      navigate('/reactivate', { state: { email: result.email } });
     } else {
       setError(result.message);
       showToast(result.message, "error");

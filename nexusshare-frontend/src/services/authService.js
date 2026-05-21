@@ -53,3 +53,22 @@ export const resetPassword = async (uid, token, password) => {
   const response = await apiClient.post(`reset-password/${uid}/${token}/`, { password });
   return response.data;
 };
+
+/**
+ * Sends a reactivation OTP to the user's registered email.
+ * @param {string} email
+ */
+export const sendReactivationOTP = async (email) => {
+  const response = await apiClient.post('user/reactivate/send-otp/', { email });
+  return response.data;
+};
+
+/**
+ * Verifies the reactivation OTP and reactivates the account.
+ * @param {string} email
+ * @param {string} otp
+ */
+export const verifyReactivationOTP = async (email, otp) => {
+  const response = await apiClient.post('user/reactivate/verify-otp/', { email, otp });
+  return response.data;
+};
