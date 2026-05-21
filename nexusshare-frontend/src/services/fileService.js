@@ -45,6 +45,7 @@ export const mapFileFromApi = (apiFile) => {
     isDeleted: apiFile.is_deleted || false,
     isFavorite: apiFile.is_favorite || false,
     uploadedAt: apiFile.uploaded_at,
+    deletedAt: apiFile.deleted_at || null,
     lastAccessedAt: apiFile.last_accessed_at || null,
   };
 };
