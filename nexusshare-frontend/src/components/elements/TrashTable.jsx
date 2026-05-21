@@ -2,6 +2,18 @@ import React from 'react';
 import { getFileConfig } from '../../utils/fileUtils';
 
 const TrashTable = ({ items, onRestore, onDeletePermanently, isEmpty }) => {
+  const getDaysUntilExpiry = (deletedAt) => {
+    if (!deletedAt) return 'Unknown';
+    const deletedDate = new Date(deletedAt);
+    const expiryDate = new Date(deletedDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const diffTime = expiryDate - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return 'Expired';
+    if (diffDays === 0) return 'Today';
+    return `${diffDays} days`;
+  };
 
   if (isEmpty) {
     return (
@@ -24,6 +36,7 @@ const TrashTable = ({ items, onRestore, onDeletePermanently, isEmpty }) => {
           <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700">
             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Name</th>
             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Deleted Date</th>
+            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Expires In</th>
             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Size</th>
             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Actions</th>
           </tr>
@@ -43,6 +56,17 @@ const TrashTable = ({ items, onRestore, onDeletePermanently, isEmpty }) => {
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 font-medium">
                   {item.date}
+                </td>
+                <td className="px-6 py-4 text-sm font-medium">
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    getDaysUntilExpiry(item.deletedAt) === 'Today' || getDaysUntilExpiry(item.deletedAt) === 'Expired'
+                      ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' 
+                      : parseInt(getDaysUntilExpiry(item.deletedAt)) <= 7
+                        ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                        : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                  }`}>
+                    {getDaysUntilExpiry(item.deletedAt)}
+                  </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{item.size}</td>
                 <td className="px-6 py-4 text-right">
