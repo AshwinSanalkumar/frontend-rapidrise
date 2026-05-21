@@ -19,6 +19,7 @@ import ManageStorage from "./pages/private/ManageStorage";
 import SharedFileView from "./pages/public/SharedFileView";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPasswordLink from "./pages/auth/ResetPasswordLink";
+import ReactivateAccount from "./pages/auth/ReactivateAccount";
 import DuplicateManager from "./pages/private/DuplicateManager";
 import Recents from "./pages/private/Recents";
 import SharedLinksManagement from "./pages/private/SharedLinkManagement";
@@ -48,6 +49,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword/>}/>
           <Route path="/reset-password/:uid/:token" element={<ResetPasswordLink/>}/>
+          <Route path="/reactivate" element={<ReactivateAccount />} />
         </Route>
 
 

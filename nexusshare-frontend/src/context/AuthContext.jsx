@@ -31,7 +31,18 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       const data = error.response?.data;
+      const httpStatus = error.response?.status;
       let msg = data?.error || 'Login failed';
+
+      // Detect deactivated account requiring OTP reactivation
+      if (httpStatus === 403) {
+        return {
+          success: false,
+          code: 'requires_reactivation',
+          email: data?.email || credentials.email,
+          message: data?.message || 'Your account has been disabled. To reactivate, verify your email with an OTP.'
+        };
+      }
 
       // SimpleJWT usually returns errors in the 'detail' field
       if (data?.detail) {
