@@ -5,7 +5,8 @@ import FileSpecCard from '../../components/elements/FileSpecCard';
 import ShareModal from '../../components/modals/ShareModal';
 import DeleteModal from '../../components/modals/DeleteModal';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import { fetchFileDetail, updateFile, deleteFile } from '../../services/fileService';
+import { fetchFileDetail, updateFile, deleteFile, toggleFileFavorite } from '../../services/fileService';
+import { fetchFolders, importFilesToFolder } from '../../services/folderService';
 import { getFileConfig } from '../../utils/fileUtils';
 
 const FileDetailsPage = () => {
@@ -17,12 +18,16 @@ const FileDetailsPage = () => {
 
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isEnlarged, setIsEnlarged] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [shareRefreshKey, setShareRefreshKey] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [folders, setFolders] = useState([]);
+  const [isAddingToFolder, setIsAddingToFolder] = useState(false);
 
   const [fileData, setFileData] = useState(null);
 
@@ -37,6 +42,7 @@ const FileDetailsPage = () => {
           description: data.description || '',
           time: new Date(data.uploadedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
         });
+        setIsFavorite(data.isFavorite || false);
       } catch (err) {
         setError('Could not load file. It may have been deleted or you may not have access.');
       } finally {
@@ -45,6 +51,41 @@ const FileDetailsPage = () => {
     };
     if (id) loadFile();
   }, [id]);
+
+  const handleToggleFavorite = async () => {
+    try {
+      const newState = !isFavorite;
+      setIsFavorite(newState);
+      await toggleFileFavorite(id);
+      showToast(newState ? `Added to favorites` : `Removed from favorites`, newState ? 'success' : 'info');
+    } catch (err) {
+      setIsFavorite(isFavorite);
+      showToast('Failed to update favorite status', 'error');
+    }
+  };
+
+  const openFolderModal = async () => {
+    try {
+      const data = await fetchFolders();
+      setFolders(data.folders || []);
+    } catch (err) {
+      showToast('Could not load folders', 'error');
+    }
+    setIsFolderModalOpen(true);
+  };
+
+  const handleAddToFolder = async (folderId, folderName) => {
+    setIsAddingToFolder(true);
+    try {
+      await importFilesToFolder(folderId, [id]);
+      showToast(`Added to "${folderName}"`, 'success');
+      setIsFolderModalOpen(false);
+    } catch (err) {
+      showToast('Failed to add file to folder', 'error');
+    } finally {
+      setIsAddingToFolder(false);
+    }
+  };
 
   // --- PREVIEW LOGIC ---
   const renderPreviewContent = (isModal = false) => {
@@ -223,8 +264,8 @@ const FileDetailsPage = () => {
         </div>
       )}
 
-      <div className="flex items-center space-x-4 mb-6 md:mb-8">
-        <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
+      <div className="flex items-center mb-6 md:mb-8">
+        <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm mr-4">
           <i className="fas fa-arrow-left"></i>
         </button>
         <nav className="flex items-center space-x-2 text-sm font-medium">
@@ -232,6 +273,38 @@ const FileDetailsPage = () => {
           <i className="fas fa-chevron-right text-[10px] text-gray-400"></i>
           <span className="text-gray-800 dark:text-gray-200">Details</span>
         </nav>
+        <div className="ml-auto flex items-center gap-2">
+          {/* Favorite pill-chip */}
+          <button
+            onClick={handleToggleFavorite}
+            title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            className={`group flex items-center overflow-hidden rounded-full border transition-all duration-300 ease-out active:scale-95
+              ${
+                isFavorite
+                  ? 'bg-rose-500 text-white border-rose-500 w-8 h-8 hover:w-40'
+                  : 'bg-white dark:bg-gray-800/60 text-gray-400 border-gray-200 dark:border-gray-700 w-8 h-8 hover:w-36 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200 dark:hover:bg-rose-900/10'
+              }`}
+          >
+            <span className="flex items-center justify-center w-8 h-8 shrink-0">
+              <i className={`${isFavorite ? 'fas' : 'far'} fa-heart text-xs`} />
+            </span>
+
+            <span
+              className="whitespace-nowrap opacity-0 max-w-0 group-hover:opacity-100 group-hover:max-w-[140px] transition-all duration-300 pr-4 text-xs font-semibold"
+            >
+              {isFavorite ? 'Added to Favorites' : 'Add to Favorite'}
+            </span>
+          </button>
+          {/* Add to folder pill-chip */}
+          <button
+            onClick={openFolderModal}
+            title="Add to folder"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border bg-white dark:bg-gray-800/60 text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-indigo-50 hover:text-indigo-500 hover:border-indigo-200 dark:hover:bg-indigo-900/10 transition-all duration-200 active:scale-95"
+          >
+            <i className="fas fa-folder-plus text-[11px]"></i>
+            <span>Add to Folder</span>
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col xl:flex-row gap-8">
@@ -291,9 +364,9 @@ const FileDetailsPage = () => {
                   </>
                 ) : (
                   <>
-                    <div className="flex flex-1 sm:flex-none gap-2">
-                       <ActionButton icon="fa-edit" title="Update" onClick={() => setIsEditing(true)} />
-                       <ActionButton icon="fa-download" title="Download" onClick={handleDownload} />
+                    <div className="flex flex-1 sm:flex-none items-center gap-2">
+                      <ActionButton icon="fa-edit" title="Update" onClick={() => setIsEditing(true)} />
+                      <ActionButton icon="fa-download" title="Download" onClick={handleDownload} />
                     </div>
                     <ActionButton icon="fa-trash-alt" title="Delete" variant="danger" onClick={() => setIsDeleteModalOpen(true)} />
                   </>
@@ -343,6 +416,53 @@ const FileDetailsPage = () => {
         message={`This will move "${fileData.name}" to the trash.`}
         onClose={() => setIsDeleteModalOpen(false)}
         onDelete={handleDeleteAction} />
+
+      {/* FOLDER PICKER MODAL */}
+      {isFolderModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm px-4">
+          <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-[2.5rem] shadow-2xl overflow-hidden border dark:border-gray-700 animate-in fade-in zoom-in duration-200">
+            <div className="p-8">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center text-indigo-500">
+                  <i className="fas fa-folder-plus text-xl"></i>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-white">Add to Folder</h3>
+                  <p className="text-xs text-gray-400">Select a folder to organise this file.</p>
+                </div>
+              </div>
+
+              {folders.length === 0 ? (
+                <p className="text-center text-gray-400 text-sm py-8">No folders found. Create one in Assets first.</p>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
+                  {folders.map(folder => (
+                    <button
+                      key={folder.id}
+                      onClick={() => handleAddToFolder(folder.id, folder.name)}
+                      disabled={isAddingToFolder}
+                      className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-left bg-gray-50 dark:bg-gray-900 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 transition-all group border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800"
+                    >
+                      <div className="w-9 h-9 bg-indigo-100 dark:bg-indigo-900/40 rounded-xl flex items-center justify-center text-indigo-400 group-hover:text-indigo-500 flex-shrink-0">
+                        <i className="fas fa-folder text-sm"></i>
+                      </div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-200 text-sm truncate">{folder.name}</span>
+                      <i className="fas fa-chevron-right text-[10px] text-gray-300 ml-auto group-hover:text-indigo-400"></i>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => setIsFolderModalOpen(false)}
+                  className="px-6 py-3 text-sm font-bold text-gray-400 hover:text-gray-600 transition"
+                >Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

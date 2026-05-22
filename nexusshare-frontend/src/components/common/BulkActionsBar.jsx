@@ -22,7 +22,7 @@ const BulkActionsBar = ({
       </button>
       
       <button onClick={onDelete} className="flex items-center text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer">
-        <i className="fas fa-trash-alt mr-2 text-rose-500"></i> Delete All
+        <i className="fas fa-trash-alt mr-2 text-rose-500"></i> Delete Selected
       </button>
       
       <button onClick={onClear} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition ml-2 cursor-pointer">

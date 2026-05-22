@@ -50,6 +50,7 @@ const FileBrowser = ({
   // Selection states
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null); // Keep for single mode fallback
+  const [filesToDelete, setFilesToDelete] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -148,9 +149,13 @@ const FileBrowser = ({
     setIsDeleting(true);
     try {
       const { deleteFile } = await import('../../services/fileService');
-      await Promise.all(selectedFiles.map(f => deleteFile(f.id)));
-      const deletedIds = selectedFiles.map(f => f.id);
-      setSelectedFiles([]);
+      await Promise.all(filesToDelete.map(f => deleteFile(f.id)));
+      const deletedIds = filesToDelete.map(f => f.id);
+      
+      // Keep selectedFiles clean
+      setSelectedFiles(prev => prev.filter(f => !deletedIds.includes(f.id)));
+      setFilesToDelete([]);
+      
       setFiles(prev => prev.filter(f => !deletedIds.includes(f.id)));
       window.dispatchEvent(new CustomEvent('file-uploaded'));
       setIsDeleteModalOpen(false);
@@ -246,6 +251,10 @@ const FileBrowser = ({
               enableMultiSelect={enableMultiSelect}
               isSelected={selectedFiles.some(f => f.id === file.id)}
               onRowSelect={() => toggleFileSelection(file)}
+              onDelete={(file) => {
+                setFilesToDelete([file]);
+                setIsDeleteModalOpen(true);
+              }}
             />
           ))
         ) : (
@@ -275,7 +284,10 @@ const FileBrowser = ({
       <BulkActionsBar 
         selectedCount={selectedFiles.length}
         onShare={() => openShareModal(selectedFiles)}
-        onDelete={() => setIsDeleteModalOpen(true)}
+        onDelete={() => {
+          setFilesToDelete(selectedFiles);
+          setIsDeleteModalOpen(true);
+        }}
         onClear={() => setSelectedFiles([])}
       />
 
@@ -288,11 +300,14 @@ const FileBrowser = ({
 
       <DeleteModal 
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setFilesToDelete([]);
+        }}
         onDelete={handleBulkDelete}
         isLoading={isDeleting}
-        title={`Delete Documents?`}
-        message={`Are you sure you want to remove ${selectedFiles.length} items permanently? This process cannot be undone.`}
+        title={`Delete File?`}
+        message={`Are you sure you want to remove ${filesToDelete.length} items permanently? This process cannot be undone.`}
       />
       </main>
     </GlobalFileDrop>
