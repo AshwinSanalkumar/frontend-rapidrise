@@ -30,7 +30,7 @@ const FileSpecCard = ({ file, onShare, refreshTrigger }) => {
   };
 
   return (
-    <div className="w-full xl:w-80 space-y-4">
+    <div className="w-full space-y-4">
       {/* Specs Section */}
       <div className="bg-white dark:bg-gray-800 rounded-[2rem] p-6 shadow-sm border border-gray-100 dark:border-gray-700">
         <h2 className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-4">File Specs</h2>

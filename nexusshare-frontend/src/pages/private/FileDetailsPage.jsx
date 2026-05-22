@@ -273,24 +273,36 @@ const FileDetailsPage = () => {
           <i className="fas fa-chevron-right text-[10px] text-gray-400"></i>
           <span className="text-gray-800 dark:text-gray-200">Details</span>
         </nav>
-        <div className="ml-auto flex items-center gap-5">
+        <div className="ml-auto flex items-center gap-2">
+          {/* Favorite pill-chip */}
           <button
             onClick={handleToggleFavorite}
             title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border transition-all duration-200 ${
-              isFavorite
-                ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-500 border-rose-200 dark:border-rose-800 hover:bg-rose-100'
-                : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-700 hover:text-rose-500 hover:border-rose-300'
-            }`}
+            className={`group flex items-center overflow-hidden rounded-full border transition-all duration-300 ease-out active:scale-95
+              ${
+                isFavorite
+                  ? 'bg-rose-500 text-white border-rose-500 w-8 h-8 hover:w-40'
+                  : 'bg-white dark:bg-gray-800/60 text-gray-400 border-gray-200 dark:border-gray-700 w-8 h-8 hover:w-36 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200 dark:hover:bg-rose-900/10'
+              }`}
           >
-            <i className={`${isFavorite ? 'fas' : 'far'} fa-heart`}></i>
+            <span className="flex items-center justify-center w-8 h-8 shrink-0">
+              <i className={`${isFavorite ? 'fas' : 'far'} fa-heart text-xs`} />
+            </span>
+
+            <span
+              className="whitespace-nowrap opacity-0 max-w-0 group-hover:opacity-100 group-hover:max-w-[140px] transition-all duration-300 pr-4 text-xs font-semibold"
+            >
+              {isFavorite ? 'Added to Favorites' : 'Add to Favorite'}
+            </span>
           </button>
+          {/* Add to folder pill-chip */}
           <button
             onClick={openFolderModal}
             title="Add to folder"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border bg-white dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-700 hover:text-indigo-500 hover:border-indigo-300 transition-all duration-200"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border bg-white dark:bg-gray-800/60 text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-indigo-50 hover:text-indigo-500 hover:border-indigo-200 dark:hover:bg-indigo-900/10 transition-all duration-200 active:scale-95"
           >
-            <i className="fas fa-folder-plus"></i>
+            <i className="fas fa-folder-plus text-[11px]"></i>
+            <span>Add to Folder</span>
           </button>
         </div>
       </div>
@@ -352,10 +364,9 @@ const FileDetailsPage = () => {
                   </>
                 ) : (
                   <>
-                    <div className="flex flex-1 sm:flex-none gap-2">
-                       <ActionButton icon="fa-edit" title="Update" onClick={() => setIsEditing(true)} />
-                       <ActionButton icon="fa-download" title="Download" onClick={handleDownload} />
-                       
+                    <div className="flex flex-1 sm:flex-none items-center gap-2">
+                      <ActionButton icon="fa-edit" title="Update" onClick={() => setIsEditing(true)} />
+                      <ActionButton icon="fa-download" title="Download" onClick={handleDownload} />
                     </div>
                     <ActionButton icon="fa-trash-alt" title="Delete" variant="danger" onClick={() => setIsDeleteModalOpen(true)} />
                   </>
