@@ -3,11 +3,33 @@ import { fetchSharedLinks } from '../../services/shareService';
 import ShareAuditModal from '../modals/ShareAuditModal';
 import { formatDate } from '../../utils/dateUtils';
 
+const MIME_MAP = {
+  'JPEG': 'JPG',
+  'PNG': 'PNG',
+  'PDF': 'PDF',
+  'MP4': 'MP4',
+  'PLAIN': 'TXT',
+  'VND.OPENXMLFORMATS-OFFICEDOCUMENT.PRESENTATIONML.PRESENTATION': 'PPTX',
+  'VND.OPENXMLFORMATS-OFFICEDOCUMENT.WORDPROCESSINGML.DOCUMENT': 'DOCX',
+  'VND.OPENXMLFORMATS-OFFICEDOCUMENT.SPREADSHEETML.SHEET': 'XLSX',
+  'MPEG': 'MP3',
+  'X-M4A': 'M4A',
+  'ZIP': 'ZIP',
+  'X-ZIP-COMPRESSED': 'ZIP',
+  'OCTET-STREAM': 'BIN'
+};
+
 const FileSpecCard = ({ file, onShare, refreshTrigger }) => {
   const [shares, setShares] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedShare, setSelectedShare] = useState(null);
 
+  const getFileLabel = (type) => {
+    if (!type) return 'N/A';
+    const upperType = type.toUpperCase();
+    return MIME_MAP[upperType] || upperType;
+  };
+  
   useEffect(() => {
     if (file?.id) {
       const loadShares = async () => {
@@ -25,10 +47,6 @@ const FileSpecCard = ({ file, onShare, refreshTrigger }) => {
     }
   }, [file?.id, refreshTrigger]);
 
-  const getExtension = (filename) => {
-    return filename?.split('.').pop()?.toUpperCase() || 'N/A';
-  };
-
   return (
     <div className="w-full space-y-4">
       {/* Specs Section */}
@@ -42,9 +60,9 @@ const FileSpecCard = ({ file, onShare, refreshTrigger }) => {
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-400 text-xs">Extension</span>
+            <span className="text-gray-400 text-xs">File Type</span>
             <span className="text-gray-800 dark:text-white font-bold text-xs">
-              {getExtension(file.filename)}
+              {getFileLabel(file.filetype)}
             </span>
           </div>
           <div className="flex justify-between">
