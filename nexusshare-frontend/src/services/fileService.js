@@ -40,7 +40,7 @@ export const mapFileFromApi = (apiFile) => {
     size: apiFile.size_readable,
     type: mimeMap[apiFile.mime_type] || 'default',
     preview: apiFile.content ? `http://localhost:8000${apiFile.content}` : null,
-    extension: apiFile.filename ? '.' + apiFile.filename.split('.').pop().toUpperCase() : '',
+    filetype: apiFile.mime_type.split('/')[1].toUpperCase(), 
     status: 'PRIVATE',
     isDeleted: apiFile.is_deleted || false,
     isFavorite: apiFile.is_favorite || false,

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Document, Page, pdfjs } from 'react-pdf';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 import { useToast } from '../common/ToastContent'; // Using your custom toast hook
 import { toggleFileFavorite } from '../../services/fileService';
 import { getFileConfig } from '../../utils/fileUtils';
@@ -119,6 +122,25 @@ const FileCard = ({ file, onShare, onDelete, view, onToggleFavorite, currentPage
                    <i className="fas fa-play text-white text-[8px] ml-0.5"></i>
                 </div>
              </div>
+          </div>
+        ) : file.type === 'pdf' && file.preview ? (
+          <div className="w-full h-full flex items-start justify-center overflow-hidden bg-white dark:bg-gray-800">
+            <Document
+              file={file.preview}
+              loading={<i className="fas fa-circle-notch fa-spin text-gray-400 text-xs text-center"></i>}
+              className="w-full h-full"
+              error={
+                <i className={`fas ${config.icon} ${config.color} ${isList ? 'text-xl' : 'text-3xl'} group-hover:rotate-12 transition-transform duration-300`}></i>
+              }
+            >
+              <Page
+                pageNumber={1}
+                width={isList ? 60 : 250}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+                className="w-full h-full [&>canvas]:!w-full [&>canvas]:!h-full [&>canvas]:!object-cover [&>canvas]:!object-top"
+              />
+            </Document>
           </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
