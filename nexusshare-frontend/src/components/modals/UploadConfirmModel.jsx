@@ -1,4 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
+const FilePreview = ({ file }) => {
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (!file || !file.type) return;
+
+    setHasError(false);
+    setPreviewUrl(null);
+
+    let isMounted = true;
+    let objectUrl = null;
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (isMounted && e.target.result) {
+          setPreviewUrl(e.target.result);
+        }
+      };
+      reader.onerror = () => {
+        if (isMounted) setHasError(true);
+      };
+      reader.readAsDataURL(file);
+    } else if (file.type.startsWith('video/') || file.type === 'application/pdf') {
+      objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+    }
+
+    return () => {
+      isMounted = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [file]);
+
+  if (previewUrl && !hasError) {
+    if (file.type.startsWith('image/')) {
+      return (
+        <img 
+          src={previewUrl} 
+          alt="preview" 
+          className="w-14 h-14 rounded-[1rem] object-cover shrink-0 shadow-sm border border-gray-100 dark:border-gray-700" 
+          onError={() => setHasError(true)}
+        />
+      );
+    } else if (file.type.startsWith('video/')) {
+      return (
+        <video 
+          src={previewUrl} 
+          className="w-14 h-14 rounded-[1rem] object-cover shrink-0 shadow-sm border border-gray-100 dark:border-gray-700"
+          onError={() => setHasError(true)}
+        />
+      );
+    } else if (file.type === 'application/pdf') {
+      return (
+        <div className="w-14 h-14 rounded-[1rem] shrink-0 overflow-hidden bg-white dark:bg-gray-800 flex items-start justify-center shadow-sm border border-gray-100 dark:border-gray-700">
+          <Document 
+            file={previewUrl} 
+            loading={<i className="fas fa-circle-notch fa-spin text-gray-400 text-xs mt-4"></i>}
+            onLoadError={() => setHasError(true)}
+            error={null}
+            className="w-full h-full"
+          >
+            <Page
+              pageNumber={1}
+              width={56}
+              renderTextLayer={false}
+              renderAnnotationLayer={false}
+              className="w-full h-full [&>canvas]:!w-full [&>canvas]:!h-full [&>canvas]:!object-cover [&>canvas]:!object-top"
+            />
+          </Document>
+        </div>
+      );
+    }
+  }
+
+  return (
+    <div className="w-14 h-14 flex shrink-0 items-center justify-center bg-indigo-50 dark:bg-indigo-900/30 rounded-[1rem] text-indigo-500 shadow-sm border border-indigo-100 dark:border-indigo-900/50">
+      <i className="fas fa-file text-xl"></i>
+    </div>
+  );
+};
 
 const UploadConfirmModal = ({ files, isOpen, isUploading, onClose, onRemove, onConfirm }) => {
   const [descriptions, setDescriptions] = useState({});
@@ -35,24 +121,25 @@ const UploadConfirmModal = ({ files, isOpen, isUploading, onClose, onRemove, onC
         <div className="p-10">
           <div className="space-y-4 max-h-80 overflow-y-auto pr-2 mb-8 custom-scrollbar">
             {files.map((file, index) => (
-              <div key={index} className="flex flex-col p-5 bg-gray-50 dark:bg-gray-700/50 rounded-3xl border border-gray-100 dark:border-gray-700 transition-all hover:border-indigo-200 dark:hover:border-indigo-900/50">
-                <div className="flex items-center justify-between mb-3">
+              <div key={index} className="flex flex-col p-4 bg-gray-50 dark:bg-gray-700/50 rounded-3xl border border-gray-100 dark:border-gray-700 transition-all hover:border-indigo-200 dark:hover:border-indigo-900/50">
+                <div className="flex items-center justify-between mb-3.5">
                   <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-indigo-500"><i className="fas fa-file"></i></div>
+                    <FilePreview file={file} />
                     <div className="max-w-[300px]">
-                      <p className="text-sm font-bold text-gray-800 dark:text-gray-200 truncate">{file.name}</p>
-                      <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-tight">{formatBytes(file.size)}</p>
+                      <p className="text-base font-bold text-gray-800 dark:text-gray-200 truncate leading-tight">{file.name}</p>
+                      <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mt-1">{formatBytes(file.size)}</p>
                     </div>
                   </div>
-                  <button onClick={() => onRemove(index)} disabled={isUploading} className="text-gray-300 hover:text-red-500 transition px-2 disabled:opacity-30 disabled:cursor-not-allowed">
-                    <i className="fas fa-trash-alt text-sm"></i>
+                  <button onClick={() => onRemove(index)} disabled={isUploading} className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 text-gray-300 hover:text-red-500 hover:bg-red-50 transition shadow-sm disabled:opacity-30 disabled:cursor-not-allowed">
+                    <i className="fas fa-trash-alt text-xs"></i>
                   </button>
                 </div>
-                <textarea 
-                  placeholder="Add a brief description for this file..."
+                <input 
+                  type="text"
+                  placeholder="Add an optional brief description..."
                   value={descriptions[index] || ''}
                   onChange={(e) => handleDescriptionChange(index, e.target.value)}
-                  className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-xl px-4 py-2 text-xs text-gray-600 dark:text-gray-400 focus:ring-2 focus:ring-indigo-500 outline-none resize-none h-16 transition-all"
+                  className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-2xl px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm placeholder:font-medium"
                 />
               </div>
             ))}
