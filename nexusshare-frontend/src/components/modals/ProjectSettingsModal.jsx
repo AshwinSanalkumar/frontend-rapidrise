@@ -2,11 +2,33 @@ import React, { useState } from 'react';
 import { useToast } from '../common/ToastContent';
 import { updateMemberRole, removeMember, deleteWorkstation } from '../../services/workstationService';
 import { useNavigate } from 'react-router-dom';
+import DeleteModal from './DeleteModal';
 
 const ProjectSettingsModal = ({ isOpen, onClose, station, onUpdate }) => {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const handleDeleteWorkstation = () => {
+    setIsDeleteModalOpen(true);
+  };
+  const confirmDeleteWorkstation = async () => {
+  try {
+    setIsDeleting(true);
+
+    await deleteWorkstation(station.id);
+
+    showToast("Workstation deleted");
+    setIsDeleteModalOpen(false);
+    onClose();
+    navigate("/workstation");
+  } catch (error) {
+    showToast("Failed to delete workstation");
+  } finally {
+    setIsDeleting(false);
+  }
+};
 
   if (!isOpen || !station) return null;
 
@@ -32,21 +54,6 @@ const ProjectSettingsModal = ({ isOpen, onClose, station, onUpdate }) => {
       onUpdate();
     } catch (error) {
       showToast("Failed to remove collaborator");
-    }
-  };
-
-  const handleDeleteWorkstation = async () => {
-    if (!window.confirm("CRITICAL: This will permanently delete the workstation and all its versions. This cannot be undone.")) return;
-    try {
-      setIsDeleting(true);
-      await deleteWorkstation(station.id);
-      showToast("Workstation deleted");
-      onClose();
-      navigate('/workstation');
-    } catch (error) {
-      showToast("Failed to delete workstation");
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -137,7 +144,6 @@ const ProjectSettingsModal = ({ isOpen, onClose, station, onUpdate }) => {
               </p>
               <button 
                 onClick={handleDeleteWorkstation}
-                disabled={isDeleting}
                 className="px-6 py-3 bg-red-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-600 transition shadow-lg shadow-red-500/20 disabled:opacity-50 flex items-center gap-2"
               >
                 <i className="fas fa-trash-alt"></i>
@@ -147,7 +153,17 @@ const ProjectSettingsModal = ({ isOpen, onClose, station, onUpdate }) => {
           </div>
         </div>
       </div>
+    <DeleteModal
+      isOpen={isDeleteModalOpen}
+      title="Delete Workstation"
+      message="This will permanently delete the workstation and all its versions. This action cannot be undone."
+      confirmText="Delete"
+      loading={isDeleting}
+      onDelete={confirmDeleteWorkstation}
+      onClose={() => setIsDeleteModalOpen(false)}
+    />
     </div>
+    
   );
 };
 

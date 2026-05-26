@@ -17,14 +17,5 @@ export const createYjsProvider = (workstationId, token) => {
     }
   )
 
-  // ✅ ADD THIS DEBUG
-  provider.on('status', event => {
-    console.log('WS STATUS:', event.status)
-  })
-
-  provider.on('sync', isSynced => {
-    console.log('SYNC STATUS:', isSynced)
-  })
-
   return { ydoc, provider }
 }
