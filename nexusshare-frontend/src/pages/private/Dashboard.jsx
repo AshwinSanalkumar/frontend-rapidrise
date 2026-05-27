@@ -1,11 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import UploadConfirmModal from '../../components/modals/UploadConfirmModel';
+import ActiveDropzoneModal from '../../components/modals/ActiveDropzoneModal';
 import { fetchFiles, uploadFiles, fetchStorageStats } from '../../services/fileService';
 import { useToast } from '../../components/common/ToastContent';
 import { fetchSharedLinks } from '../../services/shareService';
 import { fetchMe } from '../../services/authService';
 import { getFileConfig } from '../../utils/fileUtils';
+import { fetchWorkstations } from '../../services/workstationService';
+import { fetchSentRequests } from '../../services/requestService';
 
 const Dashboard = () => {
   const { showToast } = useToast();
@@ -18,13 +21,17 @@ const Dashboard = () => {
   const [totalSharedFiles, setTotalSharedFiles] = useState(0);
   const [userData, setUserData] = useState(null);
   const [storageStats, setStorageStats] = useState(null);
+  const [workstations, setWorkstations] = useState([]);
+  const [dropzones, setDropzones] = useState([]);
+  const [selectedDropzone, setSelectedDropzone] = useState(null);
+  const [isDropzoneModalOpen, setIsDropzoneModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const hiddenInputRef = useRef(null);
 
   useEffect(() => { 
     const loadInitialData = async () => {
       setIsLoading(true);
-      await Promise.all([loadFiles(), loadShared(), loadUser(), loadStats()]);
+      await Promise.all([loadFiles(), loadShared(), loadUser(), loadStats(), loadWorkstations(), loadDropzones()]);
       setIsLoading(false);
     };
     loadInitialData();
@@ -63,6 +70,25 @@ const Dashboard = () => {
       const data = await fetchStorageStats();
       setStorageStats(data);
     } catch (error) { console.error(error); }
+  };
+
+  const loadWorkstations = async () => {
+    try {
+      const data = await fetchWorkstations();
+      setWorkstations(data.results || data || []);
+    } catch (error) { console.error(error); }
+  };
+
+  const loadDropzones = async () => {
+    try {
+      const data = await fetchSentRequests();
+      setDropzones(data.filter(r => r.status === 'pending') || []);
+    } catch (error) { console.error(error); }
+  };
+
+  const openDropzoneModal = (dz) => {
+    setSelectedDropzone(dz);
+    setIsDropzoneModalOpen(true);
   };
 
   const handleFiles = (e) => {
@@ -253,6 +279,86 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Active Ecosystem: Workstations & Dropzones */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Workstations Panel */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between mb-4 px-2">
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Workstations</h3>
+            <Link to="/workstation" className="text-[9px] font-black text-indigo-600 hover:underline uppercase">
+              Enter Workspace <i className="fas fa-arrow-right scale-75 ml-1"></i>
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
+            {workstations.slice(0, 4).map((ws, index) => (
+              <Link 
+                key={ws.id} 
+                to={`/workstation/${ws.id}`} 
+                className="flex flex-col p-4 rounded-[1.5rem] bg-gray-50/50 dark:bg-gray-900/50 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/40 transition-all group min-h-[50px] justify-between min-w-0"
+              >
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 group-hover:rotate-12 transition-transform">
+                  <i className="fas fa-briefcase text-xs"></i>
+                </div>
+                
+                <div className="mt-2">
+                  <p className="text-[10px] font-black text-gray-800 dark:text-gray-100 truncate line-clamp-1">{ws.title}</p>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-[7px] text-gray-400 font-black uppercase tracking-tight">{ws.memberCount} M</p>
+                    <div className="flex -space-x-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {[...Array(Math.min(ws.memberCount, 2))].map((_, i) => (
+                        <div key={i} className="w-4 h-4 rounded-full border border-white dark:border-gray-800 bg-gray-200 flex items-center justify-center text-[6px] font-bold text-gray-500 overflow-hidden">
+                          <i className="fas fa-user scale-75"></i>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+            {workstations.length === 0 && (
+              <div className="flex-1 text-center py-8 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-[2rem]">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">No active workstations</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Dropzones Panel */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div className="flex items-center justify-between mb-4 px-2">
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Dropzones</h3>
+            <Link to="/send-request" className="text-[9px] font-black text-indigo-600 hover:underline uppercase">
+              Manage Links <i className="fas fa-arrow-right scale-75 ml-1"></i>
+            </Link>
+          </div>
+          <div className="space-y-2 max-h-[100px] overflow-y-auto custom-scrollbar pr-1">
+            {dropzones.slice(0, 5).map(dz => (
+              <div 
+                key={dz.id} 
+                onClick={() => openDropzoneModal(dz)}
+                className="flex items-center justify-between p-3 rounded-[1.5rem] bg-gray-50/50 dark:bg-gray-900/50 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/40 transition-all group cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
+                    <i className="fas fa-parachute-box text-xs"></i>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-black text-gray-800 dark:text-gray-100 truncate max-w-[120px]">{dz.recipient_email}</p>
+                    <p className="text-[8px] text-gray-400 font-bold uppercase truncate max-w-[120px]">{dz.note || 'Secure Request'}</p>
+                  </div>
+                </div>
+                <span className="text-[8px] font-black text-amber-500 uppercase bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-lg whitespace-nowrap">Pending</span>
+              </div>
+            ))}
+            {dropzones.length === 0 && (
+              <div className="text-center py-6 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-[2rem]">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">No active dropzones</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* COMPACT FULL-WIDTH RECENTS WITH DYNAMIC ICONS */}
       <div className="bg-white dark:bg-gray-800 p-6 lg:p-8 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm w-full">
         <div className="flex items-center justify-between mb-6 px-2">
@@ -289,6 +395,12 @@ const Dashboard = () => {
         onClose={() => { if (!isUploading) { setIsModalOpen(false); setStagedFiles([]); } }}
         onRemove={(i) => setStagedFiles(stagedFiles.filter((_, idx) => idx !== i))}
         onConfirm={handleFinalUpload}
+      />
+
+      <ActiveDropzoneModal 
+        isOpen={isDropzoneModalOpen} 
+        onClose={() => setIsDropzoneModalOpen(false)} 
+        requestData={selectedDropzone}
       />
     </main>
   );
