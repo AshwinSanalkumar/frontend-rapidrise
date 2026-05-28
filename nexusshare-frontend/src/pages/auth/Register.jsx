@@ -60,6 +60,27 @@ const Register = () => {
     length: formData.password.length >= 8
   };
 
+  const emailValidations = {
+    format: /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/.test(formData.email),
+    invalidChars: !["#", "$", "%", "!", "&"].some(char => formData.email.includes(char)),
+  };
+
+  const getNormalizedEmail = (email) => {
+    if (!email || !email.includes('@')) return email;
+    try {
+      let [local, domain] = email.toLowerCase().trim().split('@');
+      if (['gmail.com', 'googlemail.com'].includes(domain)) {
+        local = local.split('+')[0].replace(/\./g, '');
+      }
+      return `${local}@${domain}`;
+    } catch (e) {
+      return email;
+    }
+  };
+
+  const normalizedEmail = getNormalizedEmail(formData.email);
+  const isEmailNormalizedValueDifferent = formData.email && normalizedEmail !== formData.email.toLowerCase().trim();
+
   const isPasswordValid = Object.values(validations).every(Boolean);
 
   const validationMessage = (() => {
@@ -73,6 +94,16 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (!emailValidations.format) {
+      showToast('Enter a valid email address.', 'error');
+      return;
+    }
+
+    if (!emailValidations.invalidChars) {
+      showToast('Email contains invalid characters (#, $, %, etc.).', 'error');
+      return;
+    }
 
     if (!isPasswordValid) {
       showToast('Please meet all password requirements', 'error');
@@ -165,6 +196,21 @@ const Register = () => {
             <div className="space-y-1.5">
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email / Username</label>
               <input type="email" name="email" required placeholder="example@gmail.com" value={formData.email} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+              {formData.email && !emailValidations.format && (
+                <div className="text-[8.5px] font-bold text-amber-500 uppercase tracking-wider ml-1 mt-1">
+                  <i className="fas fa-exclamation-circle mr-1"></i> Invalid format
+                </div>
+              )}
+              {formData.email && !emailValidations.invalidChars && (
+                <div className="text-[8.5px] font-bold text-red-500 uppercase tracking-wider ml-1 mt-1">
+                  <i className="fas fa-times-circle mr-1"></i> Contains invalid symbols (#, $, %)
+                </div>
+              )}
+              {isEmailNormalizedValueDifferent && emailValidations.format && (
+                <div className="text-[8.5px] font-bold text-indigo-500/80 uppercase tracking-wider ml-1 mt-1">
+                  <i className="fas fa-info-circle mr-1"></i> Will be saved as: <span className="text-indigo-600 dark:text-indigo-400">{normalizedEmail}</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5 relative">

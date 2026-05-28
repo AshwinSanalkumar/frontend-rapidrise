@@ -221,7 +221,7 @@ const ShareModal = ({ isOpen, onClose, file, onSuccess }) => {
 
             {/* Message Area */}
             <div>
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Encryption Memo</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Note</label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}

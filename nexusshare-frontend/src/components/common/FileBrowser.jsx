@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useToast } from '../../components/common/ToastContent';
 import { useLocation, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import GlobalFileDrop from './GlobalFileDrop';
 import { fetchFiles } from '../../services/fileService';
@@ -34,6 +35,7 @@ const FileBrowser = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [view, setView] = useState(() => {
     return localStorage.getItem('view') || 'grid';
@@ -159,8 +161,10 @@ const FileBrowser = ({
       setFiles(prev => prev.filter(f => !deletedIds.includes(f.id)));
       window.dispatchEvent(new CustomEvent('file-uploaded'));
       setIsDeleteModalOpen(false);
+      showToast(`${deletedIds.length} items moved to trash`, 'success');
     } catch (e) {
       console.error(e);
+      showToast('Failed to delete some items', 'error');
     } finally {
       setIsDeleting(false);
     }
@@ -230,33 +234,66 @@ const FileBrowser = ({
       </div>
 
       {/* Files Grid/List */}
-      <div className={view === 'grid'
-        ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6"
-        : "flex flex-col gap-4"
-      }>
+      <div className={view === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6" : ""}>
         {isLoading ? (
           <div className="col-span-full py-24 text-center">
             <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Accessing Vault...</p>
           </div>
         ) : currentFiles.length > 0 ? (
-          currentFiles.map(file => (
-            <FileCard
-              key={file.id}
-              file={file}
-              onShare={openShareModal}
-              view={view}
-              onToggleFavorite={handleToggleFavorite}
-              currentPage={currentPage}
-              enableMultiSelect={enableMultiSelect}
-              isSelected={selectedFiles.some(f => f.id === file.id)}
-              onRowSelect={() => toggleFileSelection(file)}
-              onDelete={(file) => {
-                setFilesToDelete([file]);
-                setIsDeleteModalOpen(true);
-              }}
-            />
-          ))
+          view === 'grid' ? (
+            currentFiles.map(file => (
+              <FileCard
+                key={file.id}
+                file={file}
+                onShare={openShareModal}
+                view={view}
+                onToggleFavorite={handleToggleFavorite}
+                currentPage={currentPage}
+                enableMultiSelect={enableMultiSelect}
+                isSelected={selectedFiles.some(f => f.id === file.id)}
+                onRowSelect={() => toggleFileSelection(file)}
+                onDelete={(file) => {
+                  setFilesToDelete([file]);
+                  setIsDeleteModalOpen(true);
+                }}
+              />
+            ))
+          ) : (
+            <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-gray-900/50 text-[10px] font-black uppercase text-gray-400 tracking-widest">
+                    {enableMultiSelect && <th className="pl-8 py-5 w-10"></th>}
+                    <th className="px-8 py-5">File</th>
+                    <th className="hidden md:table-cell px-8 py-5">Size</th>
+                    <th className="hidden md:table-cell px-8 py-5">Date</th>
+                    <th className="px-8 py-5 text-right">Status</th>
+                    <th className="px-8 py-5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
+                  {currentFiles.map(file => (
+                    <FileCard
+                      key={file.id}
+                      file={file}
+                      onShare={openShareModal}
+                      view={view}
+                      onToggleFavorite={handleToggleFavorite}
+                      currentPage={currentPage}
+                      enableMultiSelect={enableMultiSelect}
+                      isSelected={selectedFiles.some(f => f.id === file.id)}
+                      onRowSelect={() => toggleFileSelection(file)}
+                      onDelete={(file) => {
+                        setFilesToDelete([file]);
+                        setIsDeleteModalOpen(true);
+                      }}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
         ) : (
           <div className="col-span-full py-24 text-center bg-white dark:bg-gray-800/50 rounded-[2.5rem] border-2 border-dashed border-gray-200 dark:border-gray-700">
             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">

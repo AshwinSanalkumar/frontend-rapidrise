@@ -2,33 +2,40 @@ import React, { useState, useMemo, useEffect } from 'react';
 import FileRow from '../../components/elements/FileRow';
 import DeleteModal from '../../components/modals/DeleteModal';
 import { useToast } from '../../components/common/ToastContent';
-import { fetchRecentFiles, clearRecentFiles } from '../../services/fileService';
+import { useNavigate } from 'react-router-dom';
+import { fetchRecentFiles, clearRecentFiles, fetchFiles } from '../../services/fileService';
 import { getFileConfig } from '../../utils/fileUtils';
 
 const Recents = () => {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [fileToDelete, setFileToDelete] = useState(null);
 
   const [recentFiles, setRecentFiles] = useState([]);
+  const [recentUploads, setRecentUploads] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadRecentFiles = async () => {
+    const loadData = async () => {
       setIsLoading(true);
       try {
-        const data = await fetchRecentFiles();
-        setRecentFiles(data);
+        const [recentData, listData] = await Promise.all([
+          fetchRecentFiles(),
+          fetchFiles(1) // Get first page of all files
+        ]);
+        setRecentFiles(recentData);
+        setRecentUploads((listData.files || []).slice(0, 4));
       } catch (err) {
-        console.error("Failed to load recent files:", err);
+        console.error("Failed to load recents data:", err);
         showToast("Could not load recent activity", "error");
       } finally {
         setIsLoading(false);
       }
     };
-    loadRecentFiles();
+    loadData();
 
-    // Listen for global upload events to refresh the recent files list
-    const handleUploadEvent = () => loadRecentFiles();
+    // Listen for global upload events to refresh the data
+    const handleUploadEvent = () => loadData();
     window.addEventListener('file-uploaded', handleUploadEvent);
     return () => window.removeEventListener('file-uploaded', handleUploadEvent);
   }, []);
@@ -130,6 +137,48 @@ const Recents = () => {
           Clear History
         </button>
       </header>
+
+      {/* Recently Uploaded Quick Section */}
+      {!isLoading && recentUploads.length > 0 && (
+        <section className="mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+           <div className="flex items-center justify-between mb-6 ml-4 mr-4">
+               <h3 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                 Recently Uploaded
+               </h3>
+               <button 
+                 onClick={() => navigate('/files')}
+                 className="text-[10px] font-black text-indigo-500 hover:text-indigo-600 uppercase tracking-widest transition-colors flex items-center gap-1.5 group/btn"
+               >
+                 See All Vault
+                 <i className="fas fa-chevron-right text-[8px] group-hover/btn:translate-x-0.5 transition-transform"></i>
+               </button>
+           </div>
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {recentUploads.map(file => {
+                 const config = getFileConfig(file.type);
+                 return (
+                    <div key={file.id} 
+                         onClick={() => navigate(`/files/details/${file.id}`)}
+                         className="bg-white dark:bg-gray-800 p-4 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all group cursor-pointer flex items-center gap-4"
+                    >
+                       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden ${config.bg.replace('bg-', 'bg-opacity-10 bg-')}`}>
+                          {(file.type === 'image' || file.type === 'video') && file.preview ? (
+                             <img src={file.preview} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt="" />
+                          ) : (
+                             <i className={`fas ${config.icon} ${config.color} text-lg group-hover:scale-110 transition-transform`}></i>
+                          )}
+                       </div>
+                       <div className="overflow-hidden">
+                          <p className="text-sm font-bold text-gray-800 dark:text-white truncate">{file.name}</p>
+                          <p className="text-[10px] text-gray-400 font-medium">{file.size} • {file.date}</p>
+                       </div>
+                    </div>
+                 );
+              })}
+           </div>
+        </section>
+      )}
 
       {/* Grouped Content */}
       <div className="space-y-10">

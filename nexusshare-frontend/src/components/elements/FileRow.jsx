@@ -43,18 +43,7 @@ const FileRow = ({ id, name, subtitle, modified, size, iconClass, colorClass, bg
       <td className="px-8 py-6 text-sm text-gray-500 dark:text-gray-400">{modified}</td>
       <td className="px-8 py-6 text-sm text-gray-500 dark:text-gray-400">{size}</td>
       
-      <td className="px-8 py-6 text-right space-x-3 text-gray-300">
-        <button 
-          onClick={(e) => { 
-            e.stopPropagation(); // Prevents navigation to FileDetails
-            onShare(id, name); 
-          }}
-          className="hover:text-indigo-600 transition-colors p-2 relative z-10"
-          title="Share Link"
-        >
-          <i className="fas fa-link"></i>
-        </button>
-        
+      <td className="px-8 py-6 text-right space-x-3 text-gray-300">        
         <button 
           onClick={(e) => {
             e.stopPropagation(); // Prevents navigation to FileDetails

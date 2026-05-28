@@ -63,13 +63,122 @@ const FileCard = ({ file, onShare, onDelete, view, onToggleFavorite, currentPage
     navigate(`/files/details/${file.id}`, { state: { fromPage: currentPage } });
   };
 
+  const renderPreview = (sizeClass = 'w-full h-full') => (
+    <div className={`relative overflow-hidden flex-shrink-0 transition-colors duration-300 rounded-lg ${sizeClass}
+      ${(file.type === 'image' || file.type === 'video') ? 'bg-gray-50 dark:bg-gray-900/50' : `dark:bg-gray-900/30 ${config.bg.replace('bg-', 'bg-opacity-20 bg-')}`} `}
+    >
+      {file.type === 'image' && file.preview ? (
+        <img
+          src={file.preview}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          alt={file.name}
+        />
+      ) : file.type === 'video' && file.preview ? (
+        <div className="w-full h-full relative group/vid">
+           <video 
+              src={`${file.preview}#t=0.5`} 
+              preload="metadata"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 pointer-events-none"
+           />
+           <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/0 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center opacity-80 border border-white/30">
+                 <i className="fas fa-play text-white text-[8px] ml-0.5"></i>
+              </div>
+           </div>
+        </div>
+      ) : file.type === 'pdf' && file.preview ? (
+        <div className="w-full h-full flex items-start justify-center overflow-hidden bg-white dark:bg-gray-800">
+          <Document
+            file={file.preview}
+            loading={<i className="fas fa-circle-notch fa-spin text-gray-400 text-xs text-center"></i>}
+            className="w-full h-full"
+            error={
+              <i className={`fas ${config.icon} ${config.color} ${isList ? 'text-xl' : 'text-3xl'} group-hover:rotate-12 transition-transform duration-300`}></i>
+            }
+          >
+            <Page
+              pageNumber={1}
+              width={isList ? 60 : 250}
+              renderTextLayer={false}
+              renderAnnotationLayer={false}
+              className="w-full h-full [&>canvas]:!w-full [&>canvas]:!h-full [&>canvas]:!object-cover [&>canvas]:!object-top"
+            />
+          </Document>
+        </div>
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <i className={`fas ${config.icon} ${config.color} ${isList ? 'text-xl' : 'text-3xl'} group-hover:rotate-12 transition-transform duration-300`}></i>
+        </div>
+      )}
+    </div>
+  );
+
+  if (isList) {
+    return (
+      <tr 
+        onClick={handleView}
+        className="hover:bg-gray-50/50 dark:hover:bg-gray-900/30 transition-colors group cursor-pointer border-b border-gray-50 dark:border-gray-800/50 last:border-0"
+      >
+        {enableMultiSelect && (
+          <td className="pl-8 py-4">
+            <button
+               onClick={(e) => { e.stopPropagation(); onRowSelect(); }}
+               className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-300
+                 ${isSelected
+                   ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30'
+                   : 'bg-gray-100 dark:bg-gray-700 text-gray-400 opacity-60 group-hover:opacity-100'}`}
+            >
+               <i className={`fas fa-check text-[10px] ${isSelected ? 'opacity-100' : 'opacity-0'}`}></i>
+            </button>
+          </td>
+        )}
+        <td className="px-8 py-4">
+          <div className="flex items-center space-x-4">
+             {renderPreview('w-12 h-10')}
+             <div>
+                <p className="text-sm font-bold text-gray-800 dark:text-white truncate max-w-[250px] leading-tight mb-0.5">{file.name}</p>
+                <div className="flex md:hidden items-center space-x-2 text-[10px] text-gray-400 font-medium">
+                  <span>{file.size}</span>
+                  <span>•</span>
+                  <span>{file.date}</span>
+                </div>
+             </div>
+          </div>
+        </td>
+        <td className="hidden md:table-cell px-8 py-4 text-xs font-bold text-gray-500 dark:text-gray-400">
+           {file.size}
+        </td>
+        <td className="hidden md:table-cell px-8 py-4 text-xs font-medium text-gray-500 dark:text-gray-400">
+           {file.date}
+        </td>
+        <td className="px-8 py-4 text-right">
+           <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md
+             ${file.status === 'PRIVATE' ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'}`}>
+             {file.status}
+           </span>
+        </td>
+        <td className="px-8 py-4 text-right">
+           <div className="flex items-center justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <button onClick={handleToggleFavorite} className={`transition-colors ${isFavorite ? 'text-rose-500' : 'text-gray-300 hover:text-rose-500'}`}>
+                    <i className={`${isFavorite ? 'fas' : 'far'} fa-heart text-xs`}></i>
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); if (onDelete) onDelete(file); }} className="text-gray-300 hover:text-red-500 transition-colors">
+                    <i className="fas fa-trash-alt text-xs"></i>
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); onShare(file); }} className="text-gray-300 hover:text-indigo-500 transition-colors">
+                    <i className="fas fa-share-alt text-xs"></i>
+                </button>
+           </div>
+        </td>
+      </tr>
+    );
+  }
+
   return (
     <div
       onClick={handleView}
       className={`file-card bg-white dark:bg-gray-800 p-4 border border-gray-100 dark:border-gray-700 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group cursor-pointer relative
-        ${isList
-          ? 'flex flex-row items-center !py-3 !px-4 md:!py-4 md:!px-6 !rounded-2xl md:!rounded-[1.25rem]'
-          : 'flex flex-col rounded-[2.5rem]'}`}
+        rounded-[2.5rem] flex flex-col`}
     >
       {/* Selection Button - Top Left */}
       {enableMultiSelect && !isList && (
@@ -98,56 +207,7 @@ const FileCard = ({ file, onShare, onDelete, view, onToggleFavorite, currentPage
       )}
 
       {/* File Preview Container */}
-      <div className={`relative overflow-hidden flex-shrink-0 transition-colors duration-300
-        ${isList
-          ? 'w-[60px] h-[45px] rounded-lg mr-6'
-          : 'h-32 w-full rounded-[1.5rem] mb-4'}
-        ${(file.type === 'image' || file.type === 'video') ? 'bg-gray-50 dark:bg-gray-900/50' : `dark:bg-gray-900/30 ${config.bg.replace('bg-', 'bg-opacity-20 bg-')}`} `}
-      >
-        {file.type === 'image' && file.preview ? (
-          <img
-            src={file.preview}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            alt={file.name}
-          />
-        ) : file.type === 'video' && file.preview ? (
-          <div className="w-full h-full relative group/vid">
-             <video 
-                src={`${file.preview}#t=0.5`} 
-                preload="metadata"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 pointer-events-none"
-             />
-             <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/0 transition-colors">
-                <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center opacity-80 border border-white/30">
-                   <i className="fas fa-play text-white text-[8px] ml-0.5"></i>
-                </div>
-             </div>
-          </div>
-        ) : file.type === 'pdf' && file.preview ? (
-          <div className="w-full h-full flex items-start justify-center overflow-hidden bg-white dark:bg-gray-800">
-            <Document
-              file={file.preview}
-              loading={<i className="fas fa-circle-notch fa-spin text-gray-400 text-xs text-center"></i>}
-              className="w-full h-full"
-              error={
-                <i className={`fas ${config.icon} ${config.color} ${isList ? 'text-xl' : 'text-3xl'} group-hover:rotate-12 transition-transform duration-300`}></i>
-              }
-            >
-              <Page
-                pageNumber={1}
-                width={isList ? 60 : 250}
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
-                className="w-full h-full [&>canvas]:!w-full [&>canvas]:!h-full [&>canvas]:!object-cover [&>canvas]:!object-top"
-              />
-            </Document>
-          </div>
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <i className={`fas ${config.icon} ${config.color} ${isList ? 'text-xl' : 'text-3xl'} group-hover:rotate-12 transition-transform duration-300`}></i>
-          </div>
-        )}
-      </div>
+      {renderPreview(isList ? 'w-[60px] h-[45px] rounded-lg mr-6' : 'h-32 w-full rounded-[1.5rem] mb-4')}
 
       {/* File Details */}
       <div className={`${isList ? 'flex flex-1 items-center' : ''}`}>

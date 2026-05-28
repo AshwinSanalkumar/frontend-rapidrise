@@ -182,7 +182,6 @@ const FolderDetail = () => {
                   imageUrl={file.preview}
                   type={file.type}
                   onDelete={() => handleDeleteClick(file.id, file.name)} 
-                  onShare={(id, name) => showToast(`Link copied for ${name}`, "success")}
                 />
               ))}
               </tbody>
