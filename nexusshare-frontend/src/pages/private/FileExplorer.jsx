@@ -44,13 +44,21 @@ const FileExplorer = () => {
   }, []);
 
   const handleCreateFolder = async () => {
-    if (!newFolderName.trim()) return;
+    const trimmedName = newFolderName.trim();
+    if (!trimmedName) return;
+
+    // Check if folder name already exists (case-insensitive)
+    if (folders.some(f => f.name.toLowerCase() === trimmedName.toLowerCase())) {
+      showToast(`A folder named '${trimmedName}' already exists.`, "error");
+      return;
+    }
+
     try {
-      const created = await createFolder(newFolderName.trim());
+      const created = await createFolder(trimmedName);
       setFolders(prev => [...prev, created]);
       setIsCreateModalOpen(false);
       setNewFolderName("");
-      showToast(`Folder "${newFolderName}" created successfully!`, "success");
+      showToast(`Folder "${trimmedName}" created successfully!`, "success");
     } catch (error) {
       showToast("Failed to create folder.", "error");
     }
@@ -186,6 +194,7 @@ const FileExplorer = () => {
                   onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
                 />
               </div>
+              <br />
               <div className="flex space-x-3 justify-end">
                 <button onClick={() => setIsCreateModalOpen(false)} className="px-6 py-3 text-sm font-bold text-gray-400 hover:text-gray-600 transition">Cancel</button>
                 <button onClick={handleCreateFolder} className="gradient-bg text-white font-bold px-8 py-3 rounded-xl shadow-lg transition active:scale-95 text-sm">
@@ -223,6 +232,7 @@ const FileExplorer = () => {
                   onKeyDown={(e) => e.key === 'Enter' && handleRenameFolder()}
                 />
               </div>
+              <br />
               <div className="flex space-x-3 justify-end">
                 <button 
                   onClick={() => {

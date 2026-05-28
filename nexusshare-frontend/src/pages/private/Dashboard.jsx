@@ -4,6 +4,7 @@ import UploadConfirmModal from '../../components/modals/UploadConfirmModel';
 import ActiveDropzoneModal from '../../components/modals/ActiveDropzoneModal';
 import { fetchFiles, uploadFiles, fetchStorageStats } from '../../services/fileService';
 import { useToast } from '../../components/common/ToastContent';
+import { useAuth } from '../../context/AuthContext';
 import { fetchSharedLinks } from '../../services/shareService';
 import { fetchMe } from '../../services/authService';
 import { getFileConfig } from '../../utils/fileUtils';
@@ -11,6 +12,7 @@ import { fetchWorkstations } from '../../services/workstationService';
 import { fetchSentRequests } from '../../services/requestService';
 
 const Dashboard = () => {
+  const { user: authUser } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [stagedFiles, setStagedFiles] = useState([]);
@@ -148,7 +150,9 @@ const Dashboard = () => {
       
       {/* Header */}
       <header className="mb-10">
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Hello, {userData?.full_name || '...'}</h1>
+        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+          Hello, {userData?.full_name || authUser?.full_name || '...'}
+        </h1>
         <p className="text-gray-500 dark:text-gray-400">System Overview. Here is what's happening in your vault.</p>
       </header>
 
