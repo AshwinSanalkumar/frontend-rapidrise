@@ -58,14 +58,6 @@ const Login = () => {
 
           <div className="relative z-10 bg-slate-800/40 border border-slate-700/50 p-8 rounded-[2rem] backdrop-blur-xl">
             <div className="space-y-6">
-              <div className="flex items-center -space-x-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <img key={i} src={`https://i.pravatar.cc/150?u=${i}`} className="w-10 h-10 rounded-full border-2 border-slate-800 object-cover" alt="User" />
-                ))}
-                <div className="w-10 h-10 rounded-full border-2 border-slate-800 bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white">
-                  +12
-                </div>
-              </div>
               <p className="text-[11px] text-slate-400 font-medium leading-relaxed uppercase tracking-wider">
                 Join NexusShare to manage high-availability file storage and sharing.
               </p>
