@@ -77,7 +77,7 @@ const ActiveDropzoneModal = ({ isOpen, onClose, requestData, onImportSuccess }) 
                         onClick={() => {
                            const previewUrl = file.content?.startsWith('http') 
                                ? file.content 
-                               : `http://localhost:8000${file.content}`;
+                               :`${import.meta.env.VITE_BACKEND_URL}${file.content}`;
                            window.open(previewUrl, '_blank');
                         }}
                         className="w-10 h-10 flex items-center justify-center bg-gray-50 hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700 text-gray-500 hover:text-indigo-600 rounded-xl transition-all"

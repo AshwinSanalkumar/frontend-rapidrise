@@ -185,6 +185,17 @@ const WorkstationDashboard = () => {
             {tab.label}
           </span>
 
+          {/* Count Badge (Only for Invites) */}
+          {tab.id === 'invites' && (
+            <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition-all duration-300 ${
+              isActive 
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' 
+                : 'bg-gray-100 dark:bg-white/5 text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-white/10'
+            }`}>
+              {tab.count}
+            </span>
+          )}
+
 
           {/* Active Sliding Underline Indicator */}
           {isActive && (

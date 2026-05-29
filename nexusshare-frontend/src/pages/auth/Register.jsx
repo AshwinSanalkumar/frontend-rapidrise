@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/common/ToastContent';
@@ -14,6 +14,22 @@ const Register = () => {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const calendarRef = useRef(null);
+
+  // Close calendar on click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+        setShowCalendar(false);
+      }
+    };
+    if (showCalendar) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCalendar]);
 
   // Calendar Helper States
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -185,17 +201,17 @@ const Register = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">First Name</label>
-                <input type="text" name="first_name" required placeholder="First name" value={formData.first_name} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                <input type="text" name="first_name" required autoComplete="off" placeholder="First name" value={formData.first_name} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
               </div>
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Last Name</label>
-                <input type="text" name="last_name"  placeholder="Last name" value={formData.last_name} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                <input type="text" name="last_name" autoComplete="off" placeholder="Last name" value={formData.last_name} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email / Username</label>
-              <input type="email" name="email" required placeholder="example@gmail.com" value={formData.email} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+              <input type="email" name="email" required autoComplete="off" placeholder="example@gmail.com" value={formData.email} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
               {formData.email && !emailValidations.format && (
                 <div className="text-[8.5px] font-bold text-amber-500 uppercase tracking-wider ml-1 mt-1">
                   <i className="fas fa-exclamation-circle mr-1"></i> Invalid format
@@ -213,7 +229,7 @@ const Register = () => {
               )}
             </div>
 
-            <div className="space-y-1.5 relative">
+            <div className="space-y-1.5 relative" ref={calendarRef}>
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Birth Date</label>
               <div 
                 onClick={() => setShowCalendar(!showCalendar)}
@@ -300,8 +316,13 @@ const Register = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
-                <div className="relative">
-                  <input type={showPass ? "text" : "password"} name="password" required placeholder="••••••••" value={formData.password} onChange={handleChange} className="input-clean w-full px-4 pr-10 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                <div className="relative" 
+                onPaste={(e) => e.target.name === 'password' && e.preventDefault()}
+                onCopy={(e) => e.target.name === 'password' && e.preventDefault()}
+                onCut={(e) => e.target.name === 'password' && e.preventDefault()}
+                onDragStart={(e) => e.target.name === 'password' && e.preventDefault()}
+                onDrop={(e) => e.target.name === 'password' && e.preventDefault()}>
+                  <input type={showPass ? "text" : "password"} name="password" required autoComplete="new-password" placeholder="••••••••" value={formData.password} onChange={handleChange} className="input-clean w-full px-4 pr-10 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
                   <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition">
                     <i className={`fas ${showPass ? 'fa-eye-slash' : 'fa-eye'} text-xs`}></i>
                   </button>
@@ -318,8 +339,13 @@ const Register = () => {
               </div>
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Confirm</label>
-                <div className="relative">
-                  <input type={showConfirm ? "text" : "password"} name="confirm_password" required placeholder="••••••••" value={formData.confirm_password} onChange={handleChange} className="input-clean w-full px-4 pr-10 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                <div className="relative"
+                onPaste={(e) => e.target.name === 'confirm_password' && e.preventDefault()}
+                onCopy={(e) => e.target.name === 'confirm_password' && e.preventDefault()}
+                onCut={(e) => e.target.name === 'confirm_password' && e.preventDefault()}
+                onDragStart={(e) => e.target.name === 'confirm_password' && e.preventDefault()}
+                onDrop={(e) => e.target.name === 'confirm_password' && e.preventDefault()}>
+                  <input type={showConfirm ? "text" : "password"} name="confirm_password" required autoComplete="new-password" placeholder="••••••••" value={formData.confirm_password} onChange={handleChange} className="input-clean w-full px-4 pr-10 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
                   <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition">
                     <i className={`fas ${showConfirm ? 'fa-eye-slash' : 'fa-eye'} text-xs`}></i>
                   </button>

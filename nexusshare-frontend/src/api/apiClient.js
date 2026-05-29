@@ -1,7 +1,8 @@
 import axios from 'axios';
+const BACKEND_URL = import.meta.env.VITE_API_URL;
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8000/api/', // Change to your production URL later
+  baseURL: BACKEND_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -10,7 +11,7 @@ const apiClient = axios.create({
 
 // Dedicated instance for refreshing tokens (no interceptors attached)
 const refreshClient = axios.create({
-  baseURL: 'http://localhost:8000/api/',
+  baseURL: BACKEND_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

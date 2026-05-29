@@ -52,7 +52,7 @@ const Navbar = ({ onToggleSidebar }) => {
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
       const filtered = files.filter(file => 
-        file.name.toLowerCase().includes(searchQuery.toLowerCase())
+        !file.isDeleted && file.name.toLowerCase().includes(searchQuery.toLowerCase())
       ).slice(0, 5); 
       setSuggestions(filtered);
       setShowSuggestions(true);
@@ -108,7 +108,7 @@ const Navbar = ({ onToggleSidebar }) => {
           </div>
           <div className="flex flex-col">
             <span className="text-sm md:text-xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
-              NEXUS<span className="text-indigo-500 hidden xs:inline">SHARE</span>
+              NEXUS SHARE
             </span>
             <span className="hidden sm:block text-[6px] md:text-[7px] font-black tracking-[0.2em] md:tracking-[0.3em] text-gray-400 uppercase leading-none mt-1">
               Verified Protocol

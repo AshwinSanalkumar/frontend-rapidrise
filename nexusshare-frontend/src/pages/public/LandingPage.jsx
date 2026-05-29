@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import LandingNav from '../../components/layout/LandingNav';
 
-const LandingN = () => {
+const LandingPage = () => {
   return (
     <div className="bg-gray-50/50 dark:bg-[#0b0c10] transition-colors duration-500 overflow-x-hidden min-h-screen">
       
@@ -91,7 +91,7 @@ const LandingN = () => {
       </section>
 
       {/* Feature Modules: Modular Grid */}
-      <section className="py-24 px-6 relative z-10">
+      <section id="features" className="py-24 px-6 relative z-10">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           
           <div className="p-10 rounded-[2.5rem] bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 hover:border-indigo-500/30 transition-all group">
@@ -127,6 +127,153 @@ const LandingN = () => {
         </div>
       </section>
 
+      {/* Collaborative Workstations Section - System Match Design */}
+      <section className="py-24 px-6 relative z-10 bg-white/30 dark:bg-white/[0.02] border-y border-gray-100 dark:border-white/5">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-20">
+          
+          <div className="flex-1 order-2 lg:order-1">
+            {/* MATCHING SYSTEM EDITOR - Authentic Preview */}
+            <div className="w-full max-w-lg bg-white dark:bg-gray-900/80 backdrop-blur-md rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden relative group">
+              {/* Header Bar */}
+              <div className="px-6 py-4 border-b border-gray-50 dark:border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-indigo-500"></div>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Workstation_Delta</span>
+                </div>
+                <div className="flex gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 flex items-center justify-center">
+                    <i className="fas fa-file-pdf text-[9px] text-red-500"></i>
+                  </div>
+                  <div className="px-3 h-7 rounded-lg bg-indigo-600 text-white text-[8px] font-black uppercase tracking-widest flex items-center shadow-lg shadow-indigo-500/20">
+                    Save
+                  </div>
+                </div>
+              </div>
+
+              {/* Editor Content Area */}
+              <div className="p-8 min-h-[220px] relative">
+                <div className="space-y-4">
+                  <h3 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">Nexsus-Share.pdf</h3>
+                  <div className="space-y-2">
+                    <div className="h-1.5 w-3/4 bg-gray-100 dark:bg-white/5 rounded-full"></div>
+                    <div className="h-1.5 w-1/2 bg-gray-100 dark:bg-white/5 rounded-full"></div>
+                    <div className="h-1.5 w-2/3 bg-gray-100 dark:bg-white/5 rounded-full"></div>
+                    <div className="h-1.5 w-[85%] bg-gray-100 dark:bg-white/5 rounded-full"></div>
+                  </div>
+                </div>
+
+                {/* AUTHENTIC CURSOR 1 (Matching WorkstationPage.jsx) */}
+                <div className="absolute top-[45%] left-[55%] pointer-events-none z-50 animate-in fade-in slide-in-from-bottom-2 duration-700">
+                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-indigo-500">
+                    <path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19841L11.7841 12.3673H5.65376Z" fill="currentColor" stroke="white" strokeWidth="1.5" />
+                  </svg>
+                  <div className="ml-2 px-1.5 py-0.5 bg-indigo-500 rounded-md text-[7px] font-black uppercase tracking-tighter text-white whitespace-nowrap shadow-sm border border-white/20">
+                    Sarah Connor
+                  </div>
+                </div>
+
+                {/* AUTHENTIC CURSOR 2 */}
+                <div className="absolute top-[68%] left-[22%] pointer-events-none z-50 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-purple-500">
+                    <path d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19841L11.7841 12.3673H5.65376Z" fill="currentColor" stroke="white" strokeWidth="1.5" />
+                  </svg>
+                  <div className="ml-2 px-1.5 py-0.5 bg-purple-500 rounded-md text-[7px] font-black uppercase tracking-tighter text-white whitespace-nowrap shadow-sm border border-white/20">
+                    Max Sterling
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Footer */}
+              <div className="bg-gray-50/50 dark:bg-black/20 px-6 py-3 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-1.5">
+                    <div className="w-5 h-5 rounded-full bg-indigo-500 border-2 border-white dark:border-gray-800 flex items-center justify-center text-[5px] text-white font-black">SC</div>
+                    <div className="w-5 h-5 rounded-full bg-purple-500 border-2 border-white dark:border-gray-800 flex items-center justify-center text-[5px] text-white font-black">MS</div>
+                    <div className="w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-800 flex items-center justify-center text-[5px] text-white font-black">RJ</div>
+                  </div>
+                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest tabular-nums">3 Active Now</span>
+                </div>
+                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  </span>
+                  Secure Sync
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 order-1 lg:order-2 space-y-6">
+            <div className="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+              <i className="fas fa-laptop-code"></i>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tighter leading-none">
+              Real-time <br />
+              <span className="text-indigo-500">Workstations.</span>
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+              Experience the power of real-time multi-user editing. Deploy synchronized workstations for your team with built-in version control and secure execution environments.
+            </p>
+            <ul className="space-y-3">
+              {[
+                { icon: 'fa-users', text: 'Live Multi-Cursor Editing' },
+                { icon: 'fa-history', text: 'Granular Version Snapshots' },
+                { icon: 'fa-shield-halved', text: 'Isolated Sandbox Environment' }
+              ].map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-sm font-bold text-gray-700 dark:text-gray-300">
+                  <div className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                    <i className={`fas ${item.icon} text-[10px] text-indigo-500`}></i>
+                  </div>
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* NEW: File Requests Section */}
+      <section className="py-24 px-6 relative z-10">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-20">
+          <div className="flex-1 space-y-6">
+             <div className="h-10 w-10 bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+              <i className="fas fa-paper-plane"></i>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tighter leading-none">
+              Effortless <br />
+              <span className="text-purple-500">File Requests.</span>
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
+              Collaborate across the platform with precision. Send encrypted file requests to other NexusShare users and have assets delivered directly to your secure vault.
+            </p>
+          </div>
+
+          <div className="flex-1 w-full flex justify-center">
+            {/* FILE REQUEST CARD INTERFACE */}
+            <div className="w-full max-w-sm bg-white dark:bg-[#121212] border border-gray-100 dark:border-white/5 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-6">
+                <i className="fas fa-share-nodes text-purple-500/10 text-6xl"></i>
+              </div>
+              <h4 className="text-[10px] font-black text-purple-500 uppercase tracking-[0.3em] mb-2">Request Active</h4>
+
+              
+              <div className="space-y-4">
+                <div className="p-6 rounded-3xl bg-gray-50/50 dark:bg-white/[0.02] border-2 border-dashed border-gray-200 dark:border-white/10 flex items-center justify-center flex-col py-12 transition-all group-hover:border-purple-500/50 group-hover:bg-purple-500/[0.02]">
+                  <div className="w-16 h-16 rounded-full bg-white dark:bg-white/5 flex items-center justify-center mb-4 shadow-sm">
+                    <i className="fas fa-cloud-arrow-up text-2xl text-gray-300 dark:text-gray-600 group-hover:text-purple-500 group-hover:scale-110 transition-all"></i>
+                  </div>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Drop Files Here</span>
+                </div>
+                <button disabled className="w-full py-4 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] cursor-not-allowed border border-purple-500/10">
+                  Awaiting Upload
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Tech Footer */}
       <footer className="py-12 md:py-20 px-6 border-t border-gray-100 dark:border-white/5 relative z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10 md:gap-12 text-center md:text-left">
@@ -138,14 +285,11 @@ const LandingN = () => {
           </div>
 
           <div className="flex flex-col items-center md:items-end space-y-4">
-            <div className="flex space-x-8">
-              {['twitter', 'github', 'linkedin'].map((s) => (
-                <a key={s} href="#" className="text-gray-400 hover:text-indigo-600 transition-colors">
-                  <i className={`fab fa-${s} text-xl`}></i>
-                </a>
-              ))}
-            </div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">© 2026 Nexus Protocol. Secure Node Active.</p>
+            <a href="mailto:support@nexusshare.com" className="text-[10px] font-black text-gray-500 hover:text-indigo-600 transition-all uppercase tracking-[0.2em] bg-gray-100 dark:bg-white/5 px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 flex items-center gap-2.5">
+              <i className="fas fa-envelope text-[11px]"></i>
+
+            </a>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">© 2026 Nexus Share. Protected. Private. Reliable.</p>
           </div>
         </div>
       </footer>
@@ -153,4 +297,4 @@ const LandingN = () => {
   );
 };
 
-export default LandingN;
+export default LandingPage;

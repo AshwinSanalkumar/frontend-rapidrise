@@ -342,12 +342,6 @@ const SharedFileView = () => {
         <div className={`lg:w-[60%] bg-gray-100 relative min-h-[400px] flex items-center justify-center group overflow-hidden
           ${fileData?.type?.startsWith('video/') ? 'aspect-video' : ''}`}>
           {renderFilePreview()}
-          <div className="absolute top-8 left-8">
-            <div className="bg-white/80 backdrop-blur-md text-gray-700 text-[10px] font-bold px-4 py-2 rounded-full border border-gray-200/60 uppercase tracking-widest flex items-center shadow-sm">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></span>
-              Session Integrity Verified
-            </div>
-          </div>
           <button onClick={() => setIsEnlarged(true)} className="absolute bottom-8 right-8 w-14 h-14 bg-white/80 backdrop-blur-md rounded-2xl flex items-center justify-center text-gray-700 shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:scale-110 border border-gray-200/60">
             <i className="fas fa-expand-alt text-xl"></i>
           </button>
