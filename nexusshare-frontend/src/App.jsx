@@ -26,7 +26,6 @@ import SharedLinksManagement from "./pages/private/SharedLinkManagement";
 import NotFoundPage from "./pages/public/not-found";
 import AnalyticsPage from "./pages/private/AnalyticsPage";
 import FileRequestPage from "./pages/private/Requests";
-import ExternalFilePreview from "./pages/private/FilePreview";
 import ReceivedRequests from "./pages/private/ReceivedRequests";
 import UploadHistory from "./pages/private/UploadHistory";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -79,8 +78,7 @@ function App() {
             <Route path="/analytics" element={<AnalyticsPage/>}/>
             <Route path="/send-request" element={<FileRequestPage/>}/>
             <Route path="/received-request" element={<ReceivedRequests/>}/>           
-            <Route path="/history" element={<UploadHistory/>}/> 
-            <Route path="/public/file/preview" element={<ExternalFilePreview/>}/>   
+            <Route path="/history" element={<UploadHistory/>}/>  
             <Route path="/workstation" element={<WorkstationDashboard/>}/>
             <Route path="/workstation/:id" element={<Workstation/>}/>
 

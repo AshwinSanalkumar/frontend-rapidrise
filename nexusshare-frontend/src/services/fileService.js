@@ -27,6 +27,7 @@ export const mapFileFromApi = (apiFile) => {
     'application/zip': 'zip',
     'application/x-zip-compressed': 'zip',
   };
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   return {
     id: apiFile.id,
@@ -39,7 +40,11 @@ export const mapFileFromApi = (apiFile) => {
     }),
     size: apiFile.size_readable,
     type: mimeMap[apiFile.mime_type] || 'default',
-    preview: apiFile.content ? `http://localhost:8000${apiFile.content}` : null,
+    preview: apiFile.content
+      ? apiFile.content.startsWith('http')
+        ? apiFile.content
+        : `${BACKEND_URL}${apiFile.content}`
+      : null, 
     filetype: apiFile.mime_type.split('/')[1].toUpperCase(), 
     status: 'PRIVATE',
     isDeleted: apiFile.is_deleted || false,

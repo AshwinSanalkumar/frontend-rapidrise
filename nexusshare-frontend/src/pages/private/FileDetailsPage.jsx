@@ -247,16 +247,16 @@ const FileDetailsPage = () => {
   }
 
   return (
-    <main className="flex-1 p-4 sm:p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 transition-colors duration-300 relative">
+    <main className="flex-1 p-3 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 transition-colors duration-300 relative">
 
       {/* --- ENLARGED VIEW MODAL --- */}
       {isEnlarged && (
         <div className="fixed inset-0 z-[100] bg-gray-950/95 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300">
           <button
             onClick={() => setIsEnlarged(false)}
-            className="absolute top-8 right-8 w-14 h-14 rounded-2xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border border-white/10 transition-all"
+            className="absolute top-6 right-6 md:top-8 md:right-8 w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border border-white/10 transition-all"
           >
-            <i className="fas fa-times text-xl"></i>
+            <i className="fas fa-times text-lg"></i>
           </button>
           <div className="animate-in zoom-in duration-500">
             {renderPreviewContent(true)}
@@ -264,138 +264,148 @@ const FileDetailsPage = () => {
         </div>
       )}
 
-      <div className="flex items-center mb-6 md:mb-8">
-        <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm mr-4">
-          <i className="fas fa-arrow-left"></i>
-        </button>
-        <nav className="flex items-center space-x-2 text-sm font-medium">
-          <Link to="/files" className="hover:text-indigo-600 transition text-gray-500">My Files</Link>
-          <i className="fas fa-chevron-right text-[10px] text-gray-400"></i>
-          <span className="text-gray-800 dark:text-gray-200">Details</span>
-        </nav>
-        <div className="ml-auto flex items-center gap-2">
-          {/* Favorite pill-chip */}
+      {/* HEADER SECTION - Responsive and Adaptive */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 md:mb-10">
+        <div className="flex items-center">
+          <button onClick={() => window.history.back()} className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm mr-3 md:mr-4 shrink-0">
+            <i className="fas fa-arrow-left text-sm"></i>
+          </button>
+          <nav className="flex items-center space-x-1.5 md:space-x-2 text-[10px] sm:text-xs md:text-sm font-medium overflow-hidden">
+            <Link to="/files" className="hover:text-indigo-600 transition text-gray-500 whitespace-nowrap">My Files</Link>
+            <i className="fas fa-chevron-right text-[8px] md:text-[10px] text-gray-400"></i>
+            <span className="text-gray-800 dark:text-gray-200 truncate">Details</span>
+          </nav>
+        </div>
+        
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          {/* Favorite chip - Condensed on mobile, expands on hover (Desktop) */}
           <button
             onClick={handleToggleFavorite}
             title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             className={`group flex items-center overflow-hidden rounded-full border transition-all duration-300 ease-out active:scale-95
               ${
                 isFavorite
-                  ? 'bg-rose-500 text-white border-rose-500 w-8 h-8 hover:w-40'
-                  : 'bg-white dark:bg-gray-800/60 text-gray-400 border-gray-200 dark:border-gray-700 w-8 h-8 hover:w-36 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200 dark:hover:bg-rose-900/10'
+                  ? 'bg-rose-500 text-white border-rose-500 w-8 h-8 md:hover:w-40'
+                  : 'bg-white dark:bg-gray-800/60 text-gray-400 border-gray-200 dark:border-gray-700 w-8 h-8 md:hover:w-36 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200 dark:hover:bg-rose-900/10'
               }`}
           >
             <span className="flex items-center justify-center w-8 h-8 shrink-0">
-              <i className={`${isFavorite ? 'fas' : 'far'} fa-heart text-xs`} />
+              <i className={`${isFavorite ? 'fas' : 'far'} fa-heart text-[10px] md:text-xs`} />
             </span>
-
             <span
-              className="whitespace-nowrap opacity-0 max-w-0 group-hover:opacity-100 group-hover:max-w-[140px] transition-all duration-300 pr-4 text-xs font-semibold"
+              className="hidden md:inline whitespace-nowrap opacity-0 max-w-0 group-hover:opacity-100 group-hover:max-w-[140px] transition-all duration-300 pr-4 text-xs font-semibold"
             >
-              {isFavorite ? 'Added to Favorites' : 'Add to Favorite'}
+              {isFavorite ? 'In Favorites' : 'Add to Favorites'}
             </span>
           </button>
-          {/* Add to folder pill-chip */}
+
+          {/* Add to folder chip */}
           <button
             onClick={openFolderModal}
-            title="Add to folder"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border bg-white dark:bg-gray-800/60 text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-indigo-50 hover:text-indigo-500 hover:border-indigo-200 dark:hover:bg-indigo-900/10 transition-all duration-200 active:scale-95"
+            className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 rounded-full text-[10px] md:text-xs font-bold border bg-white dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 dark:hover:bg-indigo-900/10 transition-all duration-200 active:scale-95"
           >
-            <i className="fas fa-folder-plus text-[11px]"></i>
-            <span>Add to Folder</span>
+            <i className="fas fa-folder-plus text-[10px] md:text-[11px]"></i>
+            <span className="hidden xs:inline">Add to Folder</span>
+            <span className="xs:hidden">Folder</span>
           </button>
         </div>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-8">
-        <div className="flex-1 space-y-6">
-          <section className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-gray-700">
-            {/* PREVIEW CONTAINER */}
-            <div className="relative w-full aspect-video bg-gray-50 dark:bg-gray-900 rounded-[2rem] overflow-hidden flex items-center justify-center border border-gray-100 dark:border-gray-800 group">
+      <div className="flex flex-col xl:flex-row gap-6 md:gap-8">
+        <div className="flex-1 space-y-6 md:space-y-8">
+          <section className="bg-white dark:bg-gray-800 rounded-[2rem] md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+            
+            {/* PREVIEW CONTAINER - Flexible aspect ratio with minimum heights */}
+            <div className="relative w-full aspect-video min-h-[220px] sm:min-h-[300px] md:min-h-[400px] bg-gray-50 dark:bg-gray-900 rounded-2xl md:rounded-[2rem] overflow-hidden flex items-center justify-center border border-gray-100 dark:border-gray-800 group">
               {renderPreviewContent()}
 
               <button
                 onClick={() => setIsEnlarged(true)}
-                className="absolute bottom-6 right-6 bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-white/40 transition border border-white/20 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 duration-300 shadow-xl"
+                className="absolute bottom-4 right-4 md:bottom-6 md:right-6 bg-white/20 backdrop-blur-md text-white px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-[10px] md:text-xs font-bold hover:bg-white/40 transition border border-white/20 opacity-0 md:translate-y-2 group-hover:opacity-100 md:group-hover:translate-y-0 duration-300 shadow-xl"
               >
-                <span className='text-gray-900 dark:text-white text-center'>
-                  <i className="fas fa-expand-arrows-alt mr-2"></i>Fullscreen Preview
-                </span>
+                <div className='flex items-center text-gray-900 dark:text-white'>
+                  <i className="fas fa-expand-arrows-alt mr-2"></i>
+                  <span className="hidden xs:inline">Fullscreen Preview</span>
+                  <span className="xs:hidden">Expand</span>
+                </div>
               </button>
             </div>
 
-            <div className="mt-6 md:mt-8 flex flex-col md:flex-row justify-between items-start gap-6">
-              <div className="flex-1 w-full">
+            <div className="mt-6 md:mt-8 flex flex-col lg:flex-row justify-between items-start gap-6">
+              <div className="flex-1 w-full overflow-hidden">
                 {isEditing ? (
-                  <div className="flex flex-col space-y-1">
-                    <label className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest ml-1">File Name</label>
-                    <div className="flex items-center w-full bg-gray-50 dark:bg-gray-900 border-2 border-indigo-500 rounded-xl px-4 py-2 transition-all">
+                  <div className="flex flex-col space-y-1.5">
+                    <label className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest ml-1">Rename Asset</label>
+                    <div className="flex items-center w-full bg-gray-50 dark:bg-gray-900 border-2 border-indigo-500 rounded-2xl px-4 py-3 transition-all">
                       <input
                         type="text"
                         defaultValue={fileData.name}
                         onChange={(e) => setFileData({ ...fileData, name: e.target.value })}
-                        className="bg-transparent border-none outline-none flex-1 text-2xl font-bold text-gray-900 dark:text-white py-1"
+                        className="bg-transparent border-none outline-none flex-1 text-xl md:text-2xl font-bold text-gray-900 dark:text-white"
                         autoFocus
                       />
                     </div>
                   </div>
                 ) : (
-                  <>
-                    <h3 className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-none break-all">{fileData.name}</h3>
+                  <div className="space-y-1">
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight break-words">{fileData.name}</h3>
                     {fileData.filename && (
-                      <p className="text-[10px] md:text-xs text-gray-400 font-mono mt-1 px-1 opacity-70 break-all">{fileData.filename}</p>
+                      <p className="text-[10px] md:text-xs text-gray-400 font-mono mt-1 opacity-70 break-all">{fileData.filename}</p>
                     )}
-                  </>
+                  </div>
                 )}
-                <p className="text-gray-400 font-medium mt-2 text-[10px] md:text-sm uppercase tracking-wider">Added on {fileData.date} • {fileData.time}</p>
+                <p className="text-gray-400 font-bold mt-3 text-[10px] md:text-xs uppercase tracking-[0.14em]">
+                  Added on {fileData.date} <span className="mx-1.5 opacity-30">•</span> {fileData.time}
+                </p>
               </div>
 
-              <div className="flex flex-wrap gap-2 md:space-x-3 shrink-0 w-full md:w-auto">
+              {/* Action Buttons - Wrapping smarter on small screens */}
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0 w-full lg:w-auto pt-2 lg:pt-0">
                 {isEditing ? (
-                  <>
-                    <button onClick={() => setIsEditing(false)} className="flex-1 md:flex-none px-4 py-2 text-sm font-bold text-gray-400 hover:text-gray-600 transition border border-gray-200 dark:border-gray-700 rounded-xl">Cancel</button>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button onClick={() => setIsEditing(false)} className="flex-1 sm:px-5 py-3 text-[11px] md:text-xs font-bold text-gray-400 hover:text-gray-600 transition border border-gray-100 dark:border-gray-700 rounded-xl">Cancel</button>
                     <button
                       onClick={handleSaveEdit}
                       disabled={isSaving}
-                      className="flex-1 md:flex-none gradient-bg text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:opacity-90 transition active:scale-95 flex items-center min-w-[100px] justify-center"
+                      className="flex-1 sm:px-8 py-3 gradient-bg text-white rounded-xl text-[11px] md:text-xs font-bold shadow-lg hover:opacity-90 transition active:scale-95 flex items-center min-w-[120px] justify-center"
                     >
                       {isSaving ? <i className="fas fa-circle-notch fa-spin"></i> : 'Save Changes'}
                     </button>
-                  </>
+                  </div>
                 ) : (
-                  <>
-                    <div className="flex flex-1 sm:flex-none items-center gap-2">
-                      <ActionButton icon="fa-edit" title="Update" onClick={() => setIsEditing(true)} />
-                      <ActionButton icon="fa-download" title="Download" onClick={handleDownload} />
+                  <div className="flex items-center gap-2 w-full justify-between sm:justify-start">
+                    <div className="flex items-center gap-2">
+                      <ActionButton icon="fa-edit" title="Edit" onClick={() => setIsEditing(true)} />
+                      <ActionButton icon="fa-download" title="Save" onClick={handleDownload} />
                     </div>
                     <ActionButton icon="fa-trash-alt" title="Delete" variant="danger" onClick={() => setIsDeleteModalOpen(true)} />
-                  </>
+                  </div>
                 )}
               </div>
             </div>
           </section>
 
-          <section className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-gray-700">
-            <h2 className="text-sm font-black text-indigo-500 uppercase tracking-[0.2em] mb-4 flex items-center">
-              <i className="fas fa-align-left mr-2"></i> Description
+          <section className="bg-white dark:bg-gray-800 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-sm border border-gray-100 dark:border-gray-700">
+            <h2 className="text-[10px] md:text-xs font-black text-indigo-500 uppercase tracking-[0.2em] mb-4 flex items-center opacity-80">
+              <i className="fas fa-align-left mr-2.5 text-[10px]"></i> Description
             </h2>
             {isEditing ? (
               <textarea
                 value={fileData.description}
                 onChange={(e) => setFileData({ ...fileData, description: e.target.value })}
-                className="w-full p-5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl text-gray-600 dark:text-gray-400 outline-none focus:ring-2 focus:ring-indigo-500 transition-all h-32 resize-none"
+                placeholder="Write a brief description about this file..."
+                className="w-full p-5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl text-gray-700 dark:text-gray-300 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all h-40 resize-none font-medium leading-relaxed"
               />
             ) : (
-              <p className="text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
-                {fileData.description || "No description provided for this asset."}
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed font-medium text-sm md:text-base">
+                {fileData.description || "No specific description has been provided for this asset."}
               </p>
-
             )}
-
           </section>
         </div>
 
-        <div className="w-full xl:w-96">
+        {/* Sidebar Specifications - Stacks on mobile */}
+        <div className="w-full xl:w-80 2xl:w-96 shrink-0">
           <FileSpecCard 
             file={fileData} 
             onShare={() => setIsShareModalOpen(true)} 
@@ -403,6 +413,7 @@ const FileDetailsPage = () => {
           />
         </div>
       </div>
+
 
       <ShareModal 
         isOpen={isShareModalOpen} 

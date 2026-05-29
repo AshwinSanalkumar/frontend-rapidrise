@@ -42,5 +42,5 @@ export const revokeShareLink = async (token) => {
  * @param {string} shareToken 
  */
 export const getPublicShareUrl = (shareToken) => {
-  return `http://localhost:8000/api/file/shared/${shareToken}/`;
+  return `${import.meta.env.VITE_BACKEND_URL}/api/file/shared/${shareToken}/`;
 };

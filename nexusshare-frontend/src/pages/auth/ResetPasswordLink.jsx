@@ -136,10 +136,19 @@ const handleReset = async (e) => {
                 {/* New Password */}
                 <div className="space-y-2">
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">New Password</label>
-                  <div className="relative">
+                  <div 
+                    className="relative"
+                    onPaste={(e) => e.preventDefault()}
+                    onCopy={(e) => e.preventDefault()}
+                    onCut={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                    onDrop={(e) => e.preventDefault()}
+                  >
                     <input 
                       type={showPass ? "text" : "password"}
                       required 
+                      name="password"
+                      autoComplete="new-password"
                       value={formData.password}
                       onChange={(e) => setFormData({...formData, password: e.target.value})}
                       placeholder="••••••••"
@@ -163,10 +172,19 @@ const handleReset = async (e) => {
                 {/* Confirm New Password - Eye Restored */}
                 <div className="space-y-2">
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Confirm New Password</label>
-                  <div className="relative">
+                  <div 
+                    className="relative"
+                    onPaste={(e) => e.preventDefault()}
+                    onCopy={(e) => e.preventDefault()}
+                    onCut={(e) => e.preventDefault()}
+                    onDragStart={(e) => e.preventDefault()}
+                    onDrop={(e) => e.preventDefault()}
+                  >
                     <input 
                       type={showConfirm ? "text" : "password"}
                       required 
+                      name="confirmPassword"
+                      autoComplete="new-password"
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                       placeholder="••••••••"

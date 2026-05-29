@@ -7,18 +7,29 @@ import { useToast } from '../../components/common/ToastContent';
  * Internal Sub-component: PasswordField
  * Keeps the main component DRY and manages its own visibility state.
  */
-const PasswordField = ({ label, value, onChange, showToggle = true, extra = null }) => {
+const PasswordField = ({ label, value, onChange, showToggle = true, extra = null, name = "password" }) => {
   const [isVisible, setIsVisible] = useState(false);
+
+  // Prevent local data leak/tampering
+  const securityHandlers = {
+    onPaste: (e) => e.preventDefault(),
+    onCopy: (e) => e.preventDefault(),
+    onCut: (e) => e.preventDefault(),
+    onDragStart: (e) => e.preventDefault(),
+    onDrop: (e) => e.preventDefault(),
+  };
 
   return (
     <div className="space-y-2">
       <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">
         {label}
       </label>
-      <div className="relative">
+      <div className="relative" {...securityHandlers}>
         <input 
           type={isVisible ? "text" : "password"}
           value={value}
+          name={name}
+          autoComplete={name === 'currentPass' ? 'current-password' : 'new-password'}
           onChange={(e) => onChange(e.target.value)}
           required 
           className="w-full px-5 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-gray-700 outline-none transition-all"

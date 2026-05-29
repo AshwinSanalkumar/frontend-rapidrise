@@ -65,7 +65,13 @@ const FileExplorer = () => {
   };
 
   const handleRenameFolder = async () => {
-    if (!editingFolder.name.trim()) return;
+    const trimmedName = editingFolder.name.trim();
+    if (!trimmedName) return;
+    
+    if (trimmedName === editingFolder.originalName) {
+      showToast("Please change the name to update", "info");
+      return;
+    }
 
     try {
       const updated = await renameFolder(editingFolder.id, editingFolder.name.trim());
@@ -143,7 +149,7 @@ const FileExplorer = () => {
               colorClass={folder.color}
               view={view}
               onRename={() => {
-                setEditingFolder({ id: folder.id, name: folder.name });
+                setEditingFolder({ id: folder.id, name: folder.name, originalName: folder.name });
                 setIsRenameModalOpen(true);
               }}
               onDelete={() => handleDelete(folder.id, folder.name)}
@@ -243,7 +249,21 @@ const FileExplorer = () => {
                 >
                   Cancel
                 </button>
-                <button onClick={handleRenameFolder} className="gradient-bg text-white font-bold px-8 py-3 rounded-xl shadow-lg transition active:scale-95 text-sm">
+                <button 
+                  onClick={() => {
+                    const isChanged = editingFolder.name.trim() !== editingFolder.originalName;
+                    if (isChanged) {
+                      handleRenameFolder();
+                    } else {
+                      showToast("Please change the name to update", "info");
+                    }
+                  }} 
+                  className={`font-bold px-8 py-3 rounded-xl shadow-lg transition active:scale-95 text-sm ${
+                    editingFolder.name.trim() !== editingFolder.originalName 
+                    ? 'gradient-bg text-white' 
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-400'
+                  }`}
+                >
                   Save Changes
                 </button>
               </div>

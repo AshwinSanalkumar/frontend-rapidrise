@@ -4,8 +4,7 @@ import { WebsocketProvider } from 'y-websocket'
 export const createYjsProvider = (workstationId, token) => {
   const ydoc = new Y.Doc()
 
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const baseUrl = `${protocol}//${window.location.hostname}:8000/ws/workstation`;
+  const baseUrl = import.meta.env.VITE_WS_URL
 
   const provider = new WebsocketProvider(
     baseUrl,

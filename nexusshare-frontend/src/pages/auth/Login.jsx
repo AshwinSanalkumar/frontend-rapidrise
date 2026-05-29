@@ -103,7 +103,12 @@ const Login = () => {
                   forgot password
                 </Link>
               </div>
-              <div className="relative">
+              <div className="relative"
+               onPaste={(e) => e.target.name === 'password' && e.preventDefault()}
+                onCopy={(e) => e.target.name === 'password' && e.preventDefault()}
+                onCut={(e) => e.target.name === 'password' && e.preventDefault()}
+                onDragStart={(e) => e.target.name === 'password' && e.preventDefault()}
+                onDrop={(e) => e.target.name === 'password' && e.preventDefault()}>
                 <input 
                   type={showPassword ? "text" : "password"}
                   name="password"

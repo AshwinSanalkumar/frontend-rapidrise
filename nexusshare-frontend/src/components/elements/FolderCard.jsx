@@ -1,12 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DeleteFolderModal from '../modals/DeleteFolderModal';
 
 const FolderCard = ({ id, name, fileCount, size, colorClass, onRename, onDelete, view }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const menuRef = useRef(null);
   const navigate = useNavigate();
   const isList = view === 'list';
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   const handleFolderClick = () => {
     navigate(`/assets/details/${id}`);
@@ -34,7 +54,7 @@ const FolderCard = ({ id, name, fileCount, size, colorClass, onRename, onDelete,
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{fileCount} Files • {size}</p>
           </div>
 
-          <div className="relative ml-4">
+          <div className="relative ml-4" ref={menuRef}>
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
@@ -77,7 +97,7 @@ const FolderCard = ({ id, name, fileCount, size, colorClass, onRename, onDelete,
             <i className="fas fa-folder text-2xl"></i>
           </div>
           
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <button 
               onClick={(e) => { 
                 e.stopPropagation(); 
