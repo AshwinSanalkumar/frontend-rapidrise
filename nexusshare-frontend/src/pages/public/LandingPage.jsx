@@ -35,6 +35,7 @@ const LandingPage = () => {
             </p>
 
             <div className="flex flex-wrap gap-5 pt-4">
+              
               <Link 
                 to="/register" 
                 className="px-10 py-5 bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-indigo-500/20 hover:scale-105 active:scale-95 transition-all uppercase tracking-widest text-xs"
