@@ -1,6 +1,6 @@
 import apiClient from '../api/apiClient';
 
-const CHUNK_SIZE = 8 * 1024 * 1024; // 10MB chunks
+const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB limit
 
 const pausedStates = new Map();
