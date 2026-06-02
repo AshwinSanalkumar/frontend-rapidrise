@@ -55,7 +55,7 @@ const SharedFileView = () => {
           size: sizeInMb,
           type: contentType,
           owner: 'Restricted Access',
-          previewUrl: publicUrl,
+          previewUrl: fileInfo.preview || publicUrl,
           expiresIn: formattedExpiry,
           downloadLimit: downloadLimit,
           downloadCount: downloadCount
