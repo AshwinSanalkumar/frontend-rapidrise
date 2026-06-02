@@ -198,7 +198,6 @@ export const chunkedUploadService = {
       }
     } catch (e) {
       if (e.message === 'Upload canceled') {
-        console.log('Upload canceled locally');
         return; // Exit silently
       }
       throw e;
