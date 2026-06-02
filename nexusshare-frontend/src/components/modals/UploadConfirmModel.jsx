@@ -88,11 +88,16 @@ const FilePreview = ({ file }) => {
 
 const UploadConfirmModal = ({ files, isOpen, isUploading, onClose, onRemove, onConfirm }) => {
   const [descriptions, setDescriptions] = useState({});
+  const [visibleDescriptions, setVisibleDescriptions] = useState({});
 
   if (!isOpen) return null;
 
   const handleDescriptionChange = (index, value) => {
     setDescriptions(prev => ({ ...prev, [index]: value }));
+  };
+
+  const toggleDescription = (index) => {
+    setVisibleDescriptions(prev => ({ ...prev, [index]: !prev[index] }));
   };
 
   const formatBytes = (bytes) => {
@@ -130,17 +135,44 @@ const UploadConfirmModal = ({ files, isOpen, isUploading, onClose, onRemove, onC
                       <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-widest mt-1">{formatBytes(file.size)}</p>
                     </div>
                   </div>
-                  <button onClick={() => onRemove(index)} disabled={isUploading} className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 text-gray-300 hover:text-red-500 hover:bg-red-50 transition shadow-sm disabled:opacity-30 disabled:cursor-not-allowed">
-                    <i className="fas fa-trash-alt text-xs"></i>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {!visibleDescriptions[index] && (
+                      <button 
+                        type="button"
+                        onClick={() => toggleDescription(index)}
+                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 text-indigo-500 hover:bg-indigo-50 transition shadow-sm"
+                        title="Add Description"
+                      >
+                        <i className="fas fa-plus text-xs"></i>
+                      </button>
+                    )}
+                    <button onClick={() => onRemove(index)} disabled={isUploading} className="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 text-gray-300 hover:text-red-500 hover:bg-red-50 transition shadow-sm disabled:opacity-30 disabled:cursor-not-allowed">
+                      <i className="fas fa-trash-alt text-xs"></i>
+                    </button>
+                  </div>
                 </div>
-                <input 
-                  type="text"
-                  placeholder="Add an optional brief description..."
-                  value={descriptions[index] || ''}
-                  onChange={(e) => handleDescriptionChange(index, e.target.value)}
-                  className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-2xl px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm placeholder:font-medium"
-                />
+                
+                {visibleDescriptions[index] && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center justify-between mb-2 px-1">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">File Description</label>
+                      <button 
+                        onClick={() => toggleDescription(index)}
+                        className="text-[9px] font-bold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-widest"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <input 
+                      type="text"
+                      placeholder="Add an optional brief description..."
+                      value={descriptions[index] || ''}
+                      autoFocus
+                      onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                      className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-600 rounded-2xl px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm placeholder:font-medium"
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>

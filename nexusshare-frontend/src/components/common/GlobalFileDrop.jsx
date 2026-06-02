@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import UploadConfirmModal from '../modals/UploadConfirmModel';
 import { uploadFiles } from '../../services/fileService';
 import { useToast } from '../common/ToastContent';
+import { parseError } from '../../utils/errorUtils';
 
 const GlobalFileDrop = ({ children }) => {
   const { showToast } = useToast();
@@ -92,10 +93,7 @@ const GlobalFileDrop = ({ children }) => {
       }
 
       if (failures.length > 0) {
-        const firstError = failures[0].error;
-        let errorMessage = typeof firstError === 'string' 
-          ? firstError 
-          : (firstError.error || firstError.detail || `${failures.length} file(s) failed to upload.`);
+        let errorMessage = parseError(failures[0].error);
         
         if (errorMessage.includes('Storage limit exceeded')) {
           errorMessage = "Vault Storage Full! Please clear your trash or remove files to continue";

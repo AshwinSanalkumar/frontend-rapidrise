@@ -103,8 +103,8 @@ const Navbar = ({ onToggleSidebar }) => {
         </button>
 
         <Link to="/dashboard" className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 md:w-10 md:h-10 gradient-bg rounded-lg md:rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <i className="fas fa-share-nodes text-white text-xs md:text-xl"></i>
+          <div >
+            <i className="fa-brands fa-cloudversify text-sm md:text-4xl"></i>
           </div>
           <div className="flex flex-col">
             <span className="text-sm md:text-xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">

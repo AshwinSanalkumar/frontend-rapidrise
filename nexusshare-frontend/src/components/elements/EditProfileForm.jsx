@@ -14,6 +14,11 @@ const EditProfileForm = ({ onSave, isSaving, isSuccess }) => {
     dob: user?.dob || ''
   });
 
+  const [errors, setErrors] = useState({
+    firstName: '',
+    lastName: ''
+  });
+
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date(user?.dob || new Date()).getMonth());
   const [currentYear, setCurrentYear] = useState(new Date(user?.dob || new Date()).getFullYear());
@@ -52,10 +57,33 @@ const EditProfileForm = ({ onSave, isSaving, isSuccess }) => {
     }
   }, [user]);
 
+  const validateName = (name) => {
+    const nameRegex = /^[a-zA-Z\s-]+$/;
+    return nameRegex.test(name);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    let hasError = false;
+    const newErrors = { firstName: '', lastName: '' };
+
+    if (!validateName(formData.firstName)) {
+      newErrors.firstName = "Enter a valid name";
+      hasError = true;
+    }
+
+    if (!validateName(formData.lastName)) {
+      newErrors.lastName = "Enter a valid name";
+      hasError = true;
+    }
+
+    setErrors(newErrors);
+
+    if (hasError) return;
+
     if (formData.dob && calculateAge(formData.dob) < 15) {
-        showToast("You must be at least 15 years old.","error"); // Or use a toast if available in this scope, but EditProfile has it. We can just pass the error back or handle it here.
+        showToast("You must be at least 15 years old.","error"); 
         return;
     }
     onSave(formData);
@@ -70,10 +98,19 @@ const EditProfileForm = ({ onSave, isSaving, isSuccess }) => {
           <input 
             type="text" 
             value={formData.firstName}
-            onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+            onChange={(e) => {
+              const value = e.target.value;
+              setFormData({...formData, firstName: value});
+              if (value && !validateName(value)) {
+                setErrors(prev => ({...prev, firstName: "Enter a valid name"}));
+              } else {
+                setErrors(prev => ({...prev, firstName: ""}));
+              }
+            }}
             required
             className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-2xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-gray-700 outline-none transition-all"
           />
+          {errors.firstName && <p className="text-red-500 text-[10px] font-bold ml-1 animate-in fade-in slide-in-from-top-1 duration-200">{errors.firstName}</p>}
         </div>
 
         {/* Last Name */}
@@ -83,10 +120,19 @@ const EditProfileForm = ({ onSave, isSaving, isSuccess }) => {
             type="text" 
             placeholder="Enter last name"
             value={formData.lastName}
-            onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+            onChange={(e) => {
+               const value = e.target.value;
+               setFormData({...formData, lastName: value});
+               if (value && !validateName(value)) {
+                 setErrors(prev => ({...prev, lastName: "Enter a valid name"}));
+               } else {
+                 setErrors(prev => ({...prev, lastName: ""}));
+               }
+            }}
             required
             className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-2xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-gray-700 outline-none transition-all"
           />
+          {errors.lastName && <p className="text-red-500 text-[10px] font-bold ml-1 animate-in fade-in slide-in-from-top-1 duration-200">{errors.lastName}</p>}
         </div>
 
         {/* DOB */}

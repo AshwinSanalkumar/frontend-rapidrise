@@ -1,13 +1,13 @@
 import html2pdf from 'html2pdf.js';
 
-export const generateWorkstationPDF = async (station, element) => {
-  if (!element) return;
+export const generateWorkstationPDF = async (station, element, returnBlob = false) => {
+  if (!element) return null;
 
   const editorContent = element.querySelector('.workstation-editor');
 
   if (!editorContent) {
     console.error('Editor content not found');
-    return;
+    return null;
   }
 
   try {
@@ -83,15 +83,20 @@ export const generateWorkstationPDF = async (station, element) => {
     };
 
     // Generate PDF
-    await html2pdf()
-      .set(options)
-      .from(exportContainer)
-      .save();
+    const worker = html2pdf().set(options).from(exportContainer);
 
-    // Cleanup
-    document.body.removeChild(exportContainer);
+    if (returnBlob) {
+      const blob = await worker.output('blob');
+      document.body.removeChild(exportContainer);
+      return blob;
+    } else {
+      await worker.save();
+      document.body.removeChild(exportContainer);
+      return true;
+    }
 
   } catch (error) {
     console.error('PDF Export failed:', error);
+    return null;
   }
 };

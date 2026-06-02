@@ -63,9 +63,28 @@ const Register = () => {
     confirm_password: ''
   });
 
+  const [nameErrors, setNameErrors] = useState({
+    first_name: '',
+    last_name: ''
+  });
+
+  const validateName = (name) => {
+    const nameRegex = /^[a-zA-Z\s-]+$/;
+    return nameRegex.test(name);
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
     if (error) setError(''); // Reset error when user types
+
+    if (name === 'first_name' || name === 'last_name') {
+      if (value && !validateName(value)) {
+        setNameErrors(prev => ({ ...prev, [name]: 'Enter a valid name' }));
+      } else {
+        setNameErrors(prev => ({ ...prev, [name]: '' }));
+      }
+    }
   };
 
   const validations = {
@@ -110,6 +129,11 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (!validateName(formData.first_name) || !validateName(formData.last_name)) {
+      showToast('Enter a valid name.', 'error');
+      return;
+    }
 
     if (!emailValidations.format) {
       showToast('Enter a valid email address.', 'error');
@@ -159,35 +183,51 @@ const Register = () => {
       <div className="w-full max-w-5xl grid lg:grid-cols-2 bg-white dark:bg-slate-900 shadow-2xl rounded-[2.5rem] overflow-hidden border border-slate-100 dark:border-slate-800">
 
         {/* Left Side: Branding - Matching Login Design */}
-        <div className="hidden lg:flex sidebar-dark p-16 flex-col justify-between relative overflow-hidden security-grid bg-[#0f172a]">
+        <div className="hidden lg:flex p-16 flex-col justify-between relative overflow-hidden bg-gray-50/50 dark:bg-[#0b0c10] border-r border-gray-100 dark:border-white/5">
+          {/* Soft Ambient Glows (Matches Landing Page) */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-0 left-0 w-[80%] h-[60%] bg-indigo-500/5 blur-[120px] rounded-full"></div>
+            <div className="absolute bottom-0 right-0 w-[40%] h-[40%] bg-purple-500/5 blur-[120px] rounded-full"></div>
+          </div>
+            
           <div className="relative z-10">
             <Link to="/" className="flex items-center space-x-3 mb-16 group">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white group-hover:rotate-12 transition-transform">
-                <i className="fas fa-layer-group"></i>
+              <div>
+                <i className="fa-brands fa-cloudversify text-2xl text-gray-900 dark:text-white"></i>
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">NexusShare</span>
+              <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter uppercase">NexusShare</span>
             </Link>
+            
+            <div className="space-y-8">
+              <h1 className="text-6xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter">
+                Join <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-400">The Vault.</span>
+              </h1>
 
-            <h1 className="text-5xl font-extrabold text-white leading-tight mb-6">
-              Share and <br />
-              Store files <br />
-              <span className="text-indigo-400 font-mono tracking-tighter italic text-4xl">Securely.</span>
-            </h1>
-          </div>
-
-          <div className="relative z-10 bg-slate-800/40 border border-slate-700/50 p-8 rounded-[2rem] backdrop-blur-xl">
-            <div className="space-y-6">
-              <div className="flex items-center -space-x-3">
-                {[1, 2, 3].map((i) => (
-                  <img key={i} src={`https://i.pravatar.cc/150?u=a${i}`} className="w-10 h-10 rounded-full border-2 border-slate-800 object-cover" alt="User" />
-                ))}
-                <div className="w-10 h-10 rounded-full border-2 border-slate-800 bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white">+12</div>
+              <div className="space-y-5 pt-4">
+                 {[
+                   { icon: 'fa-shield-halved', text: 'Protected Data' },
+                   { icon: 'fa-bolt', text: 'Real-time Synchronization' },
+                   { icon: 'fa-clock-rotate-left', text: 'Self-Destructing Links' }
+                 ].map((item, i) => (
+                   <div key={i} className="flex items-center gap-4 group">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 shadow-sm transition-transform group-hover:scale-110">
+                        <i className={`fas ${item.icon} text-xs`}></i>
+                      </div>
+                      <span className="text-xs font-black text-gray-600 dark:text-gray-400 uppercase tracking-tight">{item.text}</span>
+                   </div>
+                 ))}
               </div>
-              <p className="text-[11px] text-slate-400 font-medium leading-relaxed uppercase tracking-wider">
-                Join NexusShare to manage high-availability file storage and sharing.
-              </p>
             </div>
           </div>
+
+          <div className="relative z-10 pt-12">
+             <div className="inline-flex items-center px-3 py-1.5 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-2"></span>
+                System Authorized
+             </div>
+          </div>
+     
         </div>
 
         {/* Right Side: Registration Form */}
@@ -202,10 +242,12 @@ const Register = () => {
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">First Name</label>
                 <input type="text" name="first_name" required autoComplete="off" placeholder="First name" value={formData.first_name} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                {nameErrors.first_name && <p className="text-red-500 text-[8.5px] font-bold ml-1 animate-in fade-in slide-in-from-top-1 duration-200">{nameErrors.first_name}</p>}
               </div>
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Last Name</label>
                 <input type="text" name="last_name" autoComplete="off" placeholder="Last name" value={formData.last_name} onChange={handleChange} className="input-clean w-full px-4 py-3 rounded-xl text-sm border dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+                {nameErrors.last_name && <p className="text-red-500 text-[8.5px] font-bold ml-1 animate-in fade-in slide-in-from-top-1 duration-200">{nameErrors.last_name}</p>}
               </div>
             </div>
 

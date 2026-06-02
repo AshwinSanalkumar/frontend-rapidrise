@@ -85,7 +85,7 @@ const ForgotPassword = () => {
                 <div className="flex items-center space-x-3 px-4 py-3 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
                   <i className="fas fa-shield-alt text-indigo-500 text-xs"></i>
                   <p className="text-[10px] text-indigo-700 dark:text-indigo-400 font-bold leading-tight uppercase tracking-wider">
-                    Link valid for 5 minutes only
+                    Link valid for 10 minutes only
                   </p>
                 </div>
 

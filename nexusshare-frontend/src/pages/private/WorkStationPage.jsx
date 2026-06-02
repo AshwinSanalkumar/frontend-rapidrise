@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { fetchWorkstationDetail, exportWorkstation, updateWorkstation, fetchWorkstationVersions, restoreWorkstationVersion, deleteWorkstationVersion } from '../../services/workstationService';
+import { uploadFile } from '../../services/fileService';
 import { generateWorkstationPDF } from '../../utils/exportUtils';
 import { useToast } from '../../components/common/ToastContent';
 import { createYjsProvider } from '../../utils/yjsProvider';
@@ -24,6 +25,7 @@ const WorkstationPage = () => {
   const [ isRestoring, setIsRestoring ] = useState(false);
   const [ previewVersion, setPreviewVersion ] = useState(null); // version id being previewed
   const [ isSettingsOpen, setIsSettingsOpen ] = useState(false);
+  const [ isImportingToVault, setIsImportingToVault ] = useState(false);
   
   const ydocRef = useRef(null);
   const providerRef = useRef(null);
@@ -284,6 +286,32 @@ const WorkstationPage = () => {
     }
   };
 
+  const handleImportToSystem = async () => {
+    try {
+      setIsImportingToVault(true);
+      showToast("Generating PDF for Vault...");
+      
+      const blob = await generateWorkstationPDF(station, editorContainerRef.current, true);
+      if (!blob) {
+        showToast("Failed to generate PDF", "error");
+        return;
+      }
+
+      showToast("Importing to System Vault...");
+      const fileName = `${station.title.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`;
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+      
+      await uploadFile(file, `Snapshot of Workstation: ${station.title}`);
+      
+      showToast("Successfully imported to your Vault", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to import to System", "error");
+    } finally {
+      setIsImportingToVault(false);
+    }
+  };
+
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const userMember = station?.members?.find(m => m.email === currentUser.email);
   const userRole = station?.ownerEmail === currentUser.email ? 'OWNER' : (userMember?.role || 'VIEWER');
@@ -326,6 +354,14 @@ const WorkstationPage = () => {
               className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:bg-gray-50 transition flex items-center gap-2"
             >
               <i className="fas fa-file-pdf text-red-500"></i> Export PDF
+            </button>
+            <button 
+              onClick={handleImportToSystem}
+              disabled={isImportingToVault}
+              className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:bg-gray-50 transition flex items-center gap-2"
+            >
+              <i className={`fas ${isImportingToVault ? 'fa-spinner fa-spin' : 'fa-cloud-upload-alt'} text-indigo-500`}></i> 
+              {isImportingToVault ? 'Processing...' : 'Import to System'}
             </button>
             {canEdit && (
               <button 

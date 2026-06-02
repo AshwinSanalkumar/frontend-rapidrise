@@ -37,7 +37,28 @@ const EditProfile = () => {
       }, 1000);
     } catch (error) {
       setIsSaving(false);
-      showToast(error.response?.data?.error || "Failed to update profile", "error");
+      
+      let errorMessage = "Failed to update profile";
+      const errorData = error.response?.data;
+
+      if (errorData) {
+        if (typeof errorData === 'object') {
+          // Display simplified message for name validation errors
+          if (errorData.first_name || errorData.last_name) {
+            errorMessage = "Enter a valid name";
+          } else if (errorData.dob) {
+            errorMessage = Array.isArray(errorData.dob) ? errorData.dob[0] : errorData.dob;
+          } else if (errorData.error) {
+            errorMessage = errorData.error;
+          } else if (errorData.detail) {
+            errorMessage = errorData.detail;
+          }
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        }
+      }
+
+      showToast(errorMessage, "error");
     }
   };
 

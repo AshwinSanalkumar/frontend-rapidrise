@@ -12,8 +12,8 @@ const LandingNav = () => {
         
         {/* Logo - Link to Home */}
         <Link to="/" className="flex items-center space-x-2">
-          <div className="w-8 h-8 md:w-10 md:h-10 gradient-bg rounded-lg md:rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <i className="fas fa-share-nodes text-white text-sm md:text-xl"></i>
+          <div className="">
+            <i className="fa-brands fa-cloudversify text-sm md:text-4xl"></i>
           </div>
           <span className="text-lg md:text-xl font-extrabold tracking-tight text-gray-800 dark:text-white">
             NexusShare

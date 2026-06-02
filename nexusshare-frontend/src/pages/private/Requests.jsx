@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createFileRequest, fetchSentRequests, deleteRequest } from '../../services/requestService';
+import { searchUsers } from '../../services/workstationService';
 import { useToast } from '../../components/common/ToastContent';
 import DeleteModal from '../../components/modals/DeleteModal';
 import ActiveDropzoneModal from '../../components/modals/ActiveDropzoneModal';
@@ -18,11 +19,28 @@ const FileRequestPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchResults, setSearchResults] = useState([]);
   const limit = 5;
 
   useEffect(() => {
     loadRequests();
   }, []);
+
+  useEffect(() => {
+    if (email.length > 1) {
+      const delayDebounceFn = setTimeout(async () => {
+        try {
+          const results = await searchUsers(email);
+          setSearchResults(results);
+        } catch (error) {
+          console.error("Search failed", error);
+        }
+      }, 300);
+      return () => clearTimeout(delayDebounceFn);
+    } else {
+      setSearchResults([]);
+    }
+  }, [email]);
 
   const loadRequests = async () => {
     setIsLoading(true);
@@ -36,6 +54,11 @@ const FileRequestPage = () => {
     }
   };
 
+  const handleSelectUser = (user) => {
+    setEmail(user.email);
+    setSearchResults([]);
+  };
+
   const handleRequest = async (e) => {
     e.preventDefault();
     if (!email) return;
@@ -46,6 +69,7 @@ const FileRequestPage = () => {
       setRequests([newReq, ...requests]);
       setEmail('');
       setFileNote('');
+      setSearchResults([]);
       showToast(`Secure request generated and sent to ${email}`, "success");
     } catch (error) {
       if (error.response?.status === 404) {
@@ -121,7 +145,7 @@ const FileRequestPage = () => {
           </div>
 
           <form onSubmit={handleRequest} className="space-y-6">
-            <div>
+            <div className="relative">
               <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Recipient Email</label>
               <input 
                 type="email" 
@@ -131,6 +155,24 @@ const FileRequestPage = () => {
                 placeholder="registered.user@nexus.com"
                 className="w-full bg-gray-50 dark:bg-gray-700 border-none rounded-2xl p-4 text-sm focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
               />
+
+              {searchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden">
+                  {searchResults.map(user => (
+                    <div
+                      key={user.id}
+                      className="w-full px-5 py-3 text-left hover:bg-gray-50 dark:hover:bg-white/5 flex items-center justify-between group transition-colors cursor-pointer"
+                      onClick={() => handleSelectUser(user)}
+                    >
+                      <div>
+                        <p className="text-xs font-bold text-gray-800 dark:text-white">{user.full_name}</p>
+                        <p className="text-[9px] text-gray-400 font-medium">{user.email}</p>
+                      </div>
+                      <i className="fas fa-plus text-[10px] text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">What do you need?</label>

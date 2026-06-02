@@ -10,6 +10,7 @@ import PendingUploadsModal from '../modals/PendingUploadsModal';
 import { uploadFiles } from '../../services/fileService';
 import chunkedUploadService from '../../services/chunkedUploadService';
 import DeleteModal from '../modals/DeleteModal';
+import { parseError } from '../../utils/errorUtils';
 
 const SidebarLink = ({ to, icon, label }) => (
   <NavLink
@@ -154,10 +155,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       }
 
       if (failures.length > 0) {
-        const firstError = failures[0].error;
-        let errorMessage = typeof firstError === 'string' 
-          ? firstError 
-          : (firstError.error || firstError.detail || `${failures.length} file(s) failed to upload.`);
+        let errorMessage = parseError(failures[0].error);
         
         if (errorMessage.includes('Storage limit exceeded')) {
           errorMessage = "Vault Storage Full! Please clear your trash or upgrade to continue.";
@@ -238,7 +236,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               <div className="border-b border-gray-100 dark:border-gray-800 mx-3 mb-2"></div>
 
               <div onClick={() => window.innerWidth < 1024 && onClose()}>
-                <SidebarLink to="/assets" icon="fa-folder-open" label="File Explorer" />
+                <SidebarLink to="/assets" icon="fa-folder" label="Assets" />
               </div>
               <div onClick={() => window.innerWidth < 1024 && onClose()}>
                 <SidebarLink to="/recents" icon="fa-history" label="Recent" />

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import FolderCard from '../../components/elements/FolderCard';
 import ViewToggle from '../../components/common/ViewToggle'; 
 import { useToast } from '../../components/common/ToastContent';
 import { fetchFolders, createFolder, renameFolder, deleteFolder } from '../../services/folderService';
-
 
 const FileExplorer = () => {
   const { showToast } = useToast();
@@ -17,6 +17,12 @@ const FileExplorer = () => {
 
   const [folders, setFolders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const itemsPerPage = 8; // Matches backend StandardPagination
 
   // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -27,21 +33,37 @@ const FileExplorer = () => {
   const [editingFolder, setEditingFolder] = useState(null); // Stores {id, name}
 
   // Fetch folders from API
+  const loadFolders = useCallback(async (page = 1, search = "") => {
+    setIsLoading(true);
+    try {
+      const data = await fetchFolders(page, search);
+      setFolders(data.folders || []);
+      setTotalCount(data.count || 0);
+    } catch (error) {
+      console.error('Failed to load folders:', error);
+      showToast("Failed to load your folders. Please try again later.", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [showToast]);
+
+  const lastSearchRef = useRef(searchQuery);
+
   useEffect(() => {
-    const loadFolders = async () => {
-      setIsLoading(true);
-      try {
-        const data = await fetchFolders();
-        setFolders(data.folders || []);
-      } catch (error) {
-        console.error('Failed to load folders:', error);
-        showToast("Failed to load your folders. Please try again later.", "error");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadFolders();
-  }, []);
+    const isSearchChange = lastSearchRef.current !== searchQuery;
+    
+    if (isSearchChange) {
+      lastSearchRef.current = searchQuery;
+      setCurrentPage(1);
+      
+      const timer = setTimeout(() => {
+        loadFolders(1, searchQuery);
+      }, 350);
+      return () => clearTimeout(timer);
+    } else {
+      loadFolders(currentPage, searchQuery);
+    }
+  }, [currentPage, searchQuery, loadFolders]);
 
   const handleCreateFolder = async () => {
     const trimmedName = newFolderName.trim();
@@ -54,11 +76,13 @@ const FileExplorer = () => {
     }
 
     try {
-      const created = await createFolder(trimmedName);
-      setFolders(prev => [...prev, created]);
+      await createFolder(trimmedName);
       setIsCreateModalOpen(false);
       setNewFolderName("");
       showToast(`Folder "${trimmedName}" created successfully!`, "success");
+      // Re-fetch folders to maintain consistent pagination (e.g. push excess to next page)
+      loadFolders(1, searchQuery);
+      setCurrentPage(1);
     } catch (error) {
       showToast("Failed to create folder.", "error");
     }
@@ -95,29 +119,54 @@ const FileExplorer = () => {
   const handleDelete = async (id, name) => {
     try {
       await deleteFolder(id);
-      setFolders(prev => prev.filter(f => f.id !== id));
       showToast(`Deleted ${name}`, "success");
+      
+      // If we're on a page > 1 and it was the only item, go back 1 page
+      if (currentPage > 1 && folders.length === 1) {
+        setCurrentPage(prev => prev - 1);
+      } else {
+        // Re-fetch to pull in the next item from the next page (if any)
+        loadFolders(currentPage, searchQuery);
+      }
     } catch (error) {
       showToast(`Failed to delete ${name}.`, "error");
     }
   };
 
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+
   return (
     <main className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
       <div className="flex items-center space-x-4 mb-8">
         <button onClick={() => window.history.back()} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-400 hover:text-indigo-600 transition shadow-sm">
-          <i className="fas fa-arrow-left"></i>
+          <i className="fas fa-arrow-left text-sm"></i>
         </button>
-        <nav className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
-          <span className="text-gray-800 dark:text-gray-200">File Explorer</span>
-        </nav>
+        <div className="flex items-center space-x-2 text-sm text-gray-400 font-medium">
+          <Link to="/dashboard" className="hover:text-indigo-600 transition">Dashboard</Link>
+          <i className="fas fa-chevron-right text-[10px] opacity-30"></i>
+          <span className="text-gray-800 dark:text-gray-200">Assets Explorer</span>
+        </div>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Assets</h1>
-          <p className="text-gray-500 dark:text-gray-400 font-medium">Organise your files.</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Vault Assets</h1>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">Managing {totalCount} secure collections.</p>
         </div>
+
+        <div className="flex flex-1 max-w-md relative group">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <i className="fas fa-search text-gray-400 group-focus-within:text-indigo-500 transition-colors text-xs"></i>
+          </div>
+          <input 
+            type="text" 
+            placeholder="Search assets..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-white dark:bg-gray-800 border-none rounded-2xl py-3 pl-10 pr-4 text-sm font-semibold text-gray-700 dark:text-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder:text-gray-400"
+          />
+        </div>
+
         <div className="flex items-center space-x-3">
           <button 
             onClick={() => setIsCreateModalOpen(true)}
@@ -135,26 +184,65 @@ const FileExplorer = () => {
           <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Synchronizing Assets...</p>
         </div>
       ) : folders.length > 0 ? (
-        <div className={view === 'grid' 
-          ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mb-12" 
-          : "flex flex-col gap-4 mb-12"
-        }>
-          {folders.map(folder => (
-            <FolderCard 
-              key={folder.id}
-              id={folder.id}
-              name={folder.name}
-              fileCount={folder.filesCount}
-              size={formatFileSize(folder.size)}
-              colorClass={folder.color}
-              view={view}
-              onRename={() => {
-                setEditingFolder({ id: folder.id, name: folder.name, originalName: folder.name });
-                setIsRenameModalOpen(true);
-              }}
-              onDelete={() => handleDelete(folder.id, folder.name)}
-            />
-          ))}
+        <>
+          <div className={view === 'grid' 
+            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 mb-8" 
+            : "flex flex-col gap-4 mb-8"
+          }>
+            {folders.map(folder => (
+              <FolderCard 
+                key={folder.id}
+                id={folder.id}
+                name={folder.name}
+                fileCount={folder.filesCount}
+                size={formatFileSize(folder.size)}
+                colorClass={folder.color}
+                view={view}
+                onRename={() => {
+                  setEditingFolder({ id: folder.id, name: folder.name, originalName: folder.name });
+                  setIsRenameModalOpen(true);
+                }}
+                onDelete={() => handleDelete(folder.id, folder.name)}
+              />
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm mb-12">
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
+                Showing {folders.length} of {totalCount} assets
+              </p>
+              <div className="flex items-center space-x-2">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-400 hover:text-indigo-600 disabled:opacity-20 transition"
+                >
+                  <i className="fas fa-chevron-left text-xs"></i>
+                </button>
+                <div className="flex items-center border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-2 bg-gray-50/50 dark:bg-gray-900/50">
+                   <span className="text-xs font-black text-indigo-600 dark:text-indigo-400">{currentPage}</span>
+                   <span className="text-[10px] font-bold text-gray-400 mx-2 uppercase tracking-tight">of</span>
+                   <span className="text-xs font-black text-gray-800 dark:text-gray-200">{totalPages}</span>
+                </div>
+                <button 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-400 hover:text-indigo-600 disabled:opacity-20 transition"
+                >
+                  <i className="fas fa-chevron-right text-xs"></i>
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : searchQuery ? (
+        <div className="py-24 text-center">
+           <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+            <i className="fas fa-search text-2xl"></i>
+          </div>
+          <p className="text-gray-500 font-bold">No folders found matching "{searchQuery}"</p>
+          <button onClick={() => setSearchQuery("")} className="text-indigo-500 text-xs font-black uppercase mt-4 hover:underline">Clear Search</button>
         </div>
       ) : (
         <div className="py-24 text-center bg-white dark:bg-gray-800/50 rounded-[2.5rem] border-2 border-dashed border-gray-100 dark:border-gray-700 mx-auto">

@@ -5,6 +5,7 @@ import { getPublicShareUrl } from '../../services/shareService';
 import { useToast } from '../../components/common/ToastContent';
 import apiClient from '../../api/apiClient';
 import { formatDateTime } from '../../utils/dateUtils';
+import { getFileConfig } from '../../utils/fileUtils';
 
 const SharedFileView = () => {
   const { shareId } = useParams();
@@ -34,10 +35,10 @@ const SharedFileView = () => {
         const downloadCount = parseInt(response.headers['x-download-count'] || 0);
 
         const hasBrowserPreview = (
-          contentType.startsWith('image/') ||
-          contentType.startsWith('video/') ||
-          contentType.startsWith('audio/') ||
-          contentType === 'application/pdf' ||
+          contentType === 'image' || contentType.startsWith('image/') ||
+          contentType === 'video' || contentType.startsWith('video/') ||
+          contentType === 'audio' || contentType.startsWith('audio/') ||
+          contentType === 'pdf' || contentType === 'application/pdf' ||
           filename.match(/\.(jpg|jpeg|png|gif|webp|mp4|webm|ogg|mp3|wav|m4a|pdf)$/i)
         );
 
@@ -155,11 +156,11 @@ const SharedFileView = () => {
     const mimeType = (fileData.type || '').toLowerCase();
     const fileName = (fileData.name || '').toLowerCase();
     
-    const isImage = mimeType.startsWith('image/') || fileName.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
-    const isPDF = mimeType === 'application/pdf' || fileName.endsWith('.pdf');
-    const isExcel = mimeType.includes('spreadsheet') || mimeType.includes('excel') || fileName.match(/\.(xls|xlsx)$/i);
-    const isVideo = mimeType.startsWith('video/') || fileName.match(/\.(mp4|mpeg|ogg|webm|mov)$/i);
-    const isAudio = mimeType.startsWith('audio/') || mimeType === 'audio/x-m4a' || fileName.match(/\.(mp3|wav|ogg|m4a)$/i);
+    const isImage = mimeType === 'image' || mimeType.startsWith('image/') || fileName.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+    const isPDF = mimeType === 'pdf' || mimeType === 'application/pdf' || fileName.endsWith('.pdf');
+    const isExcel = mimeType === 'excel' || mimeType.includes('spreadsheet') || mimeType.includes('excel') || fileName.match(/\.(xls|xlsx)$/i);
+    const isVideo = mimeType === 'video' || mimeType.startsWith('video/') || fileName.match(/\.(mp4|mpeg|ogg|webm|mov)$/i);
+    const isAudio = mimeType === 'audio' || mimeType.startsWith('audio/') || mimeType === 'audio/x-m4a' || fileName.match(/\.(mp3|wav|ogg|m4a)$/i);
     const previewUrl = fileData.previewUrl;
 
     if (isImage && previewUrl) {
@@ -178,6 +179,8 @@ const SharedFileView = () => {
         <iframe
           src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
           className={`${isModal ? 'w-[90vw] h-[85vh] rounded-3xl' : 'w-full h-full'} border-0`}
+          scrolling="no"
+          style={{ overflow: 'hidden' }}
           title="PDF Preview"
         />
       );
@@ -221,16 +224,38 @@ const SharedFileView = () => {
       );
     }
 
+    // Determine file type key for getFileConfig
+    const typeKey = isPDF ? 'pdf' : isExcel ? 'excel' : isVideo ? 'video' : isAudio ? 'audio' : isImage ? 'image' : 'default';
+    const fileConfig = getFileConfig(typeKey);
+    const typeLabel = isPDF ? 'PDF Document' : isExcel ? 'Spreadsheet' : isVideo ? 'Video File' : isAudio ? 'Audio File' : isImage ? 'Image File' : 'Secure File';
+
     return (
-      <div className={`flex flex-col items-center justify-center p-12 text-center ${isModal ? 'scale-125' : ''}`}>
-        <div className={`rounded-[2rem] flex items-center justify-center mb-4 shadow-2xl
-          ${isModal ? 'w-40 h-40' : 'w-24 h-24'}
-          ${isPDF ? 'bg-rose-500/10 text-rose-500' : isExcel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
-          <i className={`fas ${isPDF ? 'fa-file-pdf' : isExcel ? 'fa-file-excel' : 'fa-file-lines'} ${isModal ? 'text-7xl' : 'text-4xl'}`}></i>
+      <div className={`flex flex-col items-center justify-center w-full h-full p-10 text-center ${isModal ? '' : 'min-h-[300px]'}`}>
+        {/* Large Icon Block */}
+        <div className={`relative flex items-center justify-center rounded-[2rem] shadow-2xl mb-8
+          ${isModal ? 'w-44 h-44' : 'w-32 h-32'}
+          ${fileConfig.bg} dark:bg-white/5`}>
+          <i className={`fas ${fileConfig.icon} ${fileConfig.color} ${isModal ? 'text-8xl' : 'text-5xl'}`}></i>
+          {/* Subtle decorative ring */}
+          <div className={`absolute inset-0 rounded-[2rem] border-2 border-current opacity-10 ${fileConfig.color}`}></div>
         </div>
-        <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
-          {isPDF ? 'PDF Document' : isExcel ? 'Spreadsheet' : isVideo ? 'Video Clip' : isAudio ? 'Audio Stream' : 'Secure File'}
+
+        {/* File Type Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 mb-4">
+          <i className={`fas ${fileConfig.icon} text-[10px] ${fileConfig.color}`}></i>
+          <span className={`text-[10px] font-black uppercase tracking-widest ${fileConfig.color}`}>{typeLabel}</span>
+        </div>
+
+        {/* Filename */}
+        <p className="text-sm font-black text-gray-700 dark:text-gray-300 tracking-tight max-w-[200px] truncate mb-3">
+          {fileData.name}
         </p>
+
+        {/* Preview unavailable notice */}
+        <div className="flex items-center gap-2 text-gray-400">
+          <i className="fas fa-eye-slash text-xs"></i>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Preview Unavailable</span>
+        </div>
       </div>
     );
   };
@@ -339,8 +364,9 @@ const SharedFileView = () => {
       )}
 
       <div className="w-full max-w-4xl bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-gray-100 flex flex-col lg:flex-row animate-in zoom-in duration-500">
-        <div className={`lg:w-[60%] bg-gray-100 relative min-h-[400px] flex items-center justify-center group overflow-hidden
-          ${fileData?.type?.startsWith('video/') ? 'aspect-video' : ''}`}>
+        <div className={`lg:w-[60%] bg-gray-100 relative min-h-[400px] sm:min-h-[500px] lg:min-h-[600px] flex items-center justify-center group overflow-hidden
+          ${(fileData?.type?.startsWith('video/') || fileData?.type === 'video') ? 'aspect-video' : ''}
+          ${(fileData?.type === 'pdf' || fileData?.type === 'application/pdf' || fileData?.name?.toLowerCase().endsWith('.pdf')) ? 'w-full' : ''}`}>
           {renderFilePreview()}
           <button onClick={() => setIsEnlarged(true)} className="absolute bottom-8 right-8 w-14 h-14 bg-white/80 backdrop-blur-md rounded-2xl flex items-center justify-center text-gray-700 shadow-xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:scale-110 border border-gray-200/60">
             <i className="fas fa-expand-alt text-xl"></i>
@@ -348,51 +374,98 @@ const SharedFileView = () => {
         </div>
 
         <div className="lg:w-[40%] p-8 md:p-10 flex flex-col justify-between bg-white">
+          {/* Header */}
           <div>
-            <div className="mb-10 text-center lg:text-left">
-              <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] block mb-2">Secure Link Active</span>
-              <h1 className="text-2xl font-black text-gray-900 leading-tight break-words tracking-tight">{fileData.name}</h1>
-            </div>
-            <div className="space-y-4 mb-10">
-              <div className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                <span className="font-bold text-gray-400 uppercase text-[10px]">Usage Tracked</span>
-                <span className="font-black text-gray-800 uppercase text-xs">
-                   {fileData.downloadLimit > 0 ? `${fileData.downloadCount}/${fileData.downloadLimit} DL` : fileData.downloadLimit === 0 ? 'Preview Only' : 'Unlimited'}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-2.5">
+                <i className="fa-brands fa-cloudversify text-2xl text-indigo-600"></i>
+                <span className="text-xs font-black text-gray-400 uppercase tracking-widest">NexusShare</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                 </span>
-              </div>
-              <div className="flex justify-between items-center bg-rose-50 p-4 rounded-2xl border border-rose-100">
-                <span className="font-bold text-rose-500 uppercase text-[10px]">Expires On</span>
-                <span className="font-black text-rose-600 tracking-tight text-xs">{fileData.expiresIn}</span>
+                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Live</span>
               </div>
             </div>
+
+            {/* File name */}
+            <div className="mb-8 pb-8 border-b border-gray-100">
+              <p className="text-[9px] font-black text-indigo-500 uppercase tracking-[0.3em] mb-2">Secure Asset</p>
+              <h1 className="text-xl font-black text-gray-900 leading-tight break-all tracking-tight">{fileData.name}</h1>
+              <p className="text-[10px] font-bold text-gray-400 mt-1.5">{fileData.size}</p>
+            </div>
+
+            {/* Stats */}
+            <div className="space-y-3 mb-8">
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                  <i className="fas fa-arrow-down-to-line text-xs"></i>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Downloads</p>
+                  <p className="text-xs font-black text-gray-800 uppercase tracking-tight mt-0.5">
+                    {fileData.downloadLimit > 0
+                      ? `${fileData.downloadCount} of ${fileData.downloadLimit} used`
+                      : fileData.downloadLimit === 0
+                      ? 'Preview Only'
+                      : 'Unlimited Access'}
+                  </p>
+                </div>
+                {fileData.downloadLimit > 0 && (
+                  <div className="w-16 shrink-0">
+                    <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-indigo-500 rounded-full transition-all"
+                        style={{ width: `${Math.min((fileData.downloadCount / fileData.downloadLimit) * 100, 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-rose-50/70 border border-rose-100">
+                <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                  <i className="fas fa-hourglass-end text-xs"></i>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Expires</p>
+                  <p className="text-xs font-black text-rose-600 tracking-tight mt-0.5 truncate">{fileData.expiresIn}</p>
+                </div>
+              </div>
+            </div>
+
           </div>
-          <div className="space-y-4">
+
+          {/* CTA */}
+          <div className="space-y-3 mt-8">
             {fileData.downloadLimit !== 0 ? (
               <button
                 onClick={handleDownloadClick}
                 disabled={isLimitReached || isDownloading}
-                className={`w-full py-5 text-white font-black rounded-2xl shadow-xl transition-all flex items-center justify-center space-x-3
+                className={`w-full py-5 text-white font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 text-sm
                   ${isLimitReached
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed grayscale shadow-none'
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
                     : isDownloading
-                    ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 opacity-70 cursor-wait'
-                    : 'bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98]'}`}
+                    ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 opacity-75 cursor-wait'
+                    : 'bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-[1.02] active:scale-[0.98]'}`}
               >
                 {isDownloading
                   ? <><i className="fas fa-spinner animate-spin"></i><span>Downloading...</span></>
                   : isLimitReached
-                  ? <><i className="fas fa-lock"></i><span>Download Limit Reached</span></>
+                  ? <><i className="fas fa-lock"></i><span>Limit Reached</span></>
                   : <><i className="fas fa-download"></i><span>Download File</span></>}
               </button>
             ) : (
-              <div className="w-full py-5 bg-gray-50 text-gray-400 font-black rounded-2xl border border-dashed border-gray-200 flex items-center justify-center space-x-3 cursor-not-allowed">
+              <div className="w-full py-5 bg-gray-50 text-gray-400 font-black rounded-2xl border border-dashed border-gray-200 flex items-center justify-center gap-3 text-sm cursor-not-allowed">
                 <i className="fas fa-eye"></i>
                 <span>Preview Only Mode</span>
               </div>
             )}
-            <button onClick={() => window.location.reload()} className="w-full py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-indigo-600 transition-colors">
-              Destroy Session
-            </button>
+            <p className="text-center text-[9px] font-bold text-gray-300 uppercase tracking-widest">
+              Secured by NexusShare Protocol
+            </p>
           </div>
         </div>
       </div>

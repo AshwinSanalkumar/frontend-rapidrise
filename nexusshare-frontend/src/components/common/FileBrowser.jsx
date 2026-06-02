@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useToast } from '../../components/common/ToastContent';
+import { parseError } from '../../utils/errorUtils';
 import { useLocation, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import GlobalFileDrop from './GlobalFileDrop';
 import { fetchFiles } from '../../services/fileService';

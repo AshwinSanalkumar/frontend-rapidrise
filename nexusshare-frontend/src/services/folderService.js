@@ -30,9 +30,9 @@ export const mapFolderFromApi = (apiFolder) => {
 /**
  * Fetches all folders (assets) for the authenticated user.
  */
-export const fetchFolders = async (page = 1) => {
+export const fetchFolders = async (page = 1, search = "") => {
   const response = await apiClient.get('assets/list/', {
-    params: { page }
+    params: { page, search }
   });
   
   if (response.data.results) {
@@ -44,7 +44,7 @@ export const fetchFolders = async (page = 1) => {
     };
   }
   
-  const foldersArray = Array.isArray(response.data) ? response.data : [];
+  const foldersArray = Array.isArray(response.data.folders || response.data) ? (response.data.folders || response.data) : [];
   return { folders: foldersArray.map(mapFolderFromApi), count: foldersArray.length };
 };
 

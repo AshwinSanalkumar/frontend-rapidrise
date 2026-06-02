@@ -84,7 +84,7 @@ const Dashboard = () => {
   const loadDropzones = async () => {
     try {
       const data = await fetchSentRequests();
-      setDropzones(data.filter(r => r.status === 'pending') || []);
+      setDropzones(data || []);
     } catch (error) { console.error(error); }
   };
 
@@ -272,10 +272,10 @@ const Dashboard = () => {
           <div className="gradient-bg p-6 rounded-[2rem] shadow-xl text-white relative overflow-hidden">
             <div className="relative z-10">
               <h3 className="font-bold text-lg mb-4 flex items-center"><i className="fas fa-shield-alt mr-2"></i> Security Status</h3>
-              <p className="text-indigo-100 text-sm mb-6 leading-relaxed">Default link expiry is active. Links will expire after 5 minutes unless specified.</p>
+              <p className="text-indigo-100 text-sm mb-6 leading-relaxed">Default link expiry is active. Links will expire after 1 Hour unless specified.</p>
               <div className="flex items-center space-x-3 bg-white/20 p-2 rounded-2xl">
                 <i className="far fa-clock"></i>
-                <span className="font-bold text-sm">5 Minute Expiry Policy</span>
+                <span className="font-bold text-sm">1 Hour Expiry Policy</span>
               </div>
             </div>
             <i className="fas fa-fingerprint absolute -right-4 -bottom-4 text-white/10 text-9xl"></i>
@@ -336,24 +336,34 @@ const Dashboard = () => {
             </Link>
           </div>
           <div className="space-y-2 max-h-[100px] overflow-y-auto custom-scrollbar pr-1">
-            {dropzones.slice(0, 5).map(dz => (
-              <div 
-                key={dz.id} 
-                onClick={() => openDropzoneModal(dz)}
-                className="flex items-center justify-between p-3 rounded-[1.5rem] bg-gray-50/50 dark:bg-gray-900/50 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/40 transition-all group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
-                    <i className="fas fa-parachute-box text-xs"></i>
+            {dropzones.slice(0, 5).map(dz => {
+              const statusConfig = {
+                pending: { color: 'amber', icon: 'fa-parachute-box' },
+                fulfilled: { color: 'emerald', icon: 'fa-check-circle' },
+                declined: { color: 'rose', icon: 'fa-times-circle' }
+              }[dz.status] || { color: 'gray', icon: 'fa-clock' };
+
+              return (
+                <div 
+                  key={dz.id} 
+                  onClick={() => openDropzoneModal(dz)}
+                  className="flex items-center justify-between p-3 rounded-[1.5rem] bg-gray-50/50 dark:bg-gray-900/50 border border-transparent hover:border-indigo-100 dark:hover:border-indigo-900/40 transition-all group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-xl bg-${statusConfig.color}-50 dark:bg-${statusConfig.color}-900/30 flex items-center justify-center text-${statusConfig.color}-600 group-hover:scale-110 transition-transform`}>
+                      <i className={`fas ${statusConfig.icon} text-xs`}></i>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black text-gray-800 dark:text-gray-100 truncate max-w-[120px]">{dz.recipient_email}</p>
+                      <p className="text-[8px] text-gray-400 font-bold uppercase truncate max-w-[120px]">{dz.note || 'Secure Request'}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-black text-gray-800 dark:text-gray-100 truncate max-w-[120px]">{dz.recipient_email}</p>
-                    <p className="text-[8px] text-gray-400 font-bold uppercase truncate max-w-[120px]">{dz.note || 'Secure Request'}</p>
-                  </div>
+                  <span className={`text-[8px] font-black text-${statusConfig.color}-500 uppercase bg-${statusConfig.color}-50 dark:bg-${statusConfig.color}-500/10 px-2 py-0.5 rounded-lg whitespace-nowrap`}>
+                    {dz.status}
+                  </span>
                 </div>
-                <span className="text-[8px] font-black text-amber-500 uppercase bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-lg whitespace-nowrap">Pending</span>
-              </div>
-            ))}
+              );
+            })}
             {dropzones.length === 0 && (
               <div className="text-center py-6 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-[2rem]">
                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">No active dropzones</p>

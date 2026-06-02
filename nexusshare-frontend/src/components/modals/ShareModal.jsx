@@ -11,8 +11,8 @@ const ShareModal = ({ isOpen, onClose, file, onSuccess }) => {
   const [currentInput, setCurrentInput] = useState("");
   const [message, setMessage] = useState("");
 
-  const [expiry, setExpiry] = useState("5m");
-  const [customDuration, setCustomDuration] = useState(60);
+  const [expiry, setExpiry] = useState("1h");
+  const [customDuration, setCustomDuration] = useState(1);
   const [downloadLimit, setDownloadLimit] = useState(5);
   const [isPreviewOnly, setIsPreviewOnly] = useState(false);
 
@@ -118,25 +118,31 @@ const ShareModal = ({ isOpen, onClose, file, onSuccess }) => {
 
     const executeShare = async () => {
       try {
-        let duration_minutes = 60;
-        if (expiry === "5m") duration_minutes = 5;
-        else if (expiry === "1h") duration_minutes = 60;
-        else if (expiry === "24h") duration_minutes = 1440;
-        else if (expiry === "custom") duration_minutes = parseInt(customDuration) || 60;
+        let duration_hours = 1;
+        if (expiry === "1h") duration_hours = 1;
+        else if (expiry === "24h") duration_hours = 24;
+        else if (expiry === "custom") {
+          const val = Number(customDuration);
+          if (isNaN(val) || val <= 0) {
+            showToast("Please enter a valid duration (hours)", "error");
+            return;
+          }
+          duration_hours = val;
+        }
 
         if (isBulk) {
           await createBulkShareLink({
             file_ids: file.map(f => f.id),
             emails: finalEmails,
             message,
-            duration_minutes: duration_minutes,
+            duration_hours: duration_hours,
             download_limit: isPreviewOnly ? 0 : parseInt(downloadLimit)
           });
         } else {
           await createShareLink(file.id, {
             emails: finalEmails,
             message,
-            duration_minutes: duration_minutes,
+            duration_hours: duration_hours,
             download_limit: isPreviewOnly ? 0 : parseInt(downloadLimit)
           });
         }
@@ -240,7 +246,6 @@ const ShareModal = ({ isOpen, onClose, file, onSuccess }) => {
                     onChange={(e) => setExpiry(e.target.value)}
                     className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer"
                   >
-                    <option value="5m">5 Minutes</option>
                     <option value="1h">1 Hour</option>
                     <option value="24h">24 Hours</option>
                     <option value="custom">Custom...</option>
@@ -270,11 +275,12 @@ const ShareModal = ({ isOpen, onClose, file, onSuccess }) => {
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                   <input
                     type="number"
-                    min="1"
-                    max="43200"
+                    min="0.1"
+                    step="any"
+                    max="720"
                     value={customDuration}
                     onChange={(e) => setCustomDuration(e.target.value)}
-                    placeholder="Enter custom minutes..."
+                    placeholder="Enter custom hours (e.g. 1.5)..."
                     className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   />
                 </div>

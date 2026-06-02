@@ -35,8 +35,13 @@ const SendFileModal = ({ isOpen, onClose, requestData, onConfirm }) => {
     }
   };
 
+  const handleRemoveFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleFileChange = (e) => {
-      setSelectedFiles(e.target.files);
+      const files = Array.from(e.target.files);
+      setSelectedFiles(prev => [...prev, ...files]);
   };
 
   return (
@@ -70,9 +75,25 @@ const SendFileModal = ({ isOpen, onClose, requestData, onConfirm }) => {
             </div>
             
             {selectedFiles.length > 0 ? (
-                <div className="space-y-1 max-h-24 overflow-y-auto custom-scrollbar px-2">
-                    {Array.from(selectedFiles).map((f, i) => (
-                       <p key={i} className="text-sm font-bold text-gray-700 dark:text-gray-200 truncate">{f.name}</p>
+                <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar px-2 relative z-10">
+                    {selectedFiles.map((f, i) => (
+                       <div key={i} className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                         <div className="flex items-center gap-3 overflow-hidden">
+                           <i className="fas fa-file text-indigo-500 text-xs"></i>
+                           <p className="text-[10px] font-bold text-gray-700 dark:text-gray-200 truncate">{f.name}</p>
+                         </div>
+                         <button 
+                           type="button"
+                           onClick={(e) => {
+                             e.preventDefault();
+                             e.stopPropagation();
+                             handleRemoveFile(i);
+                           }}
+                           className="w-6 h-6 flex items-center justify-center rounded-full text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
+                         >
+                           <i className="fas fa-times text-[10px]"></i>
+                         </button>
+                       </div>
                     ))}
                     <p className="text-[10px] text-emerald-500 uppercase font-black tracking-widest mt-2">{selectedFiles.length} file(s) selected</p>
                 </div>

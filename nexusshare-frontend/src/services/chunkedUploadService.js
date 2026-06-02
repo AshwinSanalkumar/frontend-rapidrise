@@ -1,6 +1,7 @@
 import apiClient from '../api/apiClient';
 
 const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB limit
 
 const pausedStates = new Map();
 const abortControllers = new Map();
@@ -128,6 +129,12 @@ export const chunkedUploadService = {
    */
   uploadFile: async (file, onProgress, customId = null) => {
     const totalSize = file.size;
+
+    // Validate file size before starting the chunked upload process
+    if (totalSize > MAX_FILE_SIZE) {
+      throw new Error(`File size exceeds the maximum limit of 100MB. Current file: ${(totalSize / (1024 * 1024)).toFixed(2)}MB`);
+    }
+
     let currentUploadId = null;
     let startOffset = 0;
     const trackingId = customId || file.name; // Use UI id if provided
